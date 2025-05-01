@@ -77,8 +77,9 @@ fn on_request(bencode: BencodeObject) -> io::Result<u16> {
     match bencode.get_string("t").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Type not found"))? {
         "create" => {
             let record = bencode.get_string("record").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Record not found"))?;
-            let class = DnsClasses::from_str(bencode.get_string("class").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Class not found"))?);
+            let class = DnsClasses::from_str(bencode.get_string("class").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Class not found"))?)?;
 
+            println!("{}  {}", record, class.to_string());
         }
         _ => unreachable!()
     }
