@@ -7,12 +7,14 @@ use std::thread::JoinHandle;
 use rlibbencode::variables::bencode_object::{BencodeObject, PutObject};
 use rlibbencode::variables::inter::bencode_variable::BencodeVariable;
 use rlibdns::messages::inter::dns_classes::DnsClasses;
+use crate::database::sqlite::Database;
 use crate::dns_ext::messages::inter::dns_classes_ext::DnsClassesExt;
 
 const UNIX_RPC_PATH: &str = "/tmp/find9.sock";
 
 pub struct UnixRpc {
     server: Option<UnixDatagram>,
+    database: Option<Database>,
     running: Arc<AtomicBool>
 }
 
@@ -21,6 +23,7 @@ impl UnixRpc {
     pub fn new() -> io::Result<Self> {
         Ok(Self {
             server: None,
+            database: None,
             running: Arc::new(AtomicBool::new(false))
         })
     }
@@ -40,6 +43,7 @@ impl UnixRpc {
 
         Ok(thread::spawn({
             let server = self.server.as_ref().unwrap().try_clone()?;
+            let database = self.database.clone();
             let running = Arc::clone(&self.running);
             move || {
                 let mut buf = [0u8; 65535];
@@ -70,6 +74,10 @@ impl UnixRpc {
 
     pub fn is_running(&self) -> bool {
         self.running.load(Ordering::Relaxed)
+    }
+
+    pub fn set_database(&mut self, database: Database) {
+        self.database = Some(database);
     }
 }
 

@@ -13,12 +13,15 @@ use crate::unix_rpc::UnixRpc;
 //dig @127.0.0.1 -p 6767 net.unet
 
 fn main() -> io::Result<()> {
+    let database = Database::open_or_create("records.db")?;
+
     let mut dns = Dns::new();
     dns.add_fallback(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)), 53));
-    dns.set_database(Database::open_or_create("records.db")?);
+    dns.set_database(database.clone());
     dns.start(6767)?;
 
     let mut unix_rpc = UnixRpc::new()?;
+    unix_rpc.set_database(database.clone());
     unix_rpc.start()?.join().unwrap();
     Ok(())
 }
