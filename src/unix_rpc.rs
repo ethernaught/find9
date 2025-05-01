@@ -79,6 +79,26 @@ fn on_request(bencode: BencodeObject) -> io::Result<u16> {
             let record = bencode.get_string("record").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Record not found"))?;
             let class = DnsClasses::from_str(bencode.get_string("class").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Class not found"))?)?;
 
+            let domain = bencode.get_string("domain").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Domain not found"))?;
+            //let record = bencode.get_string("record").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Record not found"))?;
+
+            let local = bencode.get_number::<u8>("local");
+            let external = bencode.get_number::<u8>("external");
+
+            match record {
+                "a" => {
+                    let address = bencode.get_number::<u32>("address").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "IP Address not found"))?;
+                    let ttl = bencode.get_number::<u32>("ttl").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TTL not found"))?;
+
+                }
+                "aaaa" => {
+                    let address = bencode.get_number::<u128>("address").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "IP Address not found"))?;
+                    let ttl = bencode.get_number::<u32>("ttl").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TTL not found"))?;
+
+                }
+                _ => unreachable!()
+            }
+
             println!("{}  {}", record, class.to_string());
         }
         _ => unreachable!()
