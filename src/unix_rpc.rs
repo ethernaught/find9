@@ -6,6 +6,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread::JoinHandle;
 use rlibbencode::variables::bencode_object::{BencodeObject, PutObject};
 use rlibbencode::variables::inter::bencode_variable::BencodeVariable;
+use rlibdns::messages::inter::dns_classes::DnsClasses;
+use crate::dns_ext::messages::inter::dns_classes_ext::DnsClassesExt;
 
 const UNIX_RPC_PATH: &str = "/tmp/find9.sock";
 
@@ -69,4 +71,17 @@ impl UnixRpc {
     pub fn is_running(&self) -> bool {
         self.running.load(Ordering::Relaxed)
     }
+}
+
+fn on_request(bencode: BencodeObject) -> io::Result<u16> {
+    match bencode.get_string("t")? {
+        "create" => {
+            let record = bencode.get_string("record")?;
+            let class = DnsClasses::from_str(bencode.get_string("class")?)?;
+
+        }
+        _ => unreachable!()
+    }
+
+    Ok(0)
 }

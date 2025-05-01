@@ -1,12 +1,12 @@
 mod database;
 mod rpc;
 mod utils;
+mod dns_ext;
 mod dns;
 mod unix_rpc;
 
 use std::io;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use std::os::unix::net::UnixListener;
 use crate::dns::Dns;
 use crate::unix_rpc::UnixRpc;
 //dig @127.0.0.1 -p 6767 net.unet
