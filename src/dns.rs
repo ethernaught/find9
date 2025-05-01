@@ -17,7 +17,7 @@ use crate::utils::spam_throttle::SpamThrottle;
 pub struct Dns {
     server: Option<UdpSocket>,
     fallback: Vec<SocketAddr>,
-    database: Option<String>,
+    database: Option<Database>,
     running: Arc<AtomicBool>
 }
 
@@ -49,11 +49,6 @@ impl Dns {
             move || {
                 let mut tracker = ResponseTracker::new();
                 let receiver_throttle = SpamThrottle::new();
-
-                let database = match database {
-                    Some(database) => Some(Database::open_or_create(&database).unwrap()),
-                    None => None
-                };
                 let on_response = on_response(database);
 
                 let mut buf = [0u8; 65535];
@@ -128,8 +123,8 @@ impl Dns {
         self.fallback.retain(|&x| x != addr);
     }
 
-    pub fn set_database(&mut self, database: &str) {
-        self.database = Some(database.to_string());
+    pub fn set_database(&mut self, database: Database) {
+        self.database = Some(database);
     }
 }
 

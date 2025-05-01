@@ -7,8 +7,9 @@ use std::io;
 const SQLITE_OPEN_READWRITE: i32 = 0x00000002;
 const SQLITE_OPEN_CREATE: i32 = 0x00000004;
 
+#[derive(Clone)]
 pub struct Database {
-    db: *mut u32
+    db: usize//*mut u32
 }
 
 impl Database {
@@ -31,7 +32,7 @@ impl Database {
         }
 
         Ok(Self {
-            db
+            db: db as usize
         })
     }
 
@@ -46,7 +47,7 @@ impl Database {
             {}
         );", name, column_definitions.join(", "));
 
-        execute_sql(self.db, &create_table);
+        execute_sql(self.db as *mut u32, &create_table);
     }
 
     pub fn insert(&mut self, table: &str, fields: &HashMap<&str, String>) {
@@ -60,7 +61,7 @@ impl Database {
             field_values.join(", ")
         );
 
-        execute_sql(self.db, &sql);
+        execute_sql(self.db as *mut u32, &sql);
     }
 
     pub fn get(&self, table: &str, fields: Option<Vec<&str>>, condition: Option<&str>) -> Vec<HashMap<String, String>> {
@@ -79,7 +80,7 @@ impl Database {
 
         unsafe {
             sqlite3_exec(
-                self.db,
+                self.db as *mut u32,
                 query_cstr.as_ptr(),
                 Some(query_callback),
                 &mut documents as *mut Vec<HashMap<String, String>> as *mut u32,
@@ -91,7 +92,7 @@ impl Database {
     }
 
     pub fn close(&self) {
-        unsafe { sqlite3_close(self.db) };
+        unsafe { sqlite3_close(self.db as *mut u32) };
     }
 }
 
