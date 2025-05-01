@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 rlibdns = { git = "https://github.com/ethernaught/rlibdns" }
+rlibbencode = { git = "https://github.com/sectorrent/rlibbencode" }

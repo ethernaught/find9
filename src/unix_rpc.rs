@@ -4,6 +4,8 @@ use std::path::Path;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread::JoinHandle;
+use rlibbencode::variables::bencode_object::{BencodeObject, PutObject};
+use rlibbencode::variables::inter::bencode_variable::BencodeVariable;
 
 const UNIX_RPC_PATH: &str = "/tmp/find9.sock";
 
@@ -43,7 +45,15 @@ impl UnixRpc {
                 while running.load(Ordering::Relaxed) {
                     match server.recv_from(&mut buf) {
                         Ok((size, src_addr)) => {
-                            println!("Received {} bytes from {:?}", size, src_addr);
+                            if let Ok(bencode) = BencodeObject::decode(&buf[..size]) {
+                                println!("{}", bencode.to_string());
+
+                                let mut bencode = BencodeObject::new();
+                                bencode.put("v", env!("CARGO_PKG_VERSION"));
+                                bencode.put("s", 0);
+
+                                server.send_to_addr(&bencode.encode(), &src_addr).unwrap();
+                            }
                         }
                         Err(_) => {}
                     }
