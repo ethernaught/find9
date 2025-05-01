@@ -13,7 +13,7 @@ dependencies = [
 [[package]]
 name = "rlibbencode"
 version = "0.1.0"
-source = "git+https://github.com/sectorrent/rlibbencode#5a6b1631c64faaf81c625b8b9c7a22fe1f3ec9e3"
+source = "git+https://github.com/sectorrent/rlibbencode#e0957f0f1d1c394107513054986069837e8ffe2e"
 
 [[package]]
 name = "rlibdns"
