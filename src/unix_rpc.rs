@@ -8,7 +8,7 @@ use std::thread::JoinHandle;
 use rlibbencode::variables::bencode_object::{BencodeObject, PutObject};
 use rlibbencode::variables::inter::bencode_variable::BencodeVariable;
 use rlibdns::messages::inter::dns_classes::DnsClasses;
-use crate::database::sqlite::{Database, SqlValue};
+use crate::database::sqlite::Database;
 use crate::dns_ext::messages::inter::dns_classes_ext::DnsClassesExt;
 
 const UNIX_RPC_PATH: &str = "/tmp/find9.sock";
