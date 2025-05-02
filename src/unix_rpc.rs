@@ -54,6 +54,8 @@ impl UnixRpc {
                             if let Ok(bencode) = BencodeObject::decode(&buf[..size]) {
                                 println!("{}", bencode.to_string());
 
+                                let bencode = on_request(bencode);
+
                                 let mut bencode = BencodeObject::new();
                                 bencode.put("v", env!("CARGO_PKG_VERSION"));
                                 bencode.put("s", 0);
@@ -84,24 +86,28 @@ impl UnixRpc {
 fn on_request(bencode: BencodeObject) -> io::Result<u16> {
     match bencode.get_string("t").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Type not found"))? {
         "create" => {
-            let record = bencode.get_string("record").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Record not found"))?;
-            let class = DnsClasses::from_str(bencode.get_string("class").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Class not found"))?)?;
+            println!("{:?}", bencode.get_string("t"));
+            let record = bencode.get_object("q").unwrap().get_string("record").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Record not found"))?;
+            let class = DnsClasses::from_str(bencode.get_object("q").unwrap().get_string("class").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Class not found"))?)?;
 
-            let domain = bencode.get_string("domain").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Domain not found"))?;
+            let domain = bencode.get_object("q").unwrap().get_string("domain").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Domain not found"))?;
             //let record = bencode.get_string("record").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Record not found"))?;
 
-            let local = bencode.get_number::<u8>("local");
-            let external = bencode.get_number::<u8>("external");
+            let local = bencode.get_object("q").unwrap().get_number::<u8>("local");
+            let external = bencode.get_object("q").unwrap().get_number::<u8>("external");
 
             match record {
                 "a" => {
-                    let address = bencode.get_number::<u32>("address").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "IP Address not found"))?;
-                    let ttl = bencode.get_number::<u32>("ttl").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TTL not found"))?;
+                    let address = bencode.get_object("q").unwrap().get_number::<u32>("address").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "IP Address not found"))?;
+                    let ttl = bencode.get_object("q").unwrap().get_number::<u32>("ttl").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TTL not found"))?;
+
+
+                    println!("{} {} {} {} {}", record, class.to_string(), domain.to_string(), address.to_string(), ttl);
 
                 }
                 "aaaa" => {
-                    let address = bencode.get_number::<u128>("address").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "IP Address not found"))?;
-                    let ttl = bencode.get_number::<u32>("ttl").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TTL not found"))?;
+                    let address = bencode.get_object("q").unwrap().get_number::<u128>("address").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "IP Address not found"))?;
+                    let ttl = bencode.get_object("q").unwrap().get_number::<u32>("ttl").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TTL not found"))?;
 
                 }
                 _ => unreachable!()
