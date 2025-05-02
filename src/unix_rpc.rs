@@ -1,4 +1,5 @@
 use std::{fs, io, thread};
+use std::collections::HashMap;
 use std::os::unix::net::UnixDatagram;
 use std::path::Path;
 use std::sync::Arc;
@@ -7,7 +8,7 @@ use std::thread::JoinHandle;
 use rlibbencode::variables::bencode_object::{BencodeObject, PutObject};
 use rlibbencode::variables::inter::bencode_variable::BencodeVariable;
 use rlibdns::messages::inter::dns_classes::DnsClasses;
-use crate::database::sqlite::Database;
+use crate::database::sqlite::{Database, SqlValue};
 use crate::dns_ext::messages::inter::dns_classes_ext::DnsClassesExt;
 
 const UNIX_RPC_PATH: &str = "/tmp/find9.sock";
@@ -43,7 +44,7 @@ impl UnixRpc {
 
         Ok(thread::spawn({
             let server = self.server.as_ref().unwrap().try_clone()?;
-            let database = self.database.clone();
+            let mut database = self.database.clone();
             let running = Arc::clone(&self.running);
             move || {
                 let mut buf = [0u8; 65535];
@@ -54,7 +55,7 @@ impl UnixRpc {
                             if let Ok(bencode) = BencodeObject::decode(&buf[..size]) {
                                 println!("{}", bencode.to_string());
 
-                                let bencode = on_request(bencode);
+                                let bencode = on_request(&mut database.as_mut().unwrap(), bencode);
 
                                 let mut bencode = BencodeObject::new();
                                 bencode.put("v", env!("CARGO_PKG_VERSION"));
@@ -83,7 +84,7 @@ impl UnixRpc {
     }
 }
 
-fn on_request(bencode: BencodeObject) -> io::Result<u16> {
+fn on_request(database: &mut Database, bencode: BencodeObject) -> io::Result<u16> {
     match bencode.get_string("t").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Type not found"))? {
         "create" => {
             println!("{:?}", bencode.get_string("t"));
@@ -100,6 +101,16 @@ fn on_request(bencode: BencodeObject) -> io::Result<u16> {
                 "a" => {
                     let address = bencode.get_object("q").unwrap().get_number::<u32>("address").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "IP Address not found"))?;
                     let ttl = bencode.get_object("q").unwrap().get_number::<u32>("ttl").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TTL not found"))?;
+
+                    let mut row = HashMap::new();
+                    row.insert("class", SqlValue::Uint(class.get_code() as u128));
+                    row.insert("domain", SqlValue::Str(domain.to_string()));
+                    row.insert("ttl", SqlValue::Uint(ttl as u128));
+                    row.insert("address", SqlValue::Uint(address as u128));
+                    row.insert("cache_flush", SqlValue::Str("false".to_string()));
+                    row.insert("network", SqlValue::Int(0));
+
+                    database.insert("a", &row);
 
 
                     println!("{} {} {} {} {}", record, class.to_string(), domain.to_string(), address.to_string(), ttl);
