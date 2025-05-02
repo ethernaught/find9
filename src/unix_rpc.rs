@@ -103,12 +103,12 @@ fn on_request(database: &mut Database, bencode: BencodeObject) -> io::Result<u16
                     let ttl = bencode.get_object("q").unwrap().get_number::<u32>("ttl").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TTL not found"))?;
 
                     let mut row = HashMap::new();
-                    row.insert("class", SqlValue::Uint(class.get_code() as u128));
-                    row.insert("domain", SqlValue::Str(domain.to_string()));
-                    row.insert("ttl", SqlValue::Uint(ttl as u128));
-                    row.insert("address", SqlValue::Uint(address as u128));
-                    row.insert("cache_flush", SqlValue::Str("false".to_string()));
-                    row.insert("network", SqlValue::Int(0));
+                    row.insert("class", class.get_code().into());
+                    row.insert("domain", domain.into());
+                    row.insert("ttl", ttl.into());
+                    row.insert("address", address.into());
+                    row.insert("cache_flush", "false".into());
+                    row.insert("network", 0.into());
 
                     database.insert("a", &row);
 
@@ -120,6 +120,15 @@ fn on_request(database: &mut Database, bencode: BencodeObject) -> io::Result<u16
                     let address = bencode.get_object("q").unwrap().get_number::<u128>("address").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "IP Address not found"))?;
                     let ttl = bencode.get_object("q").unwrap().get_number::<u32>("ttl").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TTL not found"))?;
 
+                    let mut row = HashMap::new();
+                    row.insert("class", class.get_code().into());
+                    row.insert("domain", domain.into());
+                    row.insert("ttl", ttl.into());
+                    row.insert("address", address.into());
+                    row.insert("cache_flush", "false".into());
+                    row.insert("network", 0.into());
+
+                    database.insert("aaaa", &row);
                 }
                 _ => unreachable!()
             }
