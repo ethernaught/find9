@@ -85,11 +85,11 @@ impl UnixRpc {
 }
 
 fn on_request(database: &mut Database, bencode: BencodeObject) -> io::Result<u16> {
-    match bencode.get_string("t").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Type not found"))? {
+    match bencode.get_string("t").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Type not found"))?.as_str() {
         "create" => {
             println!("{:?}", bencode.get_string("t"));
             let record = bencode.get_object("q").unwrap().get_string("record").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Record not found"))?;
-            let class = DnsClasses::from_str(bencode.get_object("q").unwrap().get_string("class").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Class not found"))?)?;
+            let class = DnsClasses::from_str(bencode.get_object("q").unwrap().get_string("class").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Class not found"))?.as_str())?;
 
             let domain = bencode.get_object("q").unwrap().get_string("domain").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Domain not found"))?;
             //let record = bencode.get_string("record").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Record not found"))?;
@@ -97,7 +97,7 @@ fn on_request(database: &mut Database, bencode: BencodeObject) -> io::Result<u16
             let local = bencode.get_object("q").unwrap().get_number::<u8>("local");
             let external = bencode.get_object("q").unwrap().get_number::<u8>("external");
 
-            match record {
+            match record.as_str() {
                 "a" => {
                     let address = bencode.get_object("q").unwrap().get_number::<u32>("address").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "IP Address not found"))?;
                     let ttl = bencode.get_object("q").unwrap().get_number::<u32>("ttl").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TTL not found"))?;
@@ -113,7 +113,7 @@ fn on_request(database: &mut Database, bencode: BencodeObject) -> io::Result<u16
                     database.insert("a", &row);
 
 
-                    println!("{} {} {} {} {}", record, class.to_string(), domain.to_string(), address.to_string(), ttl);
+                    //println!("{} {} {} {} {}", record, class.to_string(), domain.to_string(), address.to_string(), ttl);
 
                 }
                 "aaaa" => {
