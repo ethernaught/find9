@@ -94,8 +94,15 @@ fn on_request(database: &mut Database, bencode: BencodeObject) -> io::Result<u16
             let domain = bencode.get_object("q").unwrap().get_string("domain").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Domain not found"))?;
             //let record = bencode.get_string("record").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Record not found"))?;
 
-            let local = bencode.get_object("q").unwrap().get_number::<u8>("local");
-            let external = bencode.get_object("q").unwrap().get_number::<u8>("external");
+            let local = bencode.get_object("q").unwrap().get_number::<u8>("local").unwrap_or(0);
+            let external = bencode.get_object("q").unwrap().get_number::<u8>("external").unwrap_or(0);
+
+            let network = match (local, external) {
+                (1, 1) | (0, 0) => 1,
+                (0, 1) => 2,
+                (1, 0) => 0,
+                _ => unreachable!()
+            };
 
             match record.as_str() {
                 "a" => {
@@ -108,12 +115,9 @@ fn on_request(database: &mut Database, bencode: BencodeObject) -> io::Result<u16
                     row.insert("ttl", ttl.into());
                     row.insert("address", address.into());
                     row.insert("cache_flush", "false".into());
-                    row.insert("network", 0.into());
+                    row.insert("network", network.into());
 
                     database.insert("a", &row);
-
-
-                    //println!("{} {} {} {} {}", record, class.to_string(), domain.to_string(), address.to_string(), ttl);
 
                 }
                 "aaaa" => {
@@ -126,7 +130,7 @@ fn on_request(database: &mut Database, bencode: BencodeObject) -> io::Result<u16
                     row.insert("ttl", ttl.into());
                     row.insert("address", address.into());
                     row.insert("cache_flush", "false".into());
-                    row.insert("network", 0.into());
+                    row.insert("network", network.into());
 
                     database.insert("aaaa", &row);
                 }
