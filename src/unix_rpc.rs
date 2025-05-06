@@ -5,8 +5,10 @@ use std::path::Path;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread::JoinHandle;
-use rlibbencode::variables::bencode_object::{BencodeObject, PutObject};
-use rlibbencode::variables::inter::bencode_variable::BencodeVariable;
+use rlibbencode::variables::bencode_bytes::BencodeBytes;
+use rlibbencode::variables::bencode_number::BencodeNumber;
+use rlibbencode::variables::bencode_object::{BencodeObject, GetObject, PutObject};
+use rlibbencode::variables::inter::bencode_variable::{BencodeVariable, FromBencode, ToBencode};
 use rlibdns::messages::inter::dns_classes::DnsClasses;
 use crate::database::sqlite::Database;
 use crate::dns_ext::messages::inter::dns_classes_ext::DnsClassesExt;
@@ -52,8 +54,8 @@ impl UnixRpc {
                 while running.load(Ordering::Relaxed) {
                     match server.recv_from(&mut buf) {
                         Ok((size, src_addr)) => {
-                            if let Ok(bencode) = BencodeObject::decode(&buf[..size]) {
-                                println!("{}", bencode.to_string());
+                            if let Ok(bencode) = BencodeObject::from_bencode(&buf[..size]) {
+                                //println!("{:?}", bencode);
 
                                 let bencode = on_request(&mut database.as_mut().unwrap(), bencode);
 
@@ -61,7 +63,7 @@ impl UnixRpc {
                                 bencode.put("v", env!("CARGO_PKG_VERSION"));
                                 bencode.put("s", 0);
 
-                                server.send_to_addr(&bencode.encode(), &src_addr).unwrap();
+                                server.send_to_addr(&bencode.to_bencode(), &src_addr).unwrap();
                             }
                         }
                         Err(_) => {}
@@ -85,29 +87,33 @@ impl UnixRpc {
 }
 
 fn on_request(database: &mut Database, bencode: BencodeObject) -> io::Result<u16> {
-    match bencode.get_string("t").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Type not found"))?.as_str() {
+    match bencode.get::<BencodeBytes>("t").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Type not found"))?.as_str() {
         "create" => {
-            println!("{:?}", bencode.get_string("t"));
-            let record = bencode.get_object("q").unwrap().get_string("record").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Record not found"))?;
-            let class = DnsClasses::from_str(bencode.get_object("q").unwrap().get_string("class").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Class not found"))?.as_str())?;
+            let record = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("record").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Record not found"))?.to_string();
+            let class = DnsClasses::from_str(bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("class").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Class not found"))?.as_str())?;
 
-            let domain = bencode.get_object("q").unwrap().get_string("domain").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Domain not found"))?;
-            //let record = bencode.get_string("record").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Record not found"))?;
+            let domain = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("domain").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Domain not found"))?.to_string();
+            //let record = bencode.get_cast::<String>("record").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Record not found"))?;
 
-            let local = bencode.get_object("q").unwrap().get_number::<u8>("local").unwrap_or(0);
-            let external = bencode.get_object("q").unwrap().get_number::<u8>("external").unwrap_or(0);
+            let local = match bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("local") {
+                Some(b) => b.parse::<u8>().unwrap() != 0,
+                None => false
+            };
+            let external = match bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("external") {
+                Some(b) => b.parse::<u8>().unwrap() != 0,
+                None => false
+            };
 
             let network = match (local, external) {
-                (1, 1) | (0, 0) => 1,
-                (0, 1) => 2,
-                (1, 0) => 0,
-                _ => unreachable!()
+                (true, true) | (false, false) => 1,
+                (false, true) => 2,
+                (true, false) => 0
             };
 
             match record.as_str() {
                 "a" => {
-                    let address = bencode.get_object("q").unwrap().get_number::<u32>("address").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "IP Address not found"))?;
-                    let ttl = bencode.get_object("q").unwrap().get_number::<u32>("ttl").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TTL not found"))?;
+                    let address = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("address").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "IP Address not found"))?.parse::<u32>().unwrap();
+                    let ttl = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("ttl").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TTL not found"))?.parse::<u32>().unwrap();
 
                     let mut row = HashMap::new();
                     row.insert("class", class.get_code().into());
@@ -121,8 +127,8 @@ fn on_request(database: &mut Database, bencode: BencodeObject) -> io::Result<u16
 
                 }
                 "aaaa" => {
-                    let address = bencode.get_object("q").unwrap().get_number::<u128>("address").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "IP Address not found"))?;
-                    let ttl = bencode.get_object("q").unwrap().get_number::<u32>("ttl").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TTL not found"))?;
+                    let address = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("address").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "IP Address not found"))?.parse::<u128>().unwrap();
+                    let ttl = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("ttl").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TTL not found"))?.parse::<u32>().unwrap();
 
                     let mut row = HashMap::new();
                     row.insert("class", class.get_code().into());
