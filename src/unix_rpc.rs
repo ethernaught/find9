@@ -92,8 +92,8 @@ fn on_request(database: &mut Database, bencode: BencodeObject) -> io::Result<u16
             let record = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("record").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Record not found"))?.to_string();
             let class = DnsClasses::from_str(bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("class").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Class not found"))?.as_str())?;
 
-            let domain = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("domain").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Domain not found"))?.to_string();
-            //let record = bencode.get_cast::<String>("record").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Record not found"))?;
+            let name = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("name").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Name not found"))?.to_string();
+            let ttl = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("ttl").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TTL not found"))?.parse::<u32>().unwrap();
 
             let local = match bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("local") {
                 Some(b) => b.parse::<u8>().unwrap() != 0,
@@ -110,40 +110,48 @@ fn on_request(database: &mut Database, bencode: BencodeObject) -> io::Result<u16
                 (true, false) => 0
             };
 
-            match record.as_str() {
+            let record = match record.as_str() {
                 "a" => {
                     let address = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("address").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "IP Address not found"))?.parse::<u32>().unwrap();
-                    let ttl = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("ttl").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TTL not found"))?.parse::<u32>().unwrap();
 
                     let mut row = HashMap::new();
+                    row.insert("type", "a".into());
                     row.insert("class", class.get_code().into());
-                    row.insert("domain", domain.into());
+                    row.insert("name", name.into());
                     row.insert("ttl", ttl.into());
-                    row.insert("address", address.into());
-                    row.insert("cache_flush", "false".into());
+                    row.insert("content", address.into());
                     row.insert("network", network.into());
-
-                    database.insert("a", &row);
-
+                    row
                 }
                 "aaaa" => {
                     let address = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("address").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "IP Address not found"))?.parse::<u128>().unwrap();
-                    let ttl = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("ttl").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TTL not found"))?.parse::<u32>().unwrap();
 
                     let mut row = HashMap::new();
+                    row.insert("type", "aaaa".into());
                     row.insert("class", class.get_code().into());
-                    row.insert("domain", domain.into());
+                    row.insert("name", name.into());
                     row.insert("ttl", ttl.into());
-                    row.insert("address", address.into());
-                    row.insert("cache_flush", "false".into());
+                    row.insert("content", address.into());
                     row.insert("network", network.into());
+                    row
+                }
+                "cname" => {
+                    let domain = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("domain").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Domain not found"))?.to_string();
 
-                    database.insert("aaaa", &row);
+                    let mut row = HashMap::new();
+                    row.insert("type", "cname".into());
+                    row.insert("class", class.get_code().into());
+                    row.insert("name", name.into());
+                    row.insert("ttl", ttl.into());
+                    row.insert("content", domain.into());
+                    row.insert("network", network.into());
+                    row
                 }
                 _ => unreachable!()
-            }
+            };
 
-            println!("{}  {}", record, class.to_string());
+            database.insert("records", &record);
+            //println!("{}  {}", record, class.to_string());
         }
         _ => unreachable!()
     }
