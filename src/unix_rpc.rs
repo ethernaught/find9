@@ -250,6 +250,12 @@ fn on_request(database: &mut Database, bencode: BencodeObject) -> io::Result<u16
                 _ => unreachable!()
             }
         }
+        "get" => {
+
+        }
+        "remove" => {
+
+        }
         _ => unreachable!()
     }
 
