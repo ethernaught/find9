@@ -55,13 +55,19 @@ impl UnixRpc {
                     match server.recv_from(&mut buf) {
                         Ok((size, src_addr)) => {
                             if let Ok(bencode) = BencodeObject::from_bencode(&buf[..size]) {
-                                //println!("{:?}", bencode);
-
-                                let bencode = on_request(&mut database.as_mut().unwrap(), bencode);
+                                let response = on_request(&mut database.as_mut().unwrap(), bencode);
 
                                 let mut bencode = BencodeObject::new();
                                 bencode.put("v", env!("CARGO_PKG_VERSION"));
-                                bencode.put("s", 0);
+                                match response {
+                                    Ok(s) => {
+                                        bencode.put("s", s);
+                                    }
+                                    Err(e) => {
+                                        bencode.put("s", 100);
+                                        bencode.put("m", e.to_string());
+                                    }
+                                }
 
                                 server.send_to_addr(&bencode.to_bencode(), &src_addr).unwrap();
                             }
@@ -187,14 +193,62 @@ fn on_request(database: &mut Database, bencode: BencodeObject) -> io::Result<u16
                     row.insert("name", name.into());
                     row.insert("ttl", ttl.into());
                     row.insert("priority", priority.into());
-                    row.insert("target", server.into());
+                    row.insert("server", server.into());
                     row.insert("network", network.into());
                     database.insert("mx", &row);
                 }
+                "ns" => {
+                    let server = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("server").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Server not found"))?.to_string();
+
+                    let mut row = HashMap::new();
+                    row.insert("class", class.get_code().into());
+                    row.insert("name", name.into());
+                    row.insert("ttl", ttl.into());
+                    row.insert("server", server.into());
+                    row.insert("network", network.into());
+                    database.insert("ns", &row);
+                }
+                "ptr" => {
+                    let domain = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("domain").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Domain not found"))?.to_string();
+
+                    let mut row = HashMap::new();
+                    row.insert("class", class.get_code().into());
+                    row.insert("name", name.into());
+                    row.insert("ttl", ttl.into());
+                    row.insert("domain", domain.into());
+                    row.insert("network", network.into());
+                    database.insert("ptr", &row);
+                }
+                "srv" => {
+                    let priority = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("priority").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Priority not found"))?.parse::<u16>().unwrap();
+                    let weight = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("weight").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Weight not found"))?.parse::<u16>().unwrap();
+                    let port = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("port").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Port not found"))?.parse::<u16>().unwrap();
+                    let target = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("target").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Target not found"))?.to_string();
+
+                    let mut row = HashMap::new();
+                    row.insert("class", class.get_code().into());
+                    row.insert("name", name.into());
+                    row.insert("ttl", ttl.into());
+                    row.insert("priority", priority.into());
+                    row.insert("weight", weight.into());
+                    row.insert("port", port.into());
+                    row.insert("target", target.into());
+                    row.insert("network", network.into());
+                    database.insert("srv", &row);
+                }
+                "txt" => {
+                    let content = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("content").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Content not found"))?.to_string();
+
+                    let mut row = HashMap::new();
+                    row.insert("class", class.get_code().into());
+                    row.insert("name", name.into());
+                    row.insert("ttl", ttl.into());
+                    row.insert("content", content.into());
+                    row.insert("network", network.into());
+                    database.insert("txt", &row);
+                }
                 _ => unreachable!()
             }
-
-            //println!("{}  {}", record, class.to_string());
         }
         _ => unreachable!()
     }
