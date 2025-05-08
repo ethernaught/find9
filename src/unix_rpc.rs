@@ -170,7 +170,7 @@ fn on_request(database: &mut Database, bencode: BencodeObject) -> io::Result<u16
                     database.insert("dnskey", &row);
                 }
                 "https" => {
-                    let svc_priority = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("svc_priority").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "SVC Priority not found"))?.parse::<u16>().unwrap();
+                    let priority = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("priority").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Priority not found"))?.parse::<u16>().unwrap();
                     let target = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("target").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Target not found"))?.to_string();
                     //let params = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("params").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Params not found"))?.parse::<u8>().unwrap();
 
@@ -178,7 +178,7 @@ fn on_request(database: &mut Database, bencode: BencodeObject) -> io::Result<u16
                     row.insert("class", class.get_code().into());
                     row.insert("name", name.into());
                     row.insert("ttl", ttl.into());
-                    row.insert("svc_priority", svc_priority.into());
+                    row.insert("priority", priority.into());
                     row.insert("target", target.into());
                     //row.insert("params", params.into());
                     row.insert("network", network.into());
