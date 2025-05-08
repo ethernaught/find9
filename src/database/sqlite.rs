@@ -37,7 +37,7 @@ impl Database {
         })
     }
 
-    pub fn create_table(&mut self, name: &str, columns: &HashMap<String, String>) {
+    pub fn create_table(&self, name: &str, columns: &HashMap<String, String>) {
         let mut column_definitions: Vec<String> = Vec::new();
 
         for (column_name, column_type) in columns {
@@ -51,7 +51,7 @@ impl Database {
         unsafe { sqlite3_exec(self.db as *mut u32, CString::new(&*create_table).unwrap().as_ptr(), None, ptr::null_mut(), ptr::null_mut()) };
     }
 
-    pub fn insert(&mut self, table: &str, fields: &HashMap<&str, SqlValue>) {
+    pub fn insert(&self, table: &str, fields: &HashMap<&str, SqlValue>) {
         let field_names: Vec<&str> = fields.keys().cloned().collect();
         let field_values: Vec<String> = fields.values().map(|v| match v {
             SqlValue::Int(i) => i.to_string(),
