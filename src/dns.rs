@@ -148,7 +148,7 @@ fn on_response(database: Option<Database>) -> impl Fn(&MessageBase) -> io::Resul
                 Types::A => {
                     let records = database.as_ref().unwrap().get(
                         "a",
-                        Some(vec!["class", "ttl", "address", "cache_flush"]),
+                        Some(vec!["class", "ttl", "address", "network"]),
                         Some(format!("class = {} AND domain = '{}' AND {}", query.get_dns_class().get_code(), query.get_query().unwrap().to_lowercase(), is_bogon).as_str())
                     );
 
@@ -159,15 +159,14 @@ fn on_response(database: Option<Database>) -> impl Fn(&MessageBase) -> io::Resul
                     for record in records {
                         let ttl = record.get("ttl").unwrap().parse::<u32>().unwrap();
                         let address = record.get("address").unwrap().parse::<u32>().unwrap();
-                        let cache_flush = record.get("cache_flush").unwrap().parse::<bool>().unwrap();
 
-                        response.add_answers(query.get_query().unwrap(), Box::new(ARecord::new(query.get_dns_class(), cache_flush, ttl, Ipv4Addr::from(address))));
+                        response.add_answers(query.get_query().unwrap(), Box::new(ARecord::new(query.get_dns_class(), false, ttl, Ipv4Addr::from(address))));
                     }
                 }
                 Types::Aaaa => {
                     let records = database.as_ref().unwrap().get(
                         "aaaa",
-                        Some(vec!["class", "ttl", "address", "cache_flush", "network"]),
+                        Some(vec!["class", "ttl", "address", "network"]),
                         Some(format!("class = {} AND domain = '{}' AND {}", query.get_dns_class().get_code(), query.get_query().unwrap().to_lowercase(), is_bogon).as_str())
                     );
 
@@ -178,9 +177,8 @@ fn on_response(database: Option<Database>) -> impl Fn(&MessageBase) -> io::Resul
                     for record in records {
                         let ttl = record.get("ttl").unwrap().parse::<u32>().unwrap();
                         let address = record.get("address").unwrap().parse::<u128>().unwrap();
-                        let cache_flush = record.get("cache_flush").unwrap().parse::<bool>().unwrap();
 
-                        response.add_answers(query.get_query().unwrap(), Box::new(AAAARecord::new(query.get_dns_class(), cache_flush, ttl, Ipv6Addr::from(address))));
+                        response.add_answers(query.get_query().unwrap(), Box::new(AAAARecord::new(query.get_dns_class(), false, ttl, Ipv6Addr::from(address))));
                     }
                 }
                 /*
