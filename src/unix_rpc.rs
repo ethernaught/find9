@@ -268,7 +268,7 @@ fn on_create_record(database: &Database, bencode: &BencodeObject) -> io::Result<
     Ok(0)
 }
 
-fn on_get_record(database: &Database, bencode: &BencodeObject) {
+fn on_get_record(database: &Database, bencode: &BencodeObject) -> io::Result<u16> {
     let record = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("record").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Record not found"))?.to_string();
     let class = DnsClasses::from_str(bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("class").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Class not found"))?.as_str())?;
 
@@ -351,7 +351,9 @@ fn on_get_record(database: &Database, bencode: &BencodeObject) {
     //    Some(vec!["class", "ttl", "address", "network"]),
     //    Some(format!("class = {} AND domain = '{}' AND {}", query.get_dns_class().get_code(), query.get_query().unwrap().to_lowercase(), is_bogon).as_str())
     //);
+    Ok(0)
 }
 
-fn on_remove_record(database: &Database, bencode: &BencodeObject) {
+fn on_remove_record(database: &Database, bencode: &BencodeObject) -> io::Result<u16> {
+    Ok(0)
 }
