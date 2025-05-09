@@ -182,6 +182,7 @@ pub fn get_a_records(database: &Database, query: &DnsQuery, response: &mut Messa
         Some(vec!["class", "ttl", "target", "network"]),
         Some(format!("class = {} AND name = '{}' AND {}", query.get_dns_class().get_code(), query.get_query().unwrap().to_lowercase(), is_bogon).as_str())
     );
+    response.add_query(query.clone());
 
     if !records.is_empty() {
         println!("CNAME RECORD");
