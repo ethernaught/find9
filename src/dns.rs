@@ -1,10 +1,11 @@
 use std::{io, thread};
+use std::collections::HashMap;
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr, UdpSocket};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread::JoinHandle;
 use std::time::{SystemTime, UNIX_EPOCH};
-use rlibdns::messages::inter::types::Types;
+use rlibdns::messages::inter::record_types::RecordTypes;
 use rlibdns::messages::message_base::MessageBase;
 use rlibdns::records::a_record::ARecord;
 use rlibdns::records::aaaa_record::AAAARecord;
@@ -21,7 +22,10 @@ pub struct Dns {
     server: Option<UdpSocket>,
     fallback: Vec<SocketAddr>,
     database: Option<Database>,
-    running: Arc<AtomicBool>
+    running: Arc<AtomicBool>,
+    request_mapping: HashMap<String, Vec<Box<dyn Fn(&mut MessageBase) + Send>>>,
+    sender_throttle: SpamThrottle,
+    receiver_throttle: SpamThrottle
 }
 
 impl Dns {
@@ -31,7 +35,10 @@ impl Dns {
             server: None,
             fallback: Vec::new(),
             database: None,
-            running: Arc::new(AtomicBool::new(false))
+            running: Arc::new(AtomicBool::new(false)),
+            request_mapping: HashMap::new(),
+            sender_throttle: SpamThrottle::new(),
+            receiver_throttle: SpamThrottle::new()
         }
     }
 
@@ -129,6 +136,21 @@ impl Dns {
     pub fn set_database(&mut self, database: Database) {
         self.database = Some(database);
     }
+
+    pub fn register_request_listener<F>(&mut self, callback: F)
+    where
+        F: Fn(&mut MessageBase) + Send + 'static
+    {
+        /*
+        if self.request_mapping.contains_key(&key) {
+            self.request_mapping.get_mut(&key).unwrap().push(Box::new(callback));
+            return;
+        }
+        let mut mapping: Vec<Box<dyn Fn(&mut MessageBase) + Send>> = Vec::new();
+        mapping.push(Box::new(callback));
+        self.request_mapping.insert(key.to_string(), mapping);
+        */
+    }
 }
 
 fn on_response(database: Option<Database>) -> impl Fn(&MessageBase) -> io::Result<MessageBase> {
@@ -148,25 +170,25 @@ fn on_response(database: Option<Database>) -> impl Fn(&MessageBase) -> io::Resul
 
         for query in request.get_queries() {
             match query.get_type() {
-                Types::A => get_a_records(&database.as_ref().unwrap(), &query, &mut response, is_bogon)?,
+                RecordTypes::A => get_a_records(&database.as_ref().unwrap(), &query, &mut response, is_bogon)?,
                 /*
-                Types::Aaaa => {}
-                Types::Ns => {}
-                Types::Cname => {}
-                Types::Soa => {}
-                Types::Ptr => {}
-                Types::Mx => {}
-                Types::Txt => {}
-                Types::Srv => {}
-                Types::Opt => {}
-                Types::Rrsig => {}
-                Types::Nsec => {}
-                Types::DnsKey => {}
-                Types::Https => {}
-                Types::Spf => {}
-                Types::Tsig => {}
-                Types::Any => {}
-                Types::Caa => {}
+                RecordTypes::Aaaa => {}
+                RecordTypes::Ns => {}
+                RecordTypes::Cname => {}
+                RecordTypes::Soa => {}
+                RecordTypes::Ptr => {}
+                RecordTypes::Mx => {}
+                RecordTypes::Txt => {}
+                RecordTypes::Srv => {}
+                RecordTypes::Opt => {}
+                RecordTypes::Rrsig => {}
+                RecordTypes::Nsec => {}
+                RecordTypes::DnsKey => {}
+                RecordTypes::Https => {}
+                RecordTypes::Spf => {}
+                RecordTypes::Tsig => {}
+                RecordTypes::Any => {}
+                RecordTypes::Caa => {}
                 */
                 _ => todo!()
             }
@@ -185,8 +207,6 @@ pub fn get_a_records(database: &Database, query: &DnsQuery, response: &mut Messa
     response.add_query(query.clone());
 
     if !records.is_empty() {
-        println!("CNAME RECORD");
-
         for record in records {
             let ttl = record.get("ttl").unwrap().parse::<u32>().unwrap();
             let target = record.get("target").unwrap().to_string();
@@ -201,8 +221,6 @@ pub fn get_a_records(database: &Database, query: &DnsQuery, response: &mut Messa
             if records.is_empty() {
                 return Err(io::Error::new(io::ErrorKind::Other, "Document not found"));
             }
-
-            println!("CNAME > A RECORD  > {} {}", query.get_query().unwrap(), target);
 
             for record in records {
                 let ttl = record.get("ttl").unwrap().parse::<u32>().unwrap();
@@ -223,7 +241,59 @@ pub fn get_a_records(database: &Database, query: &DnsQuery, response: &mut Messa
             return Err(io::Error::new(io::ErrorKind::Other, "Document not found"));
         }
 
-        println!("A RECORD");
+        for record in records {
+            let ttl = record.get("ttl").unwrap().parse::<u32>().unwrap();
+            let address = record.get("address").unwrap().parse::<u32>().unwrap();
+
+            response.add_answers(query.get_query().unwrap(), Box::new(ARecord::new(query.get_dns_class(), false, ttl, Ipv4Addr::from(address))));
+        }
+    }
+
+    Ok(())
+}
+
+pub fn get_aaaa_records(database: &Database, query: &DnsQuery, response: &mut MessageBase, is_bogon: bool) -> io::Result<()> {
+    let records = database.get(
+        "cname",
+        Some(vec!["class", "ttl", "target", "network"]),
+        Some(format!("class = {} AND name = '{}' AND {}", query.get_dns_class().get_code(), query.get_query().unwrap().to_lowercase(), is_bogon).as_str())
+    );
+    response.add_query(query.clone());
+
+    if !records.is_empty() {
+        for record in records {
+            let ttl = record.get("ttl").unwrap().parse::<u32>().unwrap();
+            let target = record.get("target").unwrap().to_string();
+            response.add_answers(query.get_query().unwrap(), Box::new(CNameRecord::new(query.get_dns_class(), ttl, &target)));
+
+            let records = database.get(
+                "aaaa",
+                Some(vec!["class", "ttl", "address", "network"]),
+                Some(format!("class = {} AND name = '{}' AND {}", query.get_dns_class().get_code(), target, is_bogon).as_str())
+            );
+
+            if records.is_empty() {
+                return Err(io::Error::new(io::ErrorKind::Other, "Document not found"));
+            }
+
+            for record in records {
+                let ttl = record.get("ttl").unwrap().parse::<u32>().unwrap();
+                let address = record.get("address").unwrap().parse::<u32>().unwrap();
+
+                response.add_answers(&target, Box::new(ARecord::new(query.get_dns_class(), false, ttl, Ipv4Addr::from(address))));
+            }
+        }
+
+    } else {
+        let records = database.get(
+            "aaaa",
+            Some(vec!["class", "ttl", "address", "network"]),
+            Some(format!("class = {} AND name = '{}' AND {}", query.get_dns_class().get_code(), query.get_query().unwrap().to_lowercase(), is_bogon).as_str())
+        );
+
+        if records.is_empty() {
+            return Err(io::Error::new(io::ErrorKind::Other, "Document not found"));
+        }
 
         for record in records {
             let ttl = record.get("ttl").unwrap().parse::<u32>().unwrap();
