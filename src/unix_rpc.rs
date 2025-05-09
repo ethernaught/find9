@@ -141,11 +141,11 @@ fn on_create_record(database: &Database, bencode: &BencodeObject) -> io::Result<
 
     let network = {
         let local = match bencode.get::<BencodeNumber>("local") {
-            Some(b) => b.parse::<u8>().unwrap() != 0,
+            Some(b) => b.parse::<u8>()? != 0,
             None => false
         };
         let external = match bencode.get::<BencodeNumber>("external") {
-            Some(b) => b.parse::<u8>().unwrap() != 0,
+            Some(b) => b.parse::<u8>()? != 0,
             None => false
         };
 
