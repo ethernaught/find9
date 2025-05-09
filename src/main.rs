@@ -21,13 +21,13 @@ fn main() -> io::Result<()> {
     let mut dns = Dns::new();
     dns.add_fallback(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)), 53));
     dns.set_database(database.clone());
-    
+
     dns.register_request_listener(RecordTypes::A, |request| {
-        
-        
-        
+
+
+
     });
-    
+
     dns.start(6767)?;
 
     let mut unix_rpc = UnixRpc::new()?;
