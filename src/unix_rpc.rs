@@ -389,6 +389,82 @@ fn on_get_record(database: &Database, bencode: &BencodeObject) -> io::Result<(u1
     }))
 }
 
-fn on_remove_record(database: &Database, bencode: &BencodeObject) -> io::Result<u16> {
-    Ok(0)
+fn on_remove_record(database: &Database, bencode: &BencodeObject) -> io::Result<(u16, Vec<HashMap<String, String>>)> {
+    let record = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("record").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Record not found"))?.to_string();
+    let class = DnsClasses::from_str(bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("class").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Class not found"))?.as_str())?;
+
+    let name = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("name").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Name not found"))?.to_string();
+    //let ttl = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("ttl").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TTL not found"))?.parse::<u32>().unwrap();
+
+    /*
+    let is_bogon = {
+        let local = match bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("local") {
+            Some(b) => b.parse::<u8>().unwrap() != 0,
+            None => false
+        };
+        let external = match bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("external") {
+            Some(b) => b.parse::<u8>().unwrap() != 0,
+            None => false
+        };
+
+        match (local, external) {
+            (true, true) | (false, false) => "",
+            (false, true) => " AND network > 0",
+            (true, false) => " AND network < 2"
+        }
+    };
+    */
+
+    Ok((0, match record.as_str() {
+        "a" => {
+            //let address = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("address").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "IP Address not found"))?.parse::<u32>().unwrap();
+            todo!()
+        }
+        "aaaa" => {
+            //let address = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("address").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "IP Address not found"))?.parse::<u128>().unwrap();
+            todo!()
+        }
+        "cname" => {
+            //let target = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("target").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Target not found"))?.to_string();
+            todo!()
+        }
+        "dnskey" => {
+            //let flags = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("flags").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Flags not found"))?.parse::<u16>().unwrap();
+            //let protocol = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("protocol").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Protocol not found"))?.parse::<u8>().unwrap();
+            //let algorithm = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("algorithm").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Algorithm not found"))?.parse::<u8>().unwrap();
+            //let public_key = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("public_key").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Public Key not found"))?.to_string();
+            todo!()
+        }
+        "https" => {
+            //let priority = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("priority").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Priority not found"))?.parse::<u16>().unwrap();
+            //let target = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("target").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Target not found"))?.to_string();
+            //let params = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("params").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Params not found"))?.parse::<u8>().unwrap();
+            todo!()
+        }
+        "mx" => {
+            //let priority = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("priority").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Priority not found"))?.parse::<u16>().unwrap();
+            //let server = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("server").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Server not found"))?.to_string();
+            todo!()
+        }
+        "ns" => {
+            //let server = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("server").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Server not found"))?.to_string();
+            todo!()
+        }
+        "ptr" => {
+            //let domain = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("domain").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Domain not found"))?.to_string();
+            todo!()
+        }
+        "srv" => {
+            //let priority = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("priority").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Priority not found"))?.parse::<u16>().unwrap();
+            //let weight = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("weight").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Weight not found"))?.parse::<u16>().unwrap();
+            //let port = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("port").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Port not found"))?.parse::<u16>().unwrap();
+            //let target = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("target").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Target not found"))?.to_string();
+            todo!()
+        }
+        "txt" => {
+            //let content = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("content").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Content not found"))?.to_string();
+            todo!()
+        }
+        _ => unreachable!()
+    }))
 }
