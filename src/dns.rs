@@ -23,7 +23,7 @@ pub struct Dns {
     fallback: Vec<SocketAddr>,
     database: Option<Database>,
     running: Arc<AtomicBool>,
-    request_mapping: HashMap<String, Vec<Box<dyn Fn(&mut MessageBase) + Send>>>,
+    request_mapping: HashMap<RecordTypes, Vec<Box<dyn Fn(&mut MessageBase) + Send>>>,
     sender_throttle: SpamThrottle,
     receiver_throttle: SpamThrottle
 }
@@ -137,19 +137,17 @@ impl Dns {
         self.database = Some(database);
     }
 
-    pub fn register_request_listener<F>(&mut self, callback: F)
+    pub fn register_request_listener<F>(&mut self, key: RecordTypes, callback: F)
     where
         F: Fn(&mut MessageBase) + Send + 'static
     {
-        /*
         if self.request_mapping.contains_key(&key) {
             self.request_mapping.get_mut(&key).unwrap().push(Box::new(callback));
             return;
         }
         let mut mapping: Vec<Box<dyn Fn(&mut MessageBase) + Send>> = Vec::new();
         mapping.push(Box::new(callback));
-        self.request_mapping.insert(key.to_string(), mapping);
-        */
+        self.request_mapping.insert(key, mapping);
     }
 }
 
