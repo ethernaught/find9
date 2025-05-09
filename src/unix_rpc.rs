@@ -275,7 +275,7 @@ fn on_get_record(database: &Database, bencode: &BencodeObject) -> io::Result<u16
     let name = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("name").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Name not found"))?.to_string();
     //let ttl = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("ttl").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TTL not found"))?.parse::<u32>().unwrap();
 
-    let network = {
+    let is_bogon = {
         let local = match bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("local") {
             Some(b) => b.parse::<u8>().unwrap() != 0,
             None => false
@@ -286,9 +286,9 @@ fn on_get_record(database: &Database, bencode: &BencodeObject) -> io::Result<u16
         };
 
         match (local, external) {
-            (true, true) | (false, false) => 1,
-            (false, true) => 2,
-            (true, false) => 0
+            (true, true) | (false, false) => "",
+            (false, true) => " AND network > 0",
+            (true, false) => " AND network < 2"
         }
     };
 
@@ -296,6 +296,11 @@ fn on_get_record(database: &Database, bencode: &BencodeObject) -> io::Result<u16
         "a" => {
             //let address = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("address").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "IP Address not found"))?.parse::<u32>().unwrap();
 
+            let records = database.get(
+                "a",
+                Some(vec!["class", "ttl", "address", "network"]),
+                Some(format!("class = {} AND name = '{}'{}", class.get_code(), name, is_bogon).as_str())
+            );
         }
         "aaaa" => {
             //let address = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("address").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "IP Address not found"))?.parse::<u128>().unwrap();
@@ -349,7 +354,7 @@ fn on_get_record(database: &Database, bencode: &BencodeObject) -> io::Result<u16
     //let records = database.as_ref().unwrap().get(
     //    "aaaa",
     //    Some(vec!["class", "ttl", "address", "network"]),
-    //    Some(format!("class = {} AND domain = '{}' AND {}", query.get_dns_class().get_code(), query.get_query().unwrap().to_lowercase(), is_bogon).as_str())
+    //    Some(format!("class = {} AND name = '{}' AND {}", query.get_dns_class().get_code(), query.get_query().unwrap().to_lowercase(), is_bogon).as_str())
     //);
     Ok(0)
 }

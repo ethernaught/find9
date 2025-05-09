@@ -149,7 +149,7 @@ fn on_response(database: Option<Database>) -> impl Fn(&MessageBase) -> io::Resul
                     let records = database.as_ref().unwrap().get(
                         "a",
                         Some(vec!["class", "ttl", "address", "network"]),
-                        Some(format!("class = {} AND domain = '{}' AND {}", query.get_dns_class().get_code(), query.get_query().unwrap().to_lowercase(), is_bogon).as_str())
+                        Some(format!("class = {} AND name = '{}' AND {}", query.get_dns_class().get_code(), query.get_query().unwrap().to_lowercase(), is_bogon).as_str())
                     );
 
                     if records.is_empty() {
@@ -167,7 +167,7 @@ fn on_response(database: Option<Database>) -> impl Fn(&MessageBase) -> io::Resul
                     let records = database.as_ref().unwrap().get(
                         "aaaa",
                         Some(vec!["class", "ttl", "address", "network"]),
-                        Some(format!("class = {} AND domain = '{}' AND {}", query.get_dns_class().get_code(), query.get_query().unwrap().to_lowercase(), is_bogon).as_str())
+                        Some(format!("class = {} AND name = '{}' AND {}", query.get_dns_class().get_code(), query.get_query().unwrap().to_lowercase(), is_bogon).as_str())
                     );
 
                     if records.is_empty() {
