@@ -109,16 +109,7 @@ fn on_request(database: &Database, bencode: BencodeObject) -> io::Result<Bencode
             })
         }
         "get" => {
-            let (status, records) = on_get_record(database, bencode.get::<BencodeObject>("q").unwrap())?;
-
-            let mut r = BencodeArray::new();
-            for record in records {
-                let mut obj = BencodeObject::new();
-                for (key, value) in record {
-                    obj.put(key, value);
-                }
-                r.push(obj);
-            }
+            let r = on_get_record(database, bencode.get::<BencodeObject>("q").unwrap())?;
 
             let v = env!("CARGO_PKG_VERSION");
             bencode!({
@@ -133,14 +124,15 @@ fn on_request(database: &Database, bencode: BencodeObject) -> io::Result<Bencode
             let v = env!("CARGO_PKG_VERSION");
             bencode!({
                 "s": 0,
-                "v": v
+                "v": v,
+                //"r": r
             })
         }
         _ => unreachable!()
     })
 }
 
-fn on_create_record(database: &Database, bencode: &BencodeObject) -> io::Result<u16> {
+fn on_create_record(database: &Database, bencode: &BencodeObject) -> io::Result<()> {
     let record = bencode.get::<BencodeBytes>("record").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Record not found"))?.to_string();
     let class = DnsClasses::from_str(bencode.get::<BencodeBytes>("class").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Class not found"))?.as_str())?;
 
@@ -170,7 +162,7 @@ fn on_create_record(database: &Database, bencode: &BencodeObject) -> io::Result<
 
             let mut row = HashMap::new();
             row.insert("class", class.get_code().into());
-            row.insert("name", name.into());
+            row.insert("name", name.clone().into());
             row.insert("ttl", ttl.into());
             row.insert("address", address.into());
             row.insert("network", network.into());
@@ -296,23 +288,23 @@ fn on_create_record(database: &Database, bencode: &BencodeObject) -> io::Result<
         _ => unreachable!()
     }
 
-    Ok(0)
+    Ok(())
 }
 
-fn on_get_record(database: &Database, bencode: &BencodeObject) -> io::Result<(u16, Vec<HashMap<String, String>>)> {
-    let record = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("record").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Record not found"))?.to_string();
-    let class = DnsClasses::from_str(bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("class").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Class not found"))?.as_str())?;
+fn on_get_record(database: &Database, bencode: &BencodeObject) -> io::Result<BencodeArray> {
+    let record = bencode.get::<BencodeBytes>("record").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Record not found"))?.to_string();
+    let class = DnsClasses::from_str(bencode.get::<BencodeBytes>("class").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Class not found"))?.as_str())?;
 
-    let name = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("name").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Name not found"))?.to_string();
-    //let ttl = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("ttl").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TTL not found"))?.parse::<u32>().unwrap();
+    let name = bencode.get::<BencodeBytes>("name").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Name not found"))?.to_string();
+    //let ttl = bencode.get::<BencodeNumber>("ttl").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TTL not found"))?.parse::<u32>().unwrap();
 
     /*
     let is_bogon = {
-        let local = match bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("local") {
+        let local = match bencode.get::<BencodeNumber>("local") {
             Some(b) => b.parse::<u8>().unwrap() != 0,
             None => false
         };
-        let external = match bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("external") {
+        let external = match bencode.get::<BencodeNumber>("external") {
             Some(b) => b.parse::<u8>().unwrap() != 0,
             None => false
         };
@@ -325,7 +317,7 @@ fn on_get_record(database: &Database, bencode: &BencodeObject) -> io::Result<(u1
     };
     */
 
-    Ok((0, match record.as_str() {
+    let records = match record.as_str() {
         "a" => {
             //let address = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("address").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "IP Address not found"))?.parse::<u32>().unwrap();
 
@@ -386,23 +378,35 @@ fn on_get_record(database: &Database, bencode: &BencodeObject) -> io::Result<(u1
             todo!()
         }
         _ => unreachable!()
-    }))
+    };
+
+    let mut r = BencodeArray::new();
+    for record in records {
+        let mut obj = BencodeObject::new();
+        for (key, value) in record {
+            obj.put(key, value);
+        }
+        //obj.put("record", "a");
+        r.push(obj);
+    }
+
+    Ok(r)
 }
 
 fn on_remove_record(database: &Database, bencode: &BencodeObject) -> io::Result<(u16, Vec<HashMap<String, String>>)> {
-    let record = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("record").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Record not found"))?.to_string();
-    let class = DnsClasses::from_str(bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("class").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Class not found"))?.as_str())?;
+    let record = bencode.get::<BencodeBytes>("record").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Record not found"))?.to_string();
+    let class = DnsClasses::from_str(bencode.get::<BencodeBytes>("class").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Class not found"))?.as_str())?;
 
-    let name = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeBytes>("name").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Name not found"))?.to_string();
-    //let ttl = bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("ttl").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TTL not found"))?.parse::<u32>().unwrap();
+    let name = bencode.get::<BencodeBytes>("name").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Name not found"))?.to_string();
+    //let ttl = bencode.get::<BencodeNumber>("ttl").ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "TTL not found"))?.parse::<u32>().unwrap();
 
     /*
     let is_bogon = {
-        let local = match bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("local") {
+        let local = match bencode.get::<BencodeNumber>("local") {
             Some(b) => b.parse::<u8>().unwrap() != 0,
             None => false
         };
-        let external = match bencode.get::<BencodeObject>("q").unwrap().get::<BencodeNumber>("external") {
+        let external = match bencode.get::<BencodeNumber>("external") {
             Some(b) => b.parse::<u8>().unwrap() != 0,
             None => false
         };
