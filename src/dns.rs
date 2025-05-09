@@ -8,6 +8,9 @@ use rlibdns::messages::inter::types::Types;
 use rlibdns::messages::message_base::MessageBase;
 use rlibdns::records::a_record::ARecord;
 use rlibdns::records::aaaa_record::AAAARecord;
+use rlibdns::records::cname_record::CNameRecord;
+use rlibdns::records::inter::record_base::RecordBase;
+use rlibdns::utils::dns_query::DnsQuery;
 use crate::database::sqlite::Database;
 use crate::rpc::call::Call;
 use crate::rpc::response_tracker::ResponseTracker;
@@ -141,47 +144,13 @@ fn on_response(database: Option<Database>) -> impl Fn(&MessageBase) -> io::Resul
         response.set_origin(request.get_destination().unwrap());
         response.set_destination(request.get_origin().unwrap());
 
-        let is_bogon = if is_bogon(request.get_origin().unwrap()) { "network < 2" } else { "network > 0" };
+        let is_bogon = is_bogon(request.get_origin().unwrap());//if  { "network < 2" } else { "network > 0" };
 
         for query in request.get_queries() {
             match query.get_type() {
-                Types::A => {
-                    let records = database.as_ref().unwrap().get(
-                        "a",
-                        Some(vec!["class", "ttl", "address", "network"]),
-                        Some(format!("class = {} AND name = '{}' AND {}", query.get_dns_class().get_code(), query.get_query().unwrap().to_lowercase(), is_bogon).as_str())
-                    );
-
-                    if records.is_empty() {
-                        return Err(io::Error::new(io::ErrorKind::Other, "Document not found"));
-                    }
-
-                    for record in records {
-                        let ttl = record.get("ttl").unwrap().parse::<u32>().unwrap();
-                        let address = record.get("address").unwrap().parse::<u32>().unwrap();
-
-                        response.add_answers(query.get_query().unwrap(), Box::new(ARecord::new(query.get_dns_class(), false, ttl, Ipv4Addr::from(address))));
-                    }
-                }
-                Types::Aaaa => {
-                    let records = database.as_ref().unwrap().get(
-                        "aaaa",
-                        Some(vec!["class", "ttl", "address", "network"]),
-                        Some(format!("class = {} AND name = '{}' AND {}", query.get_dns_class().get_code(), query.get_query().unwrap().to_lowercase(), is_bogon).as_str())
-                    );
-
-                    if records.is_empty() {
-                        return Err(io::Error::new(io::ErrorKind::Other, "Document not found"));
-                    }
-
-                    for record in records {
-                        let ttl = record.get("ttl").unwrap().parse::<u32>().unwrap();
-                        let address = record.get("address").unwrap().parse::<u128>().unwrap();
-
-                        response.add_answers(query.get_query().unwrap(), Box::new(AAAARecord::new(query.get_dns_class(), false, ttl, Ipv6Addr::from(address))));
-                    }
-                }
+                Types::A => get_a_records(&database.as_ref().unwrap(), &query, &mut response, is_bogon)?,
                 /*
+                Types::Aaaa => {}
                 Types::Ns => {}
                 Types::Cname => {}
                 Types::Soa => {}
@@ -205,4 +174,63 @@ fn on_response(database: Option<Database>) -> impl Fn(&MessageBase) -> io::Resul
 
         Ok(response)
     }
+}
+
+pub fn get_a_records(database: &Database, query: &DnsQuery, response: &mut MessageBase, is_bogon: bool) -> io::Result<()> {
+    let records = database.get(
+        "cname",
+        Some(vec!["class", "ttl", "target", "network"]),
+        Some(format!("class = {} AND name = '{}' AND {}", query.get_dns_class().get_code(), query.get_query().unwrap().to_lowercase(), is_bogon).as_str())
+    );
+
+    if !records.is_empty() {
+        println!("CNAME RECORD");
+
+        for record in records {
+            let ttl = record.get("ttl").unwrap().parse::<u32>().unwrap();
+            let target = record.get("target").unwrap().to_string();
+            response.add_answers(query.get_query().unwrap(), Box::new(CNameRecord::new(query.get_dns_class(), ttl, &target)));
+
+            let records = database.get(
+                "a",
+                Some(vec!["class", "ttl", "address", "network"]),
+                Some(format!("class = {} AND name = '{}' AND {}", query.get_dns_class().get_code(), target, is_bogon).as_str())
+            );
+
+            if records.is_empty() {
+                return Err(io::Error::new(io::ErrorKind::Other, "Document not found"));
+            }
+
+            println!("CNAME > A RECORD  > {} {}", query.get_query().unwrap(), target);
+
+            for record in records {
+                let ttl = record.get("ttl").unwrap().parse::<u32>().unwrap();
+                let address = record.get("address").unwrap().parse::<u32>().unwrap();
+
+                response.add_answers(&target, Box::new(ARecord::new(query.get_dns_class(), false, ttl, Ipv4Addr::from(address))));
+            }
+        }
+
+    } else {
+        let records = database.get(
+            "a",
+            Some(vec!["class", "ttl", "address", "network"]),
+            Some(format!("class = {} AND name = '{}' AND {}", query.get_dns_class().get_code(), query.get_query().unwrap().to_lowercase(), is_bogon).as_str())
+        );
+
+        if records.is_empty() {
+            return Err(io::Error::new(io::ErrorKind::Other, "Document not found"));
+        }
+
+        println!("A RECORD");
+
+        for record in records {
+            let ttl = record.get("ttl").unwrap().parse::<u32>().unwrap();
+            let address = record.get("address").unwrap().parse::<u32>().unwrap();
+
+            response.add_answers(query.get_query().unwrap(), Box::new(ARecord::new(query.get_dns_class(), false, ttl, Ipv4Addr::from(address))));
+        }
+    }
+
+    Ok(())
 }
