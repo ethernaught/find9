@@ -31,7 +31,7 @@ fn main() -> io::Result<()> {
         move |event| {
             //let is_bogon = is_bogon(message.get_origin().unwrap());//if  { "network < 2" } else { "network > 0" };
             let is_bogon = "network < 2";
-            let name = event.get_query().get_name().unwrap().to_string().to_lowercase();
+            let name = event.get_query().get_name().to_lowercase();
             let class = event.get_query().get_dns_class();
             
             let records = database.get(
