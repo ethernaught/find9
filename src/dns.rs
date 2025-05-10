@@ -10,7 +10,9 @@ use rlibdns::messages::inter::record_types::RecordTypes;
 use rlibdns::messages::message_base::MessageBase;
 use rlibdns::records::inter::record_base::RecordBase;
 use crate::rpc::events::inter::dns_message_event::DnsMessageEvent;
+use crate::rpc::events::inter::dns_query_event::DnsQueryEvent;
 use crate::rpc::events::inter::event::Event;
+use crate::rpc::events::query_event::QueryEvent;
 use crate::rpc::events::request_event::RequestEvent;
 use crate::rpc::response_tracker::ResponseTracker;
 use crate::utils::spam_throttle::SpamThrottle;
@@ -20,7 +22,7 @@ pub struct Dns {
     fallback: Vec<SocketAddr>,
     running: Arc<AtomicBool>,
     tx_sender_pool: Option<Sender<(Vec<u8>, SocketAddr)>>,
-    request_mapping: Arc<Mutex<HashMap<RecordTypes, Vec<Box<dyn Fn(&mut RequestEvent) -> io::Result<()> + Send>>>>>,
+    request_mapping: Arc<Mutex<HashMap<RecordTypes, Vec<Box<dyn Fn(&mut QueryEvent) -> io::Result<()> + Send>>>>>,
     sender_throttle: SpamThrottle,
     receiver_throttle: SpamThrottle
 }
@@ -124,7 +126,7 @@ impl Dns {
 
     pub fn register_request_listener<F>(&mut self, key: RecordTypes, callback: F)
     where
-        F: Fn(&mut RequestEvent) -> io::Result<()> + Send + 'static
+        F: Fn(&mut QueryEvent) -> io::Result<()> + Send + 'static
     {
         if self.request_mapping.lock().unwrap().contains_key(&key) {
             self.request_mapping.lock().unwrap().get_mut(&key).unwrap().push(Box::new(callback));
@@ -157,24 +159,36 @@ impl Dns {
                     //response.set_origin(message.get_destination().unwrap());
                     response.set_destination(message.get_origin().unwrap());
 
-                    let mut request_event = RequestEvent::new(message);
-                    request_event.set_response(response);
+                    //let mut query_event = QueryEvent::new(message);
+                    //query_event.set_response(response);
 
                     //let is_bogon = is_bogon(message.get_origin().unwrap());//if  { "network < 2" } else { "network > 0" };
 
-                    for query in request_event.get_message().get_queries() {
+                    for query in message.get_queries() {
                         if let Some(callbacks) = request_mapping.lock().unwrap().get(&query.get_type()) {
+                            let mut query_event = QueryEvent::new(query);
+
                             for callback in callbacks {
-                                callback(&mut request_event);
+                                callback(&mut query_event);
+                            }
+
+                            if query_event.is_prevent_default() {
+                                continue;
+                            }
+                            
+                            response.add_query(query_event.get_query().clone());
+
+                            if query_event.has_answers() {
+                                for (query, answers) in query_event.get_answers_mut().drain() {
+                                    for answer in answers {
+                                        response.add_answer(&query, answer);
+                                    }
+                                }
                             }
                         }
                     }
 
-                    if request_event.is_prevent_default() {
-                        return;
-                    }
-
-                    send(&request_event.get_response().unwrap());
+                    send(&response);
                 }
                 Err(_) => {}
             }

@@ -4,5 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-rlibdns = { git = "https://github.com/ethernaught/rlibdns" }
+#rlibdns = { git = "https://github.com/ethernaught/rlibdns" }
+rlibdns = { path = "../rlibdns" }
 rlibbencode = { git = "https://github.com/sectorrent/rlibbencode" }
