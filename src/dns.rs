@@ -187,6 +187,12 @@ impl Dns {
                             }
                         }
                     }
+                    
+                    if !response.has_answers() &&
+                            !response.has_name_servers() &&
+                            !response.has_additional_records() {
+                        //FALLBACK
+                    }
 
                     send(&response);
                 }
