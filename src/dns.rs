@@ -1,7 +1,7 @@
 use std::{io, thread};
 use std::collections::HashMap;
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr, UdpSocket};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread::JoinHandle;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -24,7 +24,7 @@ pub struct Dns {
     fallback: Vec<SocketAddr>,
     database: Option<Database>,
     running: Arc<AtomicBool>,
-    request_mapping: HashMap<RecordTypes, Vec<Box<dyn Fn(&mut RequestEvent) + Send>>>,
+    request_mapping: Arc<Mutex<HashMap<RecordTypes, Vec<Box<dyn Fn(&mut RequestEvent) + Send>>>>>,
     sender_throttle: SpamThrottle,
     receiver_throttle: SpamThrottle
 }
@@ -37,7 +37,7 @@ impl Dns {
             fallback: Vec::new(),
             database: None,
             running: Arc::new(AtomicBool::new(false)),
-            request_mapping: HashMap::new(),
+            request_mapping: Arc::new(Mutex::new(HashMap::new())),
             sender_throttle: SpamThrottle::new(),
             receiver_throttle: SpamThrottle::new()
         }
@@ -57,6 +57,9 @@ impl Dns {
             let fallback = self.fallback.clone();
             let running = Arc::clone(&self.running);
             let database = self.database.clone();
+
+            let request_mapping = self.request_mapping.clone();
+
             move || {
                 let mut tracker = ResponseTracker::new();
                 let receiver_throttle = SpamThrottle::new();
@@ -71,47 +74,6 @@ impl Dns {
                 while running.load(Ordering::Relaxed) {
                     match server.recv_from(&mut buf) {
                         Ok((size, src_addr)) => {
-                            match MessageBase::from_bytes(&buf) {
-                                Ok(mut message) => {
-                                    message.set_origin(src_addr);
-                                    message.set_destination(server.local_addr().unwrap());
-
-                                    if message.is_qr() {
-                                        continue;
-                                    }
-
-
-                                    let request_event = RequestEvent::new(message);
-
-                                    //LOOP OVER REQUEST HANDLER
-
-
-
-
-
-                                    /*
-                                    if message.is_qr() {
-                                        if let Some(call) = tracker.poll(message.get_id()) {
-                                            message.set_authoritative(false);
-                                            server.send_to(&message.to_bytes(), call.get_address()).unwrap();
-                                        }
-
-                                        continue;
-                                    }
-
-                                    match on_response(&message) {
-                                        Ok(mut response) => {
-                                            server.send_to(&response.to_bytes(), response.get_destination().unwrap()).unwrap();
-                                        }
-                                        Err(_) => {
-                                            tracker.add(message.get_id(), Call::new(message.get_origin().unwrap()));
-                                            server.send_to(&message.to_bytes(), fallback.get(0).unwrap()).unwrap();
-                                        }
-                                    }
-                                    */
-                                }
-                                Err(_) => {}
-                            }
                         }
                         Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {}
                         _ => break
@@ -157,13 +119,64 @@ impl Dns {
     where
         F: Fn(&mut RequestEvent) + Send + 'static
     {
-        if self.request_mapping.contains_key(&key) {
-            self.request_mapping.get_mut(&key).unwrap().push(Box::new(callback));
+        if self.request_mapping.lock().unwrap().contains_key(&key) {
+            self.request_mapping.lock().unwrap().get_mut(&key).unwrap().push(Box::new(callback));
             return;
         }
         let mut mapping: Vec<Box<dyn Fn(&mut RequestEvent) + Send>> = Vec::new();
         mapping.push(Box::new(callback));
-        self.request_mapping.insert(key, mapping);
+        self.request_mapping.lock().unwrap().insert(key, mapping);
+    }
+
+    fn on_receive(request_mapping: Arc<Mutex<HashMap<RecordTypes, Vec<Box<dyn Fn(&mut RequestEvent) + Send>>>>>) -> impl Fn(&[u8], SocketAddr) {
+        move |data, src_addr| {
+            match MessageBase::from_bytes(&data) {
+                Ok(mut message) => {
+                    message.set_origin(src_addr);
+                    //message.set_destination(server.local_addr().unwrap());
+
+                    if message.is_qr() {
+                        //continue;
+                    }
+
+
+                    let request_event = RequestEvent::new(message);
+
+                    if request_mapping.lock().unwrap().contains_key(&RecordTypes::A) {
+
+                    }
+
+
+                    //LOOP OVER REQUEST HANDLER
+
+
+
+
+
+                    /*
+                    if message.is_qr() {
+                        if let Some(call) = tracker.poll(message.get_id()) {
+                            message.set_authoritative(false);
+                            server.send_to(&message.to_bytes(), call.get_address()).unwrap();
+                        }
+
+                        continue;
+                    }
+
+                    match on_response(&message) {
+                        Ok(mut response) => {
+                            server.send_to(&response.to_bytes(), response.get_destination().unwrap()).unwrap();
+                        }
+                        Err(_) => {
+                            tracker.add(message.get_id(), Call::new(message.get_origin().unwrap()));
+                            server.send_to(&message.to_bytes(), fallback.get(0).unwrap()).unwrap();
+                        }
+                    }
+                    */
+                }
+                Err(_) => {}
+            }
+        }
     }
 }
 
