@@ -14,6 +14,7 @@ use rlibdns::records::inter::record_base::RecordBase;
 use rlibdns::utils::dns_query::DnsQuery;
 use crate::database::sqlite::Database;
 use crate::rpc::call::Call;
+use crate::rpc::events::request_event::RequestEvent;
 use crate::rpc::response_tracker::ResponseTracker;
 use crate::utils::net::address_utils::is_bogon;
 use crate::utils::spam_throttle::SpamThrottle;
@@ -23,7 +24,7 @@ pub struct Dns {
     fallback: Vec<SocketAddr>,
     database: Option<Database>,
     running: Arc<AtomicBool>,
-    request_mapping: HashMap<RecordTypes, Vec<Box<dyn Fn(&mut MessageBase) + Send>>>,
+    request_mapping: HashMap<RecordTypes, Vec<Box<dyn Fn(&mut RequestEvent) + Send>>>,
     sender_throttle: SpamThrottle,
     receiver_throttle: SpamThrottle
 }
@@ -70,11 +71,25 @@ impl Dns {
                 while running.load(Ordering::Relaxed) {
                     match server.recv_from(&mut buf) {
                         Ok((size, src_addr)) => {
-                            match MessageBase::from_bytes(&buf, 0) {
+                            match MessageBase::from_bytes(&buf) {
                                 Ok(mut message) => {
                                     message.set_origin(src_addr);
                                     message.set_destination(server.local_addr().unwrap());
 
+                                    if message.is_qr() {
+                                        continue;
+                                    }
+
+
+                                    let request_event = RequestEvent::new(message);
+
+                                    //LOOP OVER REQUEST HANDLER
+
+
+
+
+
+                                    /*
                                     if message.is_qr() {
                                         if let Some(call) = tracker.poll(message.get_id()) {
                                             message.set_authoritative(false);
@@ -93,6 +108,7 @@ impl Dns {
                                             server.send_to(&message.to_bytes(), fallback.get(0).unwrap()).unwrap();
                                         }
                                     }
+                                    */
                                 }
                                 Err(_) => {}
                             }
@@ -139,13 +155,13 @@ impl Dns {
 
     pub fn register_request_listener<F>(&mut self, key: RecordTypes, callback: F)
     where
-        F: Fn(&mut MessageBase) + Send + 'static
+        F: Fn(&mut RequestEvent) + Send + 'static
     {
         if self.request_mapping.contains_key(&key) {
             self.request_mapping.get_mut(&key).unwrap().push(Box::new(callback));
             return;
         }
-        let mut mapping: Vec<Box<dyn Fn(&mut MessageBase) + Send>> = Vec::new();
+        let mut mapping: Vec<Box<dyn Fn(&mut RequestEvent) + Send>> = Vec::new();
         mapping.push(Box::new(callback));
         self.request_mapping.insert(key, mapping);
     }
