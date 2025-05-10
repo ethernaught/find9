@@ -1,4 +1,3 @@
-use std::net::SocketAddr;
 use std::time::{SystemTime, UNIX_EPOCH};
 use rlibdns::messages::message_base::MessageBase;
 use crate::rpc::events::inter::event::Event;
@@ -7,7 +6,6 @@ use crate::rpc::events::inter::dns_message_event::DnsMessageEvent;
 pub struct RequestEvent {
     prevent_default: bool,
     message: MessageBase,
-    address: Option<SocketAddr>,
     received_time: u128,
     response: Option<MessageBase>
 }
@@ -18,7 +16,6 @@ impl RequestEvent {
         Self {
             prevent_default: false,
             message,
-            address: None,
             received_time: 0,
             response: None
         }
