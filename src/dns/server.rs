@@ -9,17 +9,14 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use rlibdns::messages::inter::record_types::RecordTypes;
 use rlibdns::messages::message_base::MessageBase;
 use rlibdns::records::inter::record_base::RecordBase;
-use crate::rpc::events::inter::dns_message_event::DnsMessageEvent;
 use crate::rpc::events::inter::dns_query_event::DnsQueryEvent;
 use crate::rpc::events::inter::event::Event;
 use crate::rpc::events::query_event::QueryEvent;
-use crate::rpc::events::request_event::RequestEvent;
 use crate::rpc::response_tracker::ResponseTracker;
 use crate::utils::spam_throttle::SpamThrottle;
 
-pub struct Dns {
+pub struct Server {
     server: Option<UdpSocket>,
-    fallback: Vec<SocketAddr>,
     running: Arc<AtomicBool>,
     tx_sender_pool: Option<Sender<(Vec<u8>, SocketAddr)>>,
     request_mapping: Arc<Mutex<HashMap<RecordTypes, Vec<Box<dyn Fn(&mut QueryEvent) -> io::Result<()> + Send>>>>>,
@@ -27,12 +24,11 @@ pub struct Dns {
     receiver_throttle: SpamThrottle
 }
 
-impl Dns {
+impl Server {
 
     pub fn new() -> Self {
         Self {
             server: None,
-            fallback: Vec::new(),
             running: Arc::new(AtomicBool::new(false)),
             tx_sender_pool: None,
             request_mapping: Arc::new(Mutex::new(HashMap::new())),
@@ -56,7 +52,6 @@ impl Dns {
 
         Ok(thread::spawn({
             let server = self.server.as_ref().unwrap().try_clone()?;
-            let fallback = self.fallback.clone();
             let running = Arc::clone(&self.running);
             let sender_throttle = self.sender_throttle.clone();
             let receiver_throttle = self.receiver_throttle.clone();
@@ -116,14 +111,6 @@ impl Dns {
         self.running.load(Ordering::Relaxed)
     }
 
-    pub fn add_fallback(&mut self, addr: SocketAddr) {
-        self.fallback.push(addr);
-    }
-
-    pub fn remove_fallback(&mut self, addr: SocketAddr) {
-        self.fallback.retain(|&x| x != addr);
-    }
-
     pub fn register_request_listener<F>(&mut self, key: RecordTypes, callback: F)
     where
         F: Fn(&mut QueryEvent) -> io::Result<()> + Send + 'static
@@ -175,7 +162,7 @@ impl Dns {
                             if query_event.is_prevent_default() {
                                 continue;
                             }
-                            
+
                             response.add_query(query_event.get_query().clone());
 
                             if query_event.has_answers() {
@@ -187,10 +174,10 @@ impl Dns {
                             }
                         }
                     }
-                    
+
                     if !response.has_answers() &&
-                            !response.has_name_servers() &&
-                            !response.has_additional_records() {
+                        !response.has_name_servers() &&
+                        !response.has_additional_records() {
                         //FALLBACK
                     }
 
