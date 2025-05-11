@@ -1,4 +1,5 @@
 use std::io;
+use rlibdns::records::ns_record::NsRecord;
 use crate::database::sqlite::Database;
 use crate::rpc::events::inter::dns_query_event::DnsQueryEvent;
 use crate::rpc::events::query_event::QueryEvent;
@@ -12,10 +13,21 @@ pub fn on_ns_query(database: &Database) -> impl Fn(&mut QueryEvent) -> io::Resul
         let class = event.get_query().get_dns_class();
 
         let records = database.get(
-            "cname",
-            Some(vec!["class", "ttl", "target", "network"]),
+            "ns",
+            Some(vec!["class", "ttl", "server", "network"]),
             Some(format!("class = {} AND name = '{}' AND {}", class.get_code(), name, is_bogon).as_str()),
         );
+
+        if records.is_empty() {
+            return Err(io::Error::new(io::ErrorKind::Other, "Document not found"));
+        }
+
+        for record in records {
+            let ttl = record.get("ttl").unwrap().parse::<u32>().unwrap();
+            let server = record.get("server").unwrap().as_str();
+
+            event.add_answer(&name, Box::new(NsRecord::new(class, ttl, server)));
+        }
 
         Ok(())
     }

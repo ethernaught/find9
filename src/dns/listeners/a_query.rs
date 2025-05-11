@@ -23,8 +23,8 @@ pub fn on_a_query(database: &Database) -> impl Fn(&mut QueryEvent) -> io::Result
         if !records.is_empty() {
             for record in records {
                 let ttl = record.get("ttl").unwrap().parse::<u32>().unwrap();
-                let target = record.get("target").unwrap().to_string();
-                event.add_answer(&name, Box::new(CNameRecord::new(class, ttl, &target)));
+                let target = record.get("target").unwrap().as_str();
+                event.add_answer(&name, Box::new(CNameRecord::new(class, ttl, target)));
 
                 let records = database.get(
                     "a",
