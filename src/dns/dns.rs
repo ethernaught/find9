@@ -6,6 +6,7 @@ use crate::database::sqlite::Database;
 use crate::dns::listeners::a_query::on_a_query;
 use crate::dns::listeners::aaaa_query::on_aaaa_query;
 use crate::dns::listeners::ns_query::on_ns_query;
+use crate::dns::listeners::txt_query::on_txt_query;
 use crate::dns::server::Server;
 
 pub struct Dns {
@@ -21,6 +22,7 @@ impl Dns {
         server.register_request_listener(RecordTypes::A, on_a_query(database));
         server.register_request_listener(RecordTypes::Aaaa, on_aaaa_query(database));
         server.register_request_listener(RecordTypes::Ns, on_ns_query(database));
+        server.register_request_listener(RecordTypes::Txt, on_txt_query(database));
 
         Self {
             fallback: Vec::new(),
