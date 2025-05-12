@@ -7,14 +7,10 @@ mod unix_rpc;
 
 use std::io;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use rlibdns::messages::inter::record_types::RecordTypes;
-use rlibdns::records::a_record::ARecord;
-use rlibdns::records::cname_record::CNameRecord;
 use crate::database::sqlite::Database;
 use crate::dns::dns::Dns;
 use crate::rpc::events::inter::dns_query_event::DnsQueryEvent;
 use crate::unix_rpc::UnixRpc;
-use crate::utils::net::address_utils::is_bogon;
 
 //dig @127.0.0.1 -p 6767 net.unet
 
