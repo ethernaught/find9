@@ -24,9 +24,15 @@ pub fn on_soa_query(database: &Database) -> impl Fn(&mut QueryEvent) -> io::Resu
 
         for record in records {
             let ttl = record.get("ttl").unwrap().parse::<u32>().unwrap();
-            //let content = record.get("content").unwrap().as_str();
+            let domain = record.get("domain").unwrap().as_str();
+            let mailbox = record.get("mailbox").unwrap().as_str();
+            let serial_number = record.get("serial_number").unwrap().parse::<u32>().unwrap();
+            let refresh_interval = record.get("refresh_interval").unwrap().parse::<u32>().unwrap();
+            let retry_interval = record.get("retry_interval").unwrap().parse::<u32>().unwrap();
+            let expire_limit = record.get("expire_limit").unwrap().parse::<u32>().unwrap();
+            let minimum_ttl = record.get("minimum_ttl").unwrap().parse::<u32>().unwrap();
 
-            //event.add_answer(&name, Box::new(SoaRecord::new(class, false, ttl, vec![content.to_string()])));
+            event.add_answer(&name, Box::new(SoaRecord::new(class, ttl, domain, mailbox, serial_number, refresh_interval, retry_interval, expire_limit, minimum_ttl)));
         }
 
         Ok(())

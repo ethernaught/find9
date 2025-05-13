@@ -14,7 +14,9 @@ use crate::unix_rpc::UnixRpc;
 
 //dig @127.0.0.1 -p 6767 net.unet
 
-//SWITCH TO BENCODE 2
+//REDO DNS / SERVER STUFF
+//REDO UNIX-RPC
+//UPDATE SQ-LITE
 
 fn main() -> io::Result<()> {
     let database = Database::open_or_create("records.db")?;
