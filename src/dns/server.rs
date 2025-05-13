@@ -4,8 +4,8 @@ use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
 use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{channel, Sender, TryRecvError};
-use std::thread::JoinHandle;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::thread::{sleep, JoinHandle};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use rlibdns::messages::inter::record_types::RecordTypes;
 use rlibdns::messages::message_base::MessageBase;
 use rlibdns::records::inter::record_base::RecordBase;
@@ -102,6 +102,8 @@ impl Server {
 
                         last_decay_time = now;
                     }
+                    
+                    sleep(Duration::from_millis(1));
                 }
             }
         }))
@@ -142,7 +144,6 @@ impl Server {
         let tracker = self.tracker.clone();
         let fallback = self.fallback.clone();
 
-        //let send = self.send();
         move |data, src_addr| {
             match MessageBase::from_bytes(&data) {
                 Ok(mut message) => {

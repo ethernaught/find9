@@ -23,8 +23,8 @@ fn main() -> io::Result<()> {
     dns.get_server().add_fallback(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)), 53));
     dns.start(6767)?;
 
-    let mut unix_rpc = UnixRpc::new()?;
-    unix_rpc.set_database(database.clone());
-    unix_rpc.start()?.join().unwrap();
+    //let mut unix_rpc = UnixRpc::new()?;
+    //unix_rpc.set_database(database.clone());
+    //unix_rpc.start()?.join().unwrap();
     Ok(())
 }
