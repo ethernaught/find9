@@ -14,7 +14,7 @@ pub fn on_soa_query(database: &Database) -> impl Fn(&mut QueryEvent) -> io::Resu
 
         let records = database.get(
             "soa",
-            Some(vec!["class", "ttl", "content", "network"]),
+            Some(vec!["class", "ttl", "domain", "mailbox", "serial_number", "refresh_interval", "retry_interval", "expire_limit", "minimum_ttl", "network"]),
             Some(format!("class = {} AND name = '{}' AND {}", class.get_code(), name, is_bogon).as_str()),
         );
 
