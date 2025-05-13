@@ -28,5 +28,7 @@ fn main() -> io::Result<()> {
     //let mut unix_rpc = UnixRpc::new()?;
     //unix_rpc.set_database(database.clone());
     //unix_rpc.start()?.join().unwrap();
+
+    loop {}
     Ok(())
 }

@@ -8,7 +8,6 @@ use std::thread::{sleep, JoinHandle};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use rlibdns::messages::inter::record_types::RecordTypes;
 use rlibdns::messages::message_base::MessageBase;
-use rlibdns::records::inter::record_base::RecordBase;
 use crate::rpc::call::Call;
 use crate::rpc::events::inter::dns_query_event::DnsQueryEvent;
 use crate::rpc::events::inter::event::Event;
@@ -102,7 +101,7 @@ impl Server {
 
                         last_decay_time = now;
                     }
-                    
+
                     sleep(Duration::from_millis(1));
                 }
             }
@@ -117,7 +116,7 @@ impl Server {
         self.running.load(Ordering::Relaxed)
     }
 
-    pub fn register_request_listener<F>(&mut self, key: RecordTypes, callback: F)
+    pub fn register_request_listener<F>(&self, key: RecordTypes, callback: F)
     where
         F: Fn(&mut QueryEvent) -> io::Result<()> + Send + 'static
     {
@@ -195,8 +194,13 @@ impl Server {
                         }
                     }
 
-                    if !response.has_answers() &&
-                            !response.has_name_servers() &&
+                    if !response.has_answers() {
+                        //DOES DOMAIN EXIST FOR US...? - IF SO ADD AUTHORITY RESPONSE SOA
+
+                        //return;
+                    }
+
+                    if !response.has_name_servers() &&
                             !response.has_additional_records() {
                         message.set_destination(*fallback.get(0).unwrap());
                         tracker.add(message.get_id(), Call::new(message.get_origin().unwrap()));
