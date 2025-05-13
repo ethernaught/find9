@@ -1,6 +1,4 @@
 use std::io;
-use std::net::Ipv4Addr;
-use rlibdns::records::a_record::ARecord;
 use rlibdns::records::cname_record::CNameRecord;
 use rlibdns::records::ns_record::NsRecord;
 use crate::database::sqlite::Database;
@@ -14,10 +12,7 @@ pub fn on_ns_query(database: &Database) -> impl Fn(&mut QueryEvent) -> io::Resul
         let is_bogon = "network < 2";
         let name = event.get_query().get_name().to_lowercase();
         let class = event.get_query().get_dns_class();
-
-
-
-
+        
         let records = database.get(
             "cname",
             Some(vec!["class", "ttl", "target", "network"]),
@@ -67,11 +62,6 @@ pub fn on_ns_query(database: &Database) -> impl Fn(&mut QueryEvent) -> io::Resul
             }
         }
         
-        
-        
-        
-
-
         Ok(())
     }
 }
