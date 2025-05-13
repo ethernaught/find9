@@ -10,8 +10,7 @@ use crate::dns::listeners::txt_query::on_txt_query;
 use crate::dns::server::Server;
 
 pub struct Dns {
-    server: Server,
-    fallback: Vec<SocketAddr>
+    server: Server
 }
 
 impl Dns {
@@ -25,17 +24,8 @@ impl Dns {
         server.register_request_listener(RecordTypes::Txt, on_txt_query(database));
 
         Self {
-            fallback: Vec::new(),
             server
         }
-    }
-
-    pub fn add_fallback(&mut self, addr: SocketAddr) {
-        self.fallback.push(addr);
-    }
-
-    pub fn remove_fallback(&mut self, addr: SocketAddr) {
-        self.fallback.retain(|&x| x != addr);
     }
 
     pub fn start(&mut self, port: u16) -> io::Result<JoinHandle<()>> {
@@ -46,7 +36,7 @@ impl Dns {
         self.server.stop()
     }
 
-    pub fn get_server(&self) -> &Server {
-        &self.server
+    pub fn get_server(&mut self) -> &mut Server {
+        &mut self.server
     }
 }

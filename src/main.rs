@@ -20,7 +20,7 @@ fn main() -> io::Result<()> {
     let database = Database::open_or_create("records.db")?;
 
     let mut dns = Dns::new(&database);
-    dns.add_fallback(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)), 53));
+    dns.get_server().add_fallback(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)), 53));
     dns.start(6767)?;
 
     let mut unix_rpc = UnixRpc::new()?;

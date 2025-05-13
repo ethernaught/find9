@@ -9,6 +9,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use rlibdns::messages::inter::record_types::RecordTypes;
 use rlibdns::messages::message_base::MessageBase;
 use rlibdns::records::inter::record_base::RecordBase;
+use crate::rpc::call::Call;
 use crate::rpc::events::inter::dns_query_event::DnsQueryEvent;
 use crate::rpc::events::inter::event::Event;
 use crate::rpc::events::query_event::QueryEvent;
@@ -17,6 +18,8 @@ use crate::utils::spam_throttle::SpamThrottle;
 
 pub struct Server {
     server: Option<UdpSocket>,
+    fallback: Vec<SocketAddr>,
+    tracker: ResponseTracker,
     running: Arc<AtomicBool>,
     tx_sender_pool: Option<Sender<(Vec<u8>, SocketAddr)>>,
     request_mapping: Arc<Mutex<HashMap<RecordTypes, Vec<Box<dyn Fn(&mut QueryEvent) -> io::Result<()> + Send>>>>>,
@@ -29,6 +32,8 @@ impl Server {
     pub fn new() -> Self {
         Self {
             server: None,
+            fallback: Vec::new(),
+            tracker: ResponseTracker::new(),
             running: Arc::new(AtomicBool::new(false)),
             tx_sender_pool: None,
             request_mapping: Arc::new(Mutex::new(HashMap::new())),
@@ -55,10 +60,9 @@ impl Server {
             let running = Arc::clone(&self.running);
             let sender_throttle = self.sender_throttle.clone();
             let receiver_throttle = self.receiver_throttle.clone();
+            let tracker = self.tracker.clone();
 
             move || {
-                let mut tracker = ResponseTracker::new();
-
                 let mut buf = [0u8; 65535];
                 let mut last_decay_time = SystemTime::now()
                     .duration_since(UNIX_EPOCH)
@@ -122,20 +126,35 @@ impl Server {
         self.request_mapping.lock().unwrap().insert(key, vec![Box::new(callback)]);
     }
 
+    pub fn add_fallback(&mut self, addr: SocketAddr) {
+        self.fallback.push(addr);
+    }
+
+    pub fn remove_fallback(&mut self, addr: SocketAddr) {
+        self.fallback.retain(|&x| x != addr);
+    }
+
     fn on_receive<F>(&self, send: F) -> impl Fn(&[u8], SocketAddr)
     where
         F: Fn(&MessageBase) -> io::Result<()> + Send + 'static
     {
         let request_mapping = self.request_mapping.clone();
+        let tracker = self.tracker.clone();
+        let fallback = self.fallback.clone();
+
         //let send = self.send();
         move |data, src_addr| {
             match MessageBase::from_bytes(&data) {
                 Ok(mut message) => {
                     message.set_origin(src_addr);
-                    //message.set_destination(server.local_addr().unwrap());
 
                     if message.is_qr() {
-                        //continue;
+                        if let Some(call) = tracker.poll(message.get_id()) {
+                            message.set_authoritative(false);
+                            message.set_destination(*call.get_address());
+                            send(&message).unwrap();
+                        }
+
                         return;
                     }
 
@@ -176,12 +195,15 @@ impl Server {
                     }
 
                     if !response.has_answers() &&
-                        !response.has_name_servers() &&
-                        !response.has_additional_records() {
-                        //FALLBACK
-                    }
+                            !response.has_name_servers() &&
+                            !response.has_additional_records() {
+                        message.set_destination(*fallback.get(0).unwrap());
+                        tracker.add(message.get_id(), Call::new(message.get_origin().unwrap()));
+                        send(&message);
 
-                    send(&response);
+                    } else {
+                        send(&response);
+                    }
                 }
                 Err(_) => {}
             }

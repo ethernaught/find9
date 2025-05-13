@@ -2,6 +2,7 @@ use std::net::SocketAddr;
 use std::time::{SystemTime, UNIX_EPOCH};
 use crate::rpc::response_tracker::STALLED_TIME;
 
+#[derive(Copy, Clone)]
 pub struct Call {
     address: SocketAddr,
     sent_time: u128
