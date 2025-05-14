@@ -19,7 +19,7 @@ pub struct Server {
     tracker: ResponseTracker,
     running: Arc<AtomicBool>,
     tx_sender_pool: Option<Sender<(Vec<u8>, SocketAddr)>>,
-    request_mapping: Arc<Mutex<HashMap<RecordTypes, Vec<Box<dyn Fn(&mut QueryEvent) -> io::Result<()> + Send>>>>>,
+    query_mapping: Arc<Mutex<HashMap<RecordTypes, Vec<Box<dyn Fn(&mut QueryEvent) -> io::Result<()> + Send>>>>>,
     sender_throttle: SpamThrottle,
     receiver_throttle: SpamThrottle
 }
@@ -32,7 +32,7 @@ impl Server {
             tracker: ResponseTracker::new(),
             running: Arc::new(AtomicBool::new(false)),
             tx_sender_pool: None,
-            request_mapping: Arc::new(Mutex::new(HashMap::new())),
+            query_mapping: Arc::new(Mutex::new(HashMap::new())),
             sender_throttle: SpamThrottle::new(),
             receiver_throttle: SpamThrottle::new()
         }
@@ -113,22 +113,22 @@ impl Server {
         self.running.load(Ordering::Relaxed)
     }
 
-    pub fn register_request_listener<F>(&self, key: RecordTypes, callback: F)
+    pub fn register_query_listener<F>(&self, key: RecordTypes, callback: F)
     where
         F: Fn(&mut QueryEvent) -> io::Result<()> + Send + 'static
     {
-        if self.request_mapping.lock().unwrap().contains_key(&key) {
-            self.request_mapping.lock().unwrap().get_mut(&key).unwrap().push(Box::new(callback));
+        if self.query_mapping.lock().unwrap().contains_key(&key) {
+            self.query_mapping.lock().unwrap().get_mut(&key).unwrap().push(Box::new(callback));
             return;
         }
-        self.request_mapping.lock().unwrap().insert(key, vec![Box::new(callback)]);
+        self.query_mapping.lock().unwrap().insert(key, vec![Box::new(callback)]);
     }
 
     fn on_receive<F>(&self, send: F) -> impl Fn(&[u8], SocketAddr)
     where
         F: Fn(&MessageBase) -> io::Result<()> + Send + 'static
     {
-        let request_mapping = self.request_mapping.clone();
+        let query_mapping = self.query_mapping.clone();
         let tracker = self.tracker.clone();
 
         move |data, src_addr| {
@@ -159,7 +159,7 @@ impl Server {
                     //let is_bogon = is_bogon(message.get_origin().unwrap());//if  { "network < 2" } else { "network > 0" };
 
                     for query in message.get_queries() {
-                        if let Some(callbacks) = request_mapping.lock().unwrap().get(&query.get_type()) {
+                        if let Some(callbacks) = query_mapping.lock().unwrap().get(&query.get_type()) {
                             let mut query_event = QueryEvent::new(query);
 
                             for callback in callbacks {
@@ -197,10 +197,9 @@ impl Server {
                     if !response.has_name_servers() &&
                             !response.has_additional_records() {
                         response.set_response_code(ResponseCodes::NxDomain);
-
-                    } else {
-                        send(&response);
                     }
+
+                    send(&response);
                 }
                 Err(_) => {}
             }

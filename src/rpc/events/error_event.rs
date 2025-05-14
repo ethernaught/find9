@@ -1,56 +1,30 @@
+use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::message_base::MessageBase;
 use rlibdns::records::inter::record_base::RecordBase;
 use rlibdns::utils::dns_query::DnsQuery;
 use rlibdns::utils::ordered_map::OrderedMap;
 use crate::rpc::events::inter::event::Event;
 
-pub struct QueryEvent {
+pub struct ErrorEvent {
     prevent_default: bool,
-    query: DnsQuery,
-    answers: OrderedMap<String, Vec<Box<dyn RecordBase>>>,
+    code: ResponseCodes,
     name_servers: OrderedMap<String, Vec<Box<dyn RecordBase>>>,
-    additional_records: OrderedMap<String, Vec<Box<dyn RecordBase>>>,
-    received_time: u128,
-    response: Option<MessageBase>
+    additional_records: OrderedMap<String, Vec<Box<dyn RecordBase>>>
 }
 
-impl QueryEvent {
+impl ErrorEvent {
 
-    pub fn new(query: DnsQuery) -> Self {
+    pub fn new(code: ResponseCodes) -> Self {
         Self {
             prevent_default: false,
-            query,
-            answers: OrderedMap::new(),
+            code,
             name_servers: OrderedMap::new(),
-            additional_records: OrderedMap::new(),
-            received_time: 0,
-            response: None
+            additional_records: OrderedMap::new()
         }
     }
 
-    pub fn get_query(&self) -> &DnsQuery {
-        &self.query
-    }
-
-    pub fn has_answers(&self) -> bool {
-        self.answers.len() > 0
-    }
-
-    pub fn add_answer(&mut self, query: &str, record: Box<dyn RecordBase>) {
-        if self.answers.contains_key(&query.to_string()) {
-            self.answers.get_mut(&query.to_string()).unwrap().push(record);
-            return;
-        }
-
-        self.answers.insert(query.to_string(), vec![record]);
-    }
-
-    pub fn get_answers(&self) -> &OrderedMap<String, Vec<Box<dyn RecordBase>>> {
-        &self.answers
-    }
-
-    pub fn get_answers_mut(&mut self) -> &mut OrderedMap<String, Vec<Box<dyn RecordBase>>> {
-        &mut self.answers
+    pub fn get_code(&self) -> ResponseCodes {
+        self.code
     }
 
     pub fn has_name_servers(&self) -> bool {
@@ -96,7 +70,7 @@ impl QueryEvent {
     }
 }
 
-impl Event for QueryEvent {
+impl Event for ErrorEvent {
 
     fn is_prevent_default(&self) -> bool {
         self.prevent_default

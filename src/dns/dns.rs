@@ -16,13 +16,13 @@ pub struct Dns {
 impl Dns {
 
     pub fn new(database: &Database) -> Self {
-        let mut server = Server::new();
+        let server = Server::new();
 
-        server.register_request_listener(RecordTypes::A, on_a_query(database));
-        server.register_request_listener(RecordTypes::Aaaa, on_aaaa_query(database));
-        server.register_request_listener(RecordTypes::Ns, on_ns_query(database));
-        server.register_request_listener(RecordTypes::Txt, on_txt_query(database));
-        server.register_request_listener(RecordTypes::Soa, on_soa_query(database));
+        server.register_query_listener(RecordTypes::A, on_a_query(database));
+        server.register_query_listener(RecordTypes::Aaaa, on_aaaa_query(database));
+        server.register_query_listener(RecordTypes::Ns, on_ns_query(database));
+        server.register_query_listener(RecordTypes::Txt, on_txt_query(database));
+        server.register_query_listener(RecordTypes::Soa, on_soa_query(database));
 
         Self {
             server
