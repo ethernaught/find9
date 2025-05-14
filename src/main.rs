@@ -12,7 +12,10 @@ use crate::dns::dns::Dns;
 
 //REDO DNS / SERVER STUFF
 //REDO UNIX-RPC
+
+
 //USE ZONE FILE FORMAT
+//https://en.wikipedia.org/wiki/Zone_file
 
 //STORE ZONES IN:
 // - /etc/find
