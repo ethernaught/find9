@@ -9,8 +9,6 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use rlibdns::messages::inter::record_types::RecordTypes;
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::message_base::MessageBase;
-use crate::rpc::call::Call;
-use crate::rpc::events::inter::dns_query_event::DnsQueryEvent;
 use crate::rpc::events::inter::event::Event;
 use crate::rpc::events::query_event::QueryEvent;
 use crate::rpc::response_tracker::ResponseTracker;

@@ -1,7 +1,6 @@
 use std::io;
 use rlibdns::records::soa_record::SoaRecord;
 use crate::database::sqlite::Database;
-use crate::rpc::events::inter::dns_query_event::DnsQueryEvent;
 use crate::rpc::events::query_event::QueryEvent;
 
 pub fn on_soa_query(database: &Database) -> impl Fn(&mut QueryEvent) -> io::Result<()> {

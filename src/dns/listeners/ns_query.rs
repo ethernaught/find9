@@ -2,7 +2,6 @@ use std::io;
 use rlibdns::records::cname_record::CNameRecord;
 use rlibdns::records::ns_record::NsRecord;
 use crate::database::sqlite::Database;
-use crate::rpc::events::inter::dns_query_event::DnsQueryEvent;
 use crate::rpc::events::query_event::QueryEvent;
 
 pub fn on_ns_query(database: &Database) -> impl Fn(&mut QueryEvent) -> io::Result<()> {

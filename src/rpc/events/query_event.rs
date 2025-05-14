@@ -1,10 +1,8 @@
-use std::time::{SystemTime, UNIX_EPOCH};
 use rlibdns::messages::message_base::MessageBase;
 use rlibdns::records::inter::record_base::RecordBase;
 use rlibdns::utils::dns_query::DnsQuery;
 use rlibdns::utils::ordered_map::OrderedMap;
 use crate::rpc::events::inter::event::Event;
-use crate::rpc::events::inter::dns_query_event::DnsQueryEvent;
 
 pub struct QueryEvent {
     prevent_default: bool,
@@ -28,6 +26,10 @@ impl QueryEvent {
             received_time: 0,
             response: None
         }
+    }
+
+    pub fn get_query(&self) -> &DnsQuery {
+        &self.query
     }
 
     pub fn has_answers(&self) -> bool {
@@ -102,27 +104,5 @@ impl Event for QueryEvent {
 
     fn prevent_default(&mut self) {
         self.prevent_default = true;
-    }
-}
-
-impl DnsQueryEvent for QueryEvent {
-
-    fn get_query(&self) -> &DnsQuery {
-        &self.query
-    }
-
-    fn set_received_time(&mut self, received_time: u128) {
-        self.received_time = received_time;
-    }
-
-    fn get_received_time(&self) -> u128 {
-        self.received_time
-    }
-
-    fn received(&mut self) {
-        self.received_time = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .expect("Time went backwards")
-            .as_millis();
     }
 }

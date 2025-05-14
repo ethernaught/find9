@@ -3,7 +3,6 @@ use std::net::Ipv4Addr;
 use rlibdns::records::a_record::ARecord;
 use rlibdns::records::cname_record::CNameRecord;
 use crate::database::sqlite::Database;
-use crate::rpc::events::inter::dns_query_event::DnsQueryEvent;
 use crate::rpc::events::query_event::QueryEvent;
 
 pub fn on_a_query(database: &Database) -> impl Fn(&mut QueryEvent) -> io::Result<()> {

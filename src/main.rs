@@ -9,7 +9,6 @@ use std::io;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use crate::database::sqlite::Database;
 use crate::dns::dns::Dns;
-use crate::rpc::events::inter::dns_query_event::DnsQueryEvent;
 use crate::unix_rpc::UnixRpc;
 
 //dig @127.0.0.1 -p 6767 net.unet
