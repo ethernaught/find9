@@ -2,12 +2,11 @@ use std::io;
 use std::net::Ipv6Addr;
 use rlibdns::records::aaaa_record::AaaaRecord;
 use rlibdns::records::cname_record::CNameRecord;
-use crate::database::sqlite::Database;
 use crate::rpc::events::query_event::QueryEvent;
 
-pub fn on_aaaa_query(database: &Database) -> impl Fn(&mut QueryEvent) -> io::Result<()> {
-    let database = database.clone();
+pub fn on_aaaa_query() -> impl Fn(&mut QueryEvent) -> io::Result<()> {
     move |event| {
+        /*
         //let is_bogon = is_bogon(message.get_origin().unwrap());//if  { "network < 2" } else { "network > 0" };
         let is_bogon = "network < 2";
         let name = event.get_query().get_name().to_lowercase();
@@ -61,6 +60,7 @@ pub fn on_aaaa_query(database: &Database) -> impl Fn(&mut QueryEvent) -> io::Res
                 event.add_answer(&name, Box::new(AaaaRecord::new(class, false, ttl, Ipv6Addr::from(address))));
             }
         }
+        */
 
         Ok(())
     }

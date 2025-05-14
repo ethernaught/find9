@@ -1,12 +1,11 @@
 use std::io;
 use rlibdns::records::cname_record::CNameRecord;
 use rlibdns::records::ns_record::NsRecord;
-use crate::database::sqlite::Database;
 use crate::rpc::events::query_event::QueryEvent;
 
-pub fn on_ns_query(database: &Database) -> impl Fn(&mut QueryEvent) -> io::Result<()> {
-    let database = database.clone();
+pub fn on_ns_query() -> impl Fn(&mut QueryEvent) -> io::Result<()> {
     move |event| {
+        /*
         //let is_bogon = is_bogon(message.get_origin().unwrap());//if  { "network < 2" } else { "network > 0" };
         let is_bogon = "network < 2";
         let name = event.get_query().get_name().to_lowercase();
@@ -60,6 +59,7 @@ pub fn on_ns_query(database: &Database) -> impl Fn(&mut QueryEvent) -> io::Resul
                 event.add_answer(&name, Box::new(NsRecord::new(class, ttl, server)));
             }
         }
+        */
         
         Ok(())
     }

@@ -1,26 +1,26 @@
-mod database;
 mod rpc;
 mod utils;
 mod dns_ext;
 mod dns;
-mod unix_rpc;
+//mod unix_rpc;
 
 use std::io;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use crate::database::sqlite::Database;
 use crate::dns::dns::Dns;
-use crate::unix_rpc::UnixRpc;
 
 //dig @127.0.0.1 -p 6767 net.unet
 
 //REDO DNS / SERVER STUFF
 //REDO UNIX-RPC
-//UPDATE SQ-LITE
+//USE ZONE FILE FORMAT
+
+//STORE ZONES IN:
+// - /etc/find
+
+//MAKE SURE WE CACHE RECORDS IN MEMORY
 
 fn main() -> io::Result<()> {
-    let database = Database::open_or_create("records.db")?;
-
-    let mut dns = Dns::new(&database);
+    let mut dns = Dns::new();
     //dns.get_server().add_fallback(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)), 53));
     dns.start(6767)?;
 

@@ -1,11 +1,10 @@
 use std::io;
 use rlibdns::records::txt_record::TxtRecord;
-use crate::database::sqlite::Database;
 use crate::rpc::events::query_event::QueryEvent;
 
-pub fn on_txt_query(database: &Database) -> impl Fn(&mut QueryEvent) -> io::Result<()> {
-    let database = database.clone();
+pub fn on_txt_query() -> impl Fn(&mut QueryEvent) -> io::Result<()> {
     move |event| {
+        /*
         //let is_bogon = is_bogon(message.get_origin().unwrap());//if  { "network < 2" } else { "network > 0" };
         let is_bogon = "network < 2";
         let name = event.get_query().get_name().to_lowercase();
@@ -27,6 +26,7 @@ pub fn on_txt_query(database: &Database) -> impl Fn(&mut QueryEvent) -> io::Resu
 
             event.add_answer(&name, Box::new(TxtRecord::new(class, false, ttl, vec![content.to_string()])));
         }
+        */
 
         Ok(())
     }

@@ -1,11 +1,10 @@
 use std::io;
 use rlibdns::records::soa_record::SoaRecord;
-use crate::database::sqlite::Database;
 use crate::rpc::events::query_event::QueryEvent;
 
-pub fn on_soa_query(database: &Database) -> impl Fn(&mut QueryEvent) -> io::Result<()> {
-    let database = database.clone();
+pub fn on_soa_query() -> impl Fn(&mut QueryEvent) -> io::Result<()> {
     move |event| {
+        /*
         //let is_bogon = is_bogon(message.get_origin().unwrap());//if  { "network < 2" } else { "network > 0" };
         let is_bogon = "network < 2";
         let name = event.get_query().get_name().to_lowercase();
@@ -33,6 +32,7 @@ pub fn on_soa_query(database: &Database) -> impl Fn(&mut QueryEvent) -> io::Resu
 
             event.add_answer(&name, Box::new(SoaRecord::new(class, ttl, domain, mailbox, serial_number, refresh_interval, retry_interval, expire_limit, minimum_ttl)));
         }
+        */
 
         Ok(())
     }

@@ -1,7 +1,6 @@
 use std::io;
 use std::thread::JoinHandle;
 use rlibdns::messages::inter::record_types::RecordTypes;
-use crate::database::sqlite::Database;
 use crate::dns::listeners::a_query::on_a_query;
 use crate::dns::listeners::aaaa_query::on_aaaa_query;
 use crate::dns::listeners::ns_query::on_ns_query;
@@ -15,14 +14,15 @@ pub struct Dns {
 
 impl Dns {
 
-    pub fn new(database: &Database) -> Self {
+    pub fn new() -> Self {
         let server = Server::new();
 
-        server.register_query_listener(RecordTypes::A, on_a_query(database));
-        server.register_query_listener(RecordTypes::Aaaa, on_aaaa_query(database));
-        server.register_query_listener(RecordTypes::Ns, on_ns_query(database));
-        server.register_query_listener(RecordTypes::Txt, on_txt_query(database));
-        server.register_query_listener(RecordTypes::Soa, on_soa_query(database));
+        //BASED ON CONFIG ENABLE SPECIFIC QUERY LISTENERS
+        server.register_query_listener(RecordTypes::A, on_a_query());
+        server.register_query_listener(RecordTypes::Aaaa, on_aaaa_query());
+        server.register_query_listener(RecordTypes::Ns, on_ns_query());
+        server.register_query_listener(RecordTypes::Txt, on_txt_query());
+        server.register_query_listener(RecordTypes::Soa, on_soa_query());
 
         Self {
             server
