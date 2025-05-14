@@ -7,6 +7,7 @@ use std::sync::mpsc::{channel, Sender, TryRecvError};
 use std::thread::{sleep, JoinHandle};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use rlibdns::messages::inter::record_types::RecordTypes;
+use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::message_base::MessageBase;
 use crate::rpc::call::Call;
 use crate::rpc::events::inter::dns_query_event::DnsQueryEvent;
@@ -17,7 +18,6 @@ use crate::utils::spam_throttle::SpamThrottle;
 
 pub struct Server {
     server: Option<UdpSocket>,
-    fallback: Vec<SocketAddr>,
     tracker: ResponseTracker,
     running: Arc<AtomicBool>,
     tx_sender_pool: Option<Sender<(Vec<u8>, SocketAddr)>>,
@@ -31,7 +31,6 @@ impl Server {
     pub fn new() -> Self {
         Self {
             server: None,
-            fallback: Vec::new(),
             tracker: ResponseTracker::new(),
             running: Arc::new(AtomicBool::new(false)),
             tx_sender_pool: None,
@@ -127,21 +126,12 @@ impl Server {
         self.request_mapping.lock().unwrap().insert(key, vec![Box::new(callback)]);
     }
 
-    pub fn add_fallback(&mut self, addr: SocketAddr) {
-        self.fallback.push(addr);
-    }
-
-    pub fn remove_fallback(&mut self, addr: SocketAddr) {
-        self.fallback.retain(|&x| x != addr);
-    }
-
     fn on_receive<F>(&self, send: F) -> impl Fn(&[u8], SocketAddr)
     where
         F: Fn(&MessageBase) -> io::Result<()> + Send + 'static
     {
         let request_mapping = self.request_mapping.clone();
         let tracker = self.tracker.clone();
-        let fallback = self.fallback.clone();
 
         move |data, src_addr| {
             match MessageBase::from_bytes(&data) {
@@ -200,11 +190,15 @@ impl Server {
                         //return;
                     }
 
+                    //IF NAME DOES EXIST BUT NO DATA RETURN
+                    // NoError
+
+                    //If QName does not exist
+                    // NxDomain
+
                     if !response.has_name_servers() &&
                             !response.has_additional_records() {
-                        message.set_destination(*fallback.get(0).unwrap());
-                        tracker.add(message.get_id(), Call::new(message.get_origin().unwrap()));
-                        send(&message);
+                        response.set_response_code(ResponseCodes::NxDomain);
 
                     } else {
                         send(&response);
@@ -215,6 +209,7 @@ impl Server {
         }
     }
 
+    /*
     pub fn send(&self, message: &MessageBase) -> io::Result<()> {
         if message.get_destination().is_none() {
             return Err(io::Error::new(io::ErrorKind::InvalidData, "Message destination set to null"));
@@ -226,6 +221,7 @@ impl Server {
 
         Ok(())
     }
+    */
 
     fn send_message(&self, tx: &Sender<(Vec<u8>, SocketAddr)>) -> impl Fn(&MessageBase) -> io::Result<()> {
         let tx = tx.clone();
