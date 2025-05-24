@@ -1,6 +1,6 @@
 use std::io;
 use std::thread::JoinHandle;
-use rlibdns::messages::inter::record_types::RecordTypes;
+use rlibdns::messages::inter::rr_types::RRTypes;
 use crate::dns::listeners::a_query::on_a_query;
 use crate::dns::listeners::aaaa_query::on_aaaa_query;
 use crate::dns::listeners::ns_query::on_ns_query;
@@ -18,11 +18,11 @@ impl Dns {
         let server = Server::new();
 
         //BASED ON CONFIG ENABLE SPECIFIC QUERY LISTENERS
-        server.register_query_listener(RecordTypes::A, on_a_query());
-        server.register_query_listener(RecordTypes::Aaaa, on_aaaa_query());
-        server.register_query_listener(RecordTypes::Ns, on_ns_query());
-        server.register_query_listener(RecordTypes::Txt, on_txt_query());
-        server.register_query_listener(RecordTypes::Soa, on_soa_query());
+        server.register_query_listener(RRTypes::A, on_a_query());
+        server.register_query_listener(RRTypes::Aaaa, on_aaaa_query());
+        server.register_query_listener(RRTypes::Ns, on_ns_query());
+        server.register_query_listener(RRTypes::Txt, on_txt_query());
+        server.register_query_listener(RRTypes::Soa, on_soa_query());
 
         Self {
             server

@@ -6,7 +6,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{channel, Sender, TryRecvError};
 use std::thread::{sleep, JoinHandle};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
-use rlibdns::messages::inter::record_types::RecordTypes;
+use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::message_base::MessageBase;
 use crate::rpc::events::inter::event::Event;
@@ -19,7 +19,7 @@ pub struct Server {
     tracker: ResponseTracker,
     running: Arc<AtomicBool>,
     tx_sender_pool: Option<Sender<(Vec<u8>, SocketAddr)>>,
-    query_mapping: Arc<Mutex<HashMap<RecordTypes, Vec<Box<dyn Fn(&mut QueryEvent) -> io::Result<()> + Send>>>>>,
+    query_mapping: Arc<Mutex<HashMap<RRTypes, Vec<Box<dyn Fn(&mut QueryEvent) -> io::Result<()> + Send>>>>>,
     sender_throttle: SpamThrottle,
     receiver_throttle: SpamThrottle
 }
@@ -113,7 +113,7 @@ impl Server {
         self.running.load(Ordering::Relaxed)
     }
 
-    pub fn register_query_listener<F>(&self, key: RecordTypes, callback: F)
+    pub fn register_query_listener<F>(&self, key: RRTypes, callback: F)
     where
         F: Fn(&mut QueryEvent) -> io::Result<()> + Send + 'static
     {

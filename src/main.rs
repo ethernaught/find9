@@ -1,6 +1,5 @@
 mod rpc;
 mod utils;
-mod dns_ext;
 mod dns;
 //mod unix_rpc;
 
