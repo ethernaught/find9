@@ -206,6 +206,10 @@ impl Server {
         }
     }
 
+    fn load_record(&self) {
+        
+    }
+
     /*
     pub fn send(&self, message: &MessageBase) -> io::Result<()> {
         if message.get_destination().is_none() {
