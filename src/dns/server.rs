@@ -11,12 +11,10 @@ use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::message_base::MessageBase;
 use crate::rpc::events::inter::event::Event;
 use crate::rpc::events::query_event::QueryEvent;
-use crate::rpc::response_tracker::ResponseTracker;
 use crate::utils::spam_throttle::SpamThrottle;
 
 pub struct Server {
     server: Option<UdpSocket>,
-    tracker: ResponseTracker,
     running: Arc<AtomicBool>,
     tx_sender_pool: Option<Sender<(Vec<u8>, SocketAddr)>>,
     query_mapping: Arc<Mutex<HashMap<RRTypes, Vec<Box<dyn Fn(&mut QueryEvent) -> io::Result<()> + Send>>>>>,
@@ -29,7 +27,6 @@ impl Server {
     pub fn new() -> Self {
         Self {
             server: None,
-            tracker: ResponseTracker::new(),
             running: Arc::new(AtomicBool::new(false)),
             tx_sender_pool: None,
             query_mapping: Arc::new(Mutex::new(HashMap::new())),
@@ -56,7 +53,6 @@ impl Server {
             let running = Arc::clone(&self.running);
             let sender_throttle = self.sender_throttle.clone();
             let receiver_throttle = self.receiver_throttle.clone();
-            let tracker = self.tracker.clone();
 
             move || {
                 let mut buf = [0u8; 65535];
@@ -94,7 +90,6 @@ impl Server {
                     if now - last_decay_time >= 1000 {
                         receiver_throttle.decay();
                         sender_throttle.decay();
-                        tracker.remove_stalled();
 
                         last_decay_time = now;
                     }
@@ -129,7 +124,7 @@ impl Server {
         F: Fn(&MessageBase) -> io::Result<()> + Send + 'static
     {
         let query_mapping = self.query_mapping.clone();
-        let tracker = self.tracker.clone();
+        //let tracker = self.tracker.clone();
 
         move |data, src_addr| {
             match MessageBase::from_bytes(&data) {
@@ -137,11 +132,13 @@ impl Server {
                     message.set_origin(src_addr);
 
                     if message.is_qr() {
+                        /*
                         if let Some(call) = tracker.poll(message.get_id()) {
                             message.set_authoritative(false);
                             message.set_destination(*call.get_address());
                             send(&message).unwrap();
                         }
+                        */
 
                         return;
                     }
@@ -207,7 +204,7 @@ impl Server {
     }
 
     fn load_record(&self) {
-        
+
     }
 
     /*
