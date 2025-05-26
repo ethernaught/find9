@@ -23,7 +23,6 @@ use rlibdns::zone::zone_parser::ZoneParser;
 // - /etc/find
 
 //MAKE SURE WE CACHE RECORDS IN MEMORY
-type RecordMap = HashMap<String, HashMap<RRTypes, Vec<Box<dyn RecordBase>>>>;
 
 fn main() -> io::Result<()> {
     let mut records = RecordMap::new();

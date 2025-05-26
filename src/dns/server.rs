@@ -9,9 +9,13 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::message_base::MessageBase;
+use rlibdns::records::cname_record::CNameRecord;
+use rlibdns::records::inter::record_base::RecordBase;
 use crate::rpc::events::inter::event::Event;
 use crate::rpc::events::query_event::QueryEvent;
 use crate::utils::spam_throttle::SpamThrottle;
+
+type RecordMap = HashMap<String, HashMap<RRTypes, Vec<Box<dyn RecordBase>>>>;
 
 pub struct Server {
     server: Option<UdpSocket>,
@@ -19,7 +23,8 @@ pub struct Server {
     tx_sender_pool: Option<Sender<(Vec<u8>, SocketAddr)>>,
     query_mapping: Arc<Mutex<HashMap<RRTypes, Vec<Box<dyn Fn(&mut QueryEvent) -> io::Result<()> + Send>>>>>,
     sender_throttle: SpamThrottle,
-    receiver_throttle: SpamThrottle
+    receiver_throttle: SpamThrottle,
+    zones: Arc<Mutex<RecordMap>>
 }
 
 impl Server {
@@ -31,7 +36,8 @@ impl Server {
             tx_sender_pool: None,
             query_mapping: Arc::new(Mutex::new(HashMap::new())),
             sender_throttle: SpamThrottle::new(),
-            receiver_throttle: SpamThrottle::new()
+            receiver_throttle: SpamThrottle::new(),
+            zones: Arc::new(Mutex::new(HashMap::new()))
         }
     }
 
@@ -124,7 +130,7 @@ impl Server {
         F: Fn(&MessageBase) -> io::Result<()> + Send + 'static
     {
         let query_mapping = self.query_mapping.clone();
-        //let tracker = self.tracker.clone();
+        let zones = self.zones.clone();
 
         move |data, src_addr| {
             match MessageBase::from_bytes(&data) {
@@ -132,27 +138,8 @@ impl Server {
                     message.set_origin(src_addr);
 
                     if message.is_qr() {
-                        /*
-                        if let Some(call) = tracker.poll(message.get_id()) {
-                            message.set_authoritative(false);
-                            message.set_destination(*call.get_address());
-                            send(&message).unwrap();
-                        }
-                        */
-
                         return;
                     }
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
 
                     let mut response = MessageBase::new(message.get_id());
                     response.set_op_code(message.get_op_code());
@@ -166,6 +153,68 @@ impl Server {
 
                     //let is_bogon = is_bogon(message.get_origin().unwrap());//if  { "network < 2" } else { "network > 0" };
 
+                    for query in message.get_queries() {
+                        match query.get_type() {
+                            RRTypes::A => {
+                                //let zones = zones.lock().unwrap();
+                                let records = zones.lock().unwrap().get(&query.get_name()).unwrap().get(&RRTypes::CName).unwrap();
+
+                                if records.is_empty() {
+                                    let records = zones.lock().unwrap().get(&query.get_name()).unwrap().get(&RRTypes::A).unwrap();
+
+                                    if records.is_empty() {
+                                        //NO A...
+                                    }
+
+                                    for record in records {
+                                        //let ttl = record.get("ttl").unwrap().parse::<u32>().unwrap();
+                                        //let address = record.get("address").unwrap().parse::<u32>().unwrap();
+
+                                        response.add_answer(&query.get_name(), record);
+                                    }
+
+
+                                } else {
+                                    for record in records {
+                                        if let Some(record) = record.as_any().downcast_ref::<CNameRecord>() {
+                                            let records = zones.lock().unwrap().get(&record.get_target().unwrap()).unwrap().get(&RRTypes::A).unwrap();
+
+                                            if records.is_empty() {
+                                                //NO A...
+                                            }
+
+                                            let target = record.get_target().unwrap();
+
+                                            for record in records {
+                                                response.add_answer(&target, record);
+                                            }
+                                        }
+                                    }
+                                }
+
+                            }
+                            RRTypes::Aaaa => {}
+                            RRTypes::Ns => {}
+                            RRTypes::CName => {}
+                            RRTypes::Soa => {}
+                            RRTypes::Ptr => {}
+                            RRTypes::Mx => {}
+                            RRTypes::Txt => {}
+                            RRTypes::Srv => {}
+                            RRTypes::Opt => {}
+                            RRTypes::RRSig => {}
+                            RRTypes::Nsec => {}
+                            RRTypes::DnsKey => {}
+                            RRTypes::Https => {}
+                            RRTypes::Spf => {}
+                            RRTypes::Tsig => {}
+                            RRTypes::Any => {}
+                            RRTypes::Caa => {}
+                        }
+                    }
+
+
+                    /*
                     for query in message.get_queries() {
                         if let Some(callbacks) = query_mapping.lock().unwrap().get(&query.get_type()) {
                             let mut query_event = QueryEvent::new(query);
@@ -189,6 +238,7 @@ impl Server {
                             }
                         }
                     }
+                    */
 
                     if !response.has_answers() {
                         //DOES DOMAIN EXIST FOR US...? - IF SO ADD AUTHORITY RESPONSE SOA
