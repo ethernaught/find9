@@ -142,6 +142,17 @@ impl Server {
 
                         return;
                     }
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
 
                     let mut response = MessageBase::new(message.get_id());
                     response.set_op_code(message.get_op_code());
