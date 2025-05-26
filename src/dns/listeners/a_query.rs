@@ -13,7 +13,7 @@ pub fn on_a_query() -> impl Fn(&mut QueryEvent) -> io::Result<()> {
     let mut parser = ZoneParser::new("/home/brad/find9/find9.net.zone", "find9.net").unwrap();
 
     for (name, record) in parser.iter() {
-        println!("{}: {:?}", name, record);
+        //println!("{}: {:?}", name, record);
 
         zones
             .entry(name)

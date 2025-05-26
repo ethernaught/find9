@@ -1,6 +1,7 @@
 mod rpc;
 mod utils;
 mod dns;
+mod zone;
 //mod unix_rpc;
 
 use std::collections::HashMap;
@@ -10,6 +11,8 @@ use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::inter::record_base::RecordBase;
 use rlibdns::zone::zone_parser::ZoneParser;
 use crate::dns::dns::Dns;
+use crate::zone::inter::zone_types::ZoneTypes;
+use crate::zone::zone::Zone;
 
 pub type RecordMap = HashMap<String, HashMap<RRTypes, Vec<Box<dyn RecordBase>>>>;
 
@@ -29,6 +32,15 @@ pub type RecordMap = HashMap<String, HashMap<RRTypes, Vec<Box<dyn RecordBase>>>>
 
 fn main() -> io::Result<()> {
     /*
+    Type	Role
+    master	Owns the original zone data, serves it authoritatively
+    slave	Gets zone data from the master via zone transfers
+    stub	Only stores NS records of a zone, not full data
+    forward	Forwards queries to another server (like a proxy)
+    hint	Used for root servers (rarely modified)
+    */
+
+    /*
     let mut records = RecordMap::new();
 
     let mut parser = ZoneParser::new("/home/brad/find9/find9.net.zone", "find9.net").unwrap();
@@ -44,6 +56,23 @@ fn main() -> io::Result<()> {
             .push(record);
     }
     */
+    let mut zones = HashMap::new();
+
+    let domain = "find9.net";
+    let mut zone = Zone::new(ZoneTypes::Master);
+
+    let mut parser = ZoneParser::new("/home/brad/find9/find9.net.zone", domain).unwrap();
+    for (name, record) in parser.iter() {
+        if !name.eq(domain){
+            continue;
+        }
+
+        zone.add_record(record);
+    }
+
+    zones.insert(domain, zone);
+
+    println!("{:?}", zones);
 
 
 
