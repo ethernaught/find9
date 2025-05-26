@@ -22,7 +22,7 @@ pub fn on_a_query() -> impl Fn(&mut QueryEvent) -> io::Result<()> {
                 //let ttl = record.get("ttl").unwrap().parse::<u32>().unwrap();
                 //let address = record.get("address").unwrap().parse::<u32>().unwrap();
 
-                event.add_answer(&event.get_query().get_name(), record);
+                event.add_answer(&event.get_query().get_name(), record.clone());
             }
 
 
@@ -38,7 +38,7 @@ pub fn on_a_query() -> impl Fn(&mut QueryEvent) -> io::Result<()> {
                     let target = record.get_target().unwrap();
 
                     for record in records {
-                        event.add_answer(&target, record);
+                        event.add_answer(&target, record.clone());
                     }
                 }
             }
