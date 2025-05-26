@@ -148,69 +148,6 @@ impl Server {
 
                     //let is_bogon = is_bogon(message.get_origin().unwrap());//if  { "network < 2" } else { "network > 0" };
 
-                    /*
-                    for query in message.get_queries() {
-                        match query.get_type() {
-                            RRTypes::A => {
-                                //let zones = zones.lock().unwrap();
-                                let records = zones.lock().unwrap().get(&query.get_name()).unwrap().get(&RRTypes::CName).unwrap();
-
-                                if records.is_empty() {
-                                    let records = zones.lock().unwrap().get(&query.get_name()).unwrap().get(&RRTypes::A).unwrap();
-
-                                    if records.is_empty() {
-                                        //NO A...
-                                    }
-
-                                    for record in records {
-                                        //let ttl = record.get("ttl").unwrap().parse::<u32>().unwrap();
-                                        //let address = record.get("address").unwrap().parse::<u32>().unwrap();
-
-                                        response.add_answer(&query.get_name(), record);
-                                    }
-
-
-                                } else {
-                                    for record in records {
-                                        if let Some(record) = record.as_any().downcast_ref::<CNameRecord>() {
-                                            let records = zones.lock().unwrap().get(&record.get_target().unwrap()).unwrap().get(&RRTypes::A).unwrap();
-
-                                            if records.is_empty() {
-                                                //NO A...
-                                            }
-
-                                            let target = record.get_target().unwrap();
-
-                                            for record in records {
-                                                response.add_answer(&target, record);
-                                            }
-                                        }
-                                    }
-                                }
-
-                            }
-                            RRTypes::Aaaa => {}
-                            RRTypes::Ns => {}
-                            RRTypes::CName => {}
-                            RRTypes::Soa => {}
-                            RRTypes::Ptr => {}
-                            RRTypes::Mx => {}
-                            RRTypes::Txt => {}
-                            RRTypes::Srv => {}
-                            RRTypes::Opt => {}
-                            RRTypes::RRSig => {}
-                            RRTypes::Nsec => {}
-                            RRTypes::DnsKey => {}
-                            RRTypes::Https => {}
-                            RRTypes::Spf => {}
-                            RRTypes::Tsig => {}
-                            RRTypes::Any => {}
-                            RRTypes::Caa => {}
-                        }
-                    }
-                    */
-
-
                     for query in message.get_queries() {
                         if let Some(callbacks) = query_mapping.lock().unwrap().get(&query.get_type()) {
                             let mut query_event = QueryEvent::new(query);
