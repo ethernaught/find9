@@ -15,16 +15,13 @@ use crate::rpc::events::inter::event::Event;
 use crate::rpc::events::query_event::QueryEvent;
 use crate::utils::spam_throttle::SpamThrottle;
 
-type RecordMap = HashMap<String, HashMap<RRTypes, Vec<Box<dyn RecordBase>>>>;
-
 pub struct Server {
     server: Option<UdpSocket>,
     running: Arc<AtomicBool>,
     tx_sender_pool: Option<Sender<(Vec<u8>, SocketAddr)>>,
     query_mapping: Arc<Mutex<HashMap<RRTypes, Vec<Box<dyn Fn(&mut QueryEvent) -> io::Result<()> + Send>>>>>,
     sender_throttle: SpamThrottle,
-    receiver_throttle: SpamThrottle,
-    zones: Arc<Mutex<RecordMap>>
+    receiver_throttle: SpamThrottle
 }
 
 impl Server {
@@ -36,8 +33,7 @@ impl Server {
             tx_sender_pool: None,
             query_mapping: Arc::new(Mutex::new(HashMap::new())),
             sender_throttle: SpamThrottle::new(),
-            receiver_throttle: SpamThrottle::new(),
-            zones: Arc::new(Mutex::new(HashMap::new()))
+            receiver_throttle: SpamThrottle::new()
         }
     }
 
@@ -130,7 +126,6 @@ impl Server {
         F: Fn(&MessageBase) -> io::Result<()> + Send + 'static
     {
         let query_mapping = self.query_mapping.clone();
-        let zones = self.zones.clone();
 
         move |data, src_addr| {
             match MessageBase::from_bytes(&data) {
@@ -153,6 +148,7 @@ impl Server {
 
                     //let is_bogon = is_bogon(message.get_origin().unwrap());//if  { "network < 2" } else { "network > 0" };
 
+                    /*
                     for query in message.get_queries() {
                         match query.get_type() {
                             RRTypes::A => {
@@ -212,9 +208,9 @@ impl Server {
                             RRTypes::Caa => {}
                         }
                     }
+                    */
 
 
-                    /*
                     for query in message.get_queries() {
                         if let Some(callbacks) = query_mapping.lock().unwrap().get(&query.get_type()) {
                             let mut query_event = QueryEvent::new(query);
@@ -238,7 +234,6 @@ impl Server {
                             }
                         }
                     }
-                    */
 
                     if !response.has_answers() {
                         //DOES DOMAIN EXIST FOR US...? - IF SO ADD AUTHORITY RESPONSE SOA

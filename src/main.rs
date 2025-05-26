@@ -10,6 +10,8 @@ use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::inter::record_base::RecordBase;
 use rlibdns::zone::zone_parser::ZoneParser;
 
+pub type RecordMap = HashMap<String, HashMap<RRTypes, Vec<Box<dyn RecordBase>>>>;
+
 //dig @127.0.0.1 -p 6767 net.unet
 
 //REDO DNS / SERVER STUFF
