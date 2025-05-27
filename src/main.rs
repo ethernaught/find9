@@ -34,7 +34,7 @@ fn main() -> io::Result<()> {
     /*
     Type	Role
     master	Owns the original zone data, serves it authoritatively
-    slave	Gets zone data from the master via zone transfers
+    slave	Gets zone data from the master via zone transfers (AXFR, IXFR) RECORDS - TCP (SOA - SERIAL IS USED TO KNOW ABOUT UPDATES TO RECORDS - MASTER NOTIFIES SLAVES)
     stub	Only stores NS records of a zone, not full data
     forward	Forwards queries to another server (like a proxy)
     hint	Used for root servers (rarely modified)
