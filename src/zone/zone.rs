@@ -34,4 +34,8 @@ impl Zone {
             .or_insert_with(Vec::new)
             .push(record);
     }
+    
+    pub fn get_records(&self) -> &RecordMap {
+        &self.records
+    }
 }
