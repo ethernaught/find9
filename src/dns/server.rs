@@ -146,7 +146,7 @@ impl Server {
                     //let mut query_event = QueryEvent::new(message);
                     //query_event.set_response(response);
 
-                    //let is_bogon = is_bogon(message.get_origin().unwrap());//if  { "network < 2" } else { "network > 0" };
+                    //let is_bogon = is_bogon(message.get_origin().unwrap());
 
                     for query in message.get_queries() {
                         if let Some(callbacks) = query_mapping.lock().unwrap().get(&query.get_type()) {
