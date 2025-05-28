@@ -34,8 +34,12 @@ impl Zone {
             .or_insert_with(Vec::new)
             .push(record);
     }
+
+    pub fn get_records(&self, _type: &RRTypes) -> Option<&Vec<Box<dyn RecordBase>>> {
+        self.records.get(_type)
+    }
     
-    pub fn get_records(&self) -> &RecordMap {
+    pub fn get_all_records(&self) -> &RecordMap {
         &self.records
     }
 }

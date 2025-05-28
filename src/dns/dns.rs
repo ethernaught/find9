@@ -1,66 +1,84 @@
 use std::collections::HashMap;
 use std::io;
-use std::sync::{Arc, Mutex};
+use std::io::ErrorKind;
+use std::sync::{Arc, Mutex, RwLock};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread::JoinHandle;
 use rlibdns::messages::inter::rr_types::RRTypes;
+use rlibdns::zone::zone_parser::ZoneParser;
 use crate::dns::listeners::a_query::on_a_query;
 use crate::dns::listeners::aaaa_query::on_aaaa_query;
 use crate::dns::listeners::ns_query::on_ns_query;
 use crate::dns::listeners::soa_query::on_soa_query;
 use crate::dns::listeners::txt_query::on_txt_query;
+use crate::dns::udp_server;
 use crate::dns::udp_server::UdpServer;
 use crate::rpc::events::query_event::QueryEvent;
+use crate::zone::inter::zone_types::ZoneTypes;
 use crate::zone::zone::Zone;
 
-pub type QueryMap = HashMap<RRTypes, Vec<Box<dyn Fn(&mut QueryEvent) -> io::Result<()> + Send>>>;
+pub type QueryMap = Arc<RwLock<HashMap<RRTypes, Vec<Box<dyn Fn(&mut QueryEvent) -> io::Result<()> + Send + Sync>>>>>;
 
 pub struct Dns {
-    zones: Arc<Mutex<HashMap<String, Zone>>>,
-    query_mapping: QueryMap,
-    udp_server: Option<JoinHandle<()>>,
+    //state: DnsState,
+    zones: Arc<RwLock<HashMap<String, Zone>>>,
+    udp: UdpServer
+    //pub(crate) query_mapping: QueryMap,
+    //udp_server: Option<JoinHandle<()>>,
 }
 
 impl Dns {
 
     pub fn new() -> Self {
-        let _self = Self {
-            zones: Arc::new(Mutex::new(HashMap::new())),
-            query_mapping: QueryMap::new(),
-            udp_server: None
-        };
+        let zones = Arc::new(RwLock::new(HashMap::new()));
 
-        //BASED ON CONFIG ENABLE SPECIFIC QUERY LISTENERS
-        _self.register_query_listener(RRTypes::A, on_a_query());
-        _self.register_query_listener(RRTypes::Aaaa, on_aaaa_query());
-        _self.register_query_listener(RRTypes::Ns, on_ns_query());
-        _self.register_query_listener(RRTypes::Txt, on_txt_query());
-        _self.register_query_listener(RRTypes::Soa, on_soa_query());
+        let udp = UdpServer::new();
+        udp.register_query_listener(RRTypes::A, on_a_query(&zones));
+        //_self.register_query_listener(RRTypes::Aaaa, on_aaaa_query());
+        //_self.register_query_listener(RRTypes::Ns, on_ns_query());
+        //_self.register_query_listener(RRTypes::Txt, on_txt_query());
+        //_self.register_query_listener(RRTypes::Soa, on_soa_query());
 
         //let udp_server = UdpServer::new();
 
-        _self
+        Self {
+            zones,
+            udp,
+            //query_mapping: Arc::new(Mutex::new(HashMap::new()))
+        }
     }
 
-    pub fn start(&mut self, port: u16) -> io::Result<JoinHandle<()>> {
-        self.server.start(port)
+    pub fn start(&mut self, port: u16) -> io::Result<()> {
+        self.udp.run(port)?;
+
+        Ok(())
+    }
+
+    pub fn is_running(&self) -> (bool, bool) {
+        (self.udp.is_running(), false)
     }
 
     pub fn stop(&self) {
-        self.server.stop()
+        self.udp.kill();
     }
 
-    pub fn get_server(&mut self) -> &mut Server {
-        &mut self.server
+    pub fn get_udp(&self) -> &UdpServer {
+        &self.udp
     }
 
-    pub fn register_query_listener<F>(&self, key: RRTypes, callback: F)
-    where
-        F: Fn(&mut QueryEvent) -> io::Result<()> + Send + 'static
-    {
-        if self.query_mapping.lock().unwrap().contains_key(&key) {
-            self.query_mapping.lock().unwrap().get_mut(&key).unwrap().push(Box::new(callback));
-            return;
+    pub fn register_zone(&self, file_path: &str, domain: &str) -> io::Result<()> {
+        let mut zone = Zone::new(ZoneTypes::Master);
+
+        let mut parser = ZoneParser::new(file_path, domain)?;
+        for (name, record) in parser.iter() {
+            if !name.eq(domain){
+                continue;
+            }
+
+            zone.add_record(record);
         }
-        self.query_mapping.lock().unwrap().insert(key, vec![Box::new(callback)]);
+
+        self.zones.write().unwrap().insert(domain.to_string(), zone);
+        Ok(())
     }
 }

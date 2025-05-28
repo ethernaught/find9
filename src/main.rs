@@ -14,7 +14,7 @@ use crate::dns::dns::Dns;
 use crate::zone::inter::zone_types::ZoneTypes;
 use crate::zone::zone::Zone;
 
-pub type RecordMap = HashMap<String, HashMap<RRTypes, Vec<Box<dyn RecordBase>>>>;
+//pub type RecordMap = HashMap<String, HashMap<RRTypes, Vec<Box<dyn RecordBase>>>>;
 
 //dig @127.0.0.1 -p 6767 net.unet
 
@@ -30,6 +30,8 @@ pub type RecordMap = HashMap<String, HashMap<RRTypes, Vec<Box<dyn RecordBase>>>>
 
 //MAKE SURE WE CACHE RECORDS IN MEMORY
 
+//ZONE PARSING FORGET ORIGIN WE GIVE IF ORIGIN IS STATED WITHIN FILE
+
 fn main() -> io::Result<()> {
     /*
     Type	Role
@@ -40,45 +42,10 @@ fn main() -> io::Result<()> {
     hint	Used for root servers (rarely modified)
     */
 
-    /*
-    let mut records = RecordMap::new();
-
-    let mut parser = ZoneParser::new("/home/brad/find9/find9.net.zone", "find9.net").unwrap();
-
-    for (name, record) in parser.iter() {
-        println!("{}: {:?}", name, record);
-
-        records
-            .entry(name)
-            .or_insert_with(HashMap::new)
-            .entry(record.get_type())
-            .or_insert_with(Vec::new)
-            .push(record);
-    }
-    */
-    let mut zones = HashMap::new();
-
-    let domain = "find9.net";
-    let mut zone = Zone::new(ZoneTypes::Master);
-
-    let mut parser = ZoneParser::new("/home/brad/find9/find9.net.zone", domain).unwrap();
-    for (name, record) in parser.iter() {
-        if !name.eq(domain){
-            continue;
-        }
-
-        zone.add_record(record);
-    }
-
-    zones.insert(domain, zone);
-
-    println!("{:?}", zones);
-
-
-
     let mut dns = Dns::new();
+    dns.register_zone("/home/brad/Downloads/find9.net.test.zone", "find9.net").unwrap();
     //dns.get_server().add_fallback(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)), 53));
-    dns.start(6767)?;
+    dns.start(6767);
 
     //let mut unix_rpc = UnixRpc::new()?;
     //unix_rpc.set_database(database.clone());

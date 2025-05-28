@@ -1,7 +1,8 @@
 use std::{io, thread};
 use std::collections::HashMap;
+use std::io::ErrorKind;
 use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{channel, Sender, TryRecvError};
 use std::thread::{sleep, JoinHandle};
@@ -9,109 +10,50 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::message_base::MessageBase;
-use rlibdns::records::cname_record::CNameRecord;
-use rlibdns::records::inter::record_base::RecordBase;
-use crate::dns::dns::{Dns, QueryMap};
+use crate::dns::dns::QueryMap;
 use crate::rpc::events::inter::event::Event;
 use crate::rpc::events::query_event::QueryEvent;
 use crate::utils::spam_throttle::SpamThrottle;
 
+#[derive(Clone)]
 pub struct UdpServer {
-    server: Option<UdpSocket>,
     running: Arc<AtomicBool>,
     tx_sender_pool: Option<Sender<(Vec<u8>, SocketAddr)>>,
-    query_mapping: Arc<Mutex<QueryMap>>,
-    sender_throttle: SpamThrottle,
-    receiver_throttle: SpamThrottle
+    query_mapping: QueryMap
 }
 
 impl UdpServer {
 
-    pub fn run(dns: Dns) -> io::Result<JoinHandle<()>> {
-        let x = thread::spawn({
-            let server = self.server.as_ref().unwrap().try_clone()?;
-            let running = Arc::clone(&self.running);
-            let sender_throttle = self.sender_throttle.clone();
-            let receiver_throttle = self.receiver_throttle.clone();
-
-            move || {
-                let mut buf = [0u8; 65535];
-                let mut last_decay_time = SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .expect("Time went backwards")
-                    .as_millis();
-
-                while running.load(Ordering::Relaxed) {
-                    match server.recv_from(&mut buf) {
-                        Ok((size, src_addr)) => {
-                            if !receiver_throttle.add_and_test(src_addr.ip()) {
-                                on_receive(&buf[..size], src_addr);
-                            }
-                        }
-                        Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {}
-                        _ => break
-                    }
-
-                    match rx_sender_pool.try_recv() {
-                        Ok((data, dst_addr)) => {
-                            if !sender_throttle.test(dst_addr.ip()) {
-                                server.send_to(data.as_slice(), dst_addr);
-                            }
-                        }
-                        Err(TryRecvError::Empty) => {}
-                        Err(TryRecvError::Disconnected) => break
-                    }
-
-                    let now = SystemTime::now()
-                        .duration_since(UNIX_EPOCH)
-                        .expect("Time went backwards")
-                        .as_millis();
-
-                    if now - last_decay_time >= 1000 {
-                        receiver_throttle.decay();
-                        sender_throttle.decay();
-
-                        last_decay_time = now;
-                    }
-
-                    sleep(Duration::from_millis(1));
-                }
-            }
-        });
-    }
-
-
-
-    /*
-    pub fn new(query_mapping: Arc<Mutex<QueryMap>>) -> Self {
+    pub fn new() -> Self {
         Self {
-            server: None,
             running: Arc::new(AtomicBool::new(false)),
             tx_sender_pool: None,
-            query_mapping,
-            sender_throttle: SpamThrottle::new(),
-            receiver_throttle: SpamThrottle::new()
+            query_mapping: Arc::new(RwLock::new(HashMap::new()))
         }
     }
 
-    pub fn start(&mut self, port: u16) -> io::Result<JoinHandle<()>> {
+    pub fn run(&mut self, port: u16) -> io::Result<JoinHandle<()>> {
         if self.is_running() {
-            return Err(io::Error::new(io::ErrorKind::Other, "Server is already running"));
+            return Err(io::Error::new(ErrorKind::Unsupported, "Dns is already running"));
         }
 
-        self.running.store(true, Ordering::Relaxed);
-        self.server = Some(UdpSocket::bind(SocketAddr::from((Ipv4Addr::UNSPECIFIED, port)))?);
-        self.server.as_ref().unwrap().set_nonblocking(true)?;
+        let server = UdpSocket::bind(SocketAddr::from((Ipv4Addr::UNSPECIFIED, port)))?;
+        server.set_nonblocking(true)?;
+
+        let sender_throttle = SpamThrottle::new();
 
         let (tx_sender_pool, rx_sender_pool) = channel();
-        let on_receive = self.on_receive(self.send_message(&tx_sender_pool));
         self.tx_sender_pool = Some(tx_sender_pool);
 
+        let on_receive = self.on_receive(self.send_message(&sender_throttle));
+
+        self.running.store(true, Ordering::Relaxed);
+
         Ok(thread::spawn({
-            let server = self.server.as_ref().unwrap().try_clone()?;
+            let server = server.try_clone()?;
             let running = Arc::clone(&self.running);
-            let sender_throttle = self.sender_throttle.clone();
-            let receiver_throttle = self.receiver_throttle.clone();
+            let sender_throttle = sender_throttle.clone();
+            let receiver_throttle = SpamThrottle::new();
 
             move || {
                 let mut buf = [0u8; 65535];
@@ -159,12 +101,12 @@ impl UdpServer {
         }))
     }
 
-    pub fn stop(&self) {
-        self.running.store(false, Ordering::Relaxed);
-    }
-
     pub fn is_running(&self) -> bool {
         self.running.load(Ordering::Relaxed)
+    }
+
+    pub fn kill(&self) {
+        self.running.store(false, Ordering::Relaxed);
     }
 
     fn on_receive<F>(&self, send: F) -> impl Fn(&[u8], SocketAddr)
@@ -195,7 +137,7 @@ impl UdpServer {
                     //let is_bogon = is_bogon(message.get_origin().unwrap());
 
                     for query in message.get_queries() {
-                        if let Some(callbacks) = query_mapping.lock().unwrap().get(&query.get_type()) {
+                        if let Some(callbacks) = query_mapping.read().unwrap().get(&query.get_type()) {
                             let mut query_event = QueryEvent::new(query);
 
                             for callback in callbacks {
@@ -231,7 +173,7 @@ impl UdpServer {
                     // NxDomain
 
                     if !response.has_name_servers() &&
-                            !response.has_additional_records() {
+                        !response.has_additional_records() {
                         response.set_response_code(ResponseCodes::NxDomain);
                     }
 
@@ -242,23 +184,10 @@ impl UdpServer {
         }
     }
 
-    /.*
-    pub fn send(&self, message: &MessageBase) -> io::Result<()> {
-        if message.get_destination().is_none() {
-            return Err(io::Error::new(io::ErrorKind::InvalidData, "Message destination set to null"));
-        }
+    fn send_message(&self, sender_throttle: &SpamThrottle) -> impl Fn(&MessageBase) -> io::Result<()> {
+        let tx = self.tx_sender_pool.as_ref().unwrap().clone();
+        let sender_throttle = sender_throttle.clone();
 
-        if !self.sender_throttle.add_and_test(message.get_destination().unwrap().ip()) {
-            self.tx_sender_pool.as_ref().unwrap().send((message.to_bytes(), message.get_destination().unwrap())).unwrap();
-        }
-
-        Ok(())
-    }
-    *./
-
-    fn send_message(&self, tx: &Sender<(Vec<u8>, SocketAddr)>) -> impl Fn(&MessageBase) -> io::Result<()> {
-        let tx = tx.clone();
-        let sender_throttle = self.sender_throttle.clone();
         move |message| {
             if message.get_destination().is_none() {
                 return Err(io::Error::new(io::ErrorKind::InvalidData, "Message destination set to null"));
@@ -271,5 +200,15 @@ impl UdpServer {
             Ok(())
         }
     }
-    */
+
+    pub fn register_query_listener<F>(&self, key: RRTypes, callback: F)
+    where
+        F: Fn(&mut QueryEvent) -> io::Result<()> + Send + Sync + 'static
+    {
+        if self.query_mapping.read().unwrap().contains_key(&key) {
+            self.query_mapping.write().unwrap().get_mut(&key).unwrap().push(Box::new(callback));
+            return;
+        }
+        self.query_mapping.write().unwrap().insert(key, vec![Box::new(callback)]);
+    }
 }
