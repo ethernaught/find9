@@ -3,7 +3,7 @@ use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::inter::record_base::RecordBase;
 use crate::zone::inter::zone_types::ZoneTypes;
 
-pub type RecordMap = HashMap<RRTypes, Vec<Box<dyn RecordBase>>>;
+pub type RecordMap = HashMap<String, HashMap<RRTypes, Vec<Box<dyn RecordBase>>>>;
 
 #[derive(Debug, Clone)]
 pub struct Zone {
@@ -28,15 +28,17 @@ impl Zone {
         self._type
     }
 
-    pub fn add_record(&mut self, record: Box<dyn RecordBase>) {
+    pub fn add_record(&mut self, name: &str, record: Box<dyn RecordBase>) {
         self.records
+            .entry(name.to_string())
+            .or_insert_with(HashMap::new)
             .entry(record.get_type())
             .or_insert_with(Vec::new)
             .push(record);
     }
 
-    pub fn get_records(&self, _type: &RRTypes) -> Option<&Vec<Box<dyn RecordBase>>> {
-        self.records.get(_type)
+    pub fn get_records(&self, name: &str, _type: &RRTypes) -> Option<&Vec<Box<dyn RecordBase>>> {
+        self.records.get(name)?.get(_type)
     }
     
     pub fn get_all_records(&self) -> &RecordMap {

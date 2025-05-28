@@ -33,13 +33,13 @@ impl Dns {
 
         let udp = UdpServer::new();
         udp.register_query_listener(RRTypes::A, on_a_query(&zones));
-        //_self.register_query_listener(RRTypes::Aaaa, on_aaaa_query());
-        //_self.register_query_listener(RRTypes::Ns, on_ns_query());
+        udp.register_query_listener(RRTypes::Aaaa, on_aaaa_query(&zones));
+        udp.register_query_listener(RRTypes::Ns, on_ns_query(&zones));
         //_self.register_query_listener(RRTypes::Txt, on_txt_query());
         //_self.register_query_listener(RRTypes::Soa, on_soa_query());
 
         let tcp = TcpServer::new();
-        
+
         Self {
             zones,
             udp,
@@ -69,12 +69,10 @@ impl Dns {
 
         let mut parser = ZoneParser::new(file_path, domain)?;
         for (name, record) in parser.iter() {
-            if !name.eq(domain){
-                continue;
-            }
-
-            zone.add_record(record);
+            zone.add_record(&name, record);
         }
+
+        println!("{:?}", zone);
 
         self.zones.write().unwrap().insert(parser.get_origin(), zone);
         Ok(())

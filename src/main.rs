@@ -30,6 +30,13 @@ use crate::zone::zone::Zone;
 
 //MAKE SURE WE CACHE RECORDS IN MEMORY
 
+/*
+THERE CAN BE CHAIN CNAMES...
+www.example.com.          IN CNAME app.service.example.net.
+app.service.example.net.  IN CNAME test.example.net.
+test.example.net.         IN A     192.168.1.100
+*/
+
 fn main() -> io::Result<()> {
     /*
     Type	Role
