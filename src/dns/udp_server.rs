@@ -11,27 +11,84 @@ use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::message_base::MessageBase;
 use rlibdns::records::cname_record::CNameRecord;
 use rlibdns::records::inter::record_base::RecordBase;
+use crate::dns::dns::{Dns, QueryMap};
 use crate::rpc::events::inter::event::Event;
 use crate::rpc::events::query_event::QueryEvent;
 use crate::utils::spam_throttle::SpamThrottle;
 
-pub struct Server {
+pub struct UdpServer {
     server: Option<UdpSocket>,
     running: Arc<AtomicBool>,
     tx_sender_pool: Option<Sender<(Vec<u8>, SocketAddr)>>,
-    query_mapping: Arc<Mutex<HashMap<RRTypes, Vec<Box<dyn Fn(&mut QueryEvent) -> io::Result<()> + Send>>>>>,
+    query_mapping: Arc<Mutex<QueryMap>>,
     sender_throttle: SpamThrottle,
     receiver_throttle: SpamThrottle
 }
 
-impl Server {
+impl UdpServer {
 
-    pub fn new() -> Self {
+    pub fn run(dns: Dns) -> io::Result<JoinHandle<()>> {
+        let x = thread::spawn({
+            let server = self.server.as_ref().unwrap().try_clone()?;
+            let running = Arc::clone(&self.running);
+            let sender_throttle = self.sender_throttle.clone();
+            let receiver_throttle = self.receiver_throttle.clone();
+
+            move || {
+                let mut buf = [0u8; 65535];
+                let mut last_decay_time = SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .expect("Time went backwards")
+                    .as_millis();
+
+                while running.load(Ordering::Relaxed) {
+                    match server.recv_from(&mut buf) {
+                        Ok((size, src_addr)) => {
+                            if !receiver_throttle.add_and_test(src_addr.ip()) {
+                                on_receive(&buf[..size], src_addr);
+                            }
+                        }
+                        Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {}
+                        _ => break
+                    }
+
+                    match rx_sender_pool.try_recv() {
+                        Ok((data, dst_addr)) => {
+                            if !sender_throttle.test(dst_addr.ip()) {
+                                server.send_to(data.as_slice(), dst_addr);
+                            }
+                        }
+                        Err(TryRecvError::Empty) => {}
+                        Err(TryRecvError::Disconnected) => break
+                    }
+
+                    let now = SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .expect("Time went backwards")
+                        .as_millis();
+
+                    if now - last_decay_time >= 1000 {
+                        receiver_throttle.decay();
+                        sender_throttle.decay();
+
+                        last_decay_time = now;
+                    }
+
+                    sleep(Duration::from_millis(1));
+                }
+            }
+        });
+    }
+
+
+
+    /*
+    pub fn new(query_mapping: Arc<Mutex<QueryMap>>) -> Self {
         Self {
             server: None,
             running: Arc::new(AtomicBool::new(false)),
             tx_sender_pool: None,
-            query_mapping: Arc::new(Mutex::new(HashMap::new())),
+            query_mapping,
             sender_throttle: SpamThrottle::new(),
             receiver_throttle: SpamThrottle::new()
         }
@@ -110,17 +167,6 @@ impl Server {
         self.running.load(Ordering::Relaxed)
     }
 
-    pub fn register_query_listener<F>(&self, key: RRTypes, callback: F)
-    where
-        F: Fn(&mut QueryEvent) -> io::Result<()> + Send + 'static
-    {
-        if self.query_mapping.lock().unwrap().contains_key(&key) {
-            self.query_mapping.lock().unwrap().get_mut(&key).unwrap().push(Box::new(callback));
-            return;
-        }
-        self.query_mapping.lock().unwrap().insert(key, vec![Box::new(callback)]);
-    }
-
     fn on_receive<F>(&self, send: F) -> impl Fn(&[u8], SocketAddr)
     where
         F: Fn(&MessageBase) -> io::Result<()> + Send + 'static
@@ -196,11 +242,7 @@ impl Server {
         }
     }
 
-    fn load_record(&self) {
-
-    }
-
-    /*
+    /.*
     pub fn send(&self, message: &MessageBase) -> io::Result<()> {
         if message.get_destination().is_none() {
             return Err(io::Error::new(io::ErrorKind::InvalidData, "Message destination set to null"));
@@ -212,7 +254,7 @@ impl Server {
 
         Ok(())
     }
-    */
+    *./
 
     fn send_message(&self, tx: &Sender<(Vec<u8>, SocketAddr)>) -> impl Fn(&MessageBase) -> io::Result<()> {
         let tx = tx.clone();
@@ -229,4 +271,5 @@ impl Server {
             Ok(())
         }
     }
+    */
 }

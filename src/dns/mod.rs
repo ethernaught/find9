@@ -1,3 +1,3 @@
 pub mod listeners;
-pub mod server;
+pub mod udp_server;
 pub mod dns;
