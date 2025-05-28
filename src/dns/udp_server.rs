@@ -212,7 +212,7 @@ impl UdpServer {
         }
         self.query_mapping.write().unwrap().insert(key, vec![Box::new(callback)]);
     }
-    
+
     pub fn get_socket(&self) -> Option<&UdpSocket> {
         self.socket.as_ref()
     }
