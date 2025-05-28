@@ -1,6 +1,5 @@
 use std::{io, thread};
 use std::collections::HashMap;
-use std::io::ErrorKind;
 use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
 use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -35,7 +34,7 @@ impl UdpServer {
 
     pub fn run(&mut self, port: u16) -> io::Result<JoinHandle<()>> {
         if self.is_running() {
-            return Err(io::Error::new(ErrorKind::Unsupported, "Dns is already running"));
+            return Err(io::Error::new(io::ErrorKind::Unsupported, "Dns is already running"));
         }
 
         self.socket = Some(UdpSocket::bind(SocketAddr::from((Ipv4Addr::UNSPECIFIED, port)))?);
@@ -51,7 +50,7 @@ impl UdpServer {
         self.running.store(true, Ordering::Relaxed);
 
         Ok(thread::spawn({
-            let server = self.socket.as_ref().unwrap().try_clone()?;
+            let socket = self.socket.as_ref().unwrap().try_clone()?;
             let running = Arc::clone(&self.running);
             let sender_throttle = sender_throttle.clone();
             let receiver_throttle = SpamThrottle::new();
@@ -64,7 +63,7 @@ impl UdpServer {
                     .as_millis();
 
                 while running.load(Ordering::Relaxed) {
-                    match server.recv_from(&mut buf) {
+                    match socket.recv_from(&mut buf) {
                         Ok((size, src_addr)) => {
                             if !receiver_throttle.add_and_test(src_addr.ip()) {
                                 on_receive(&buf[..size], src_addr);
@@ -77,7 +76,7 @@ impl UdpServer {
                     match rx_sender_pool.try_recv() {
                         Ok((data, dst_addr)) => {
                             if !sender_throttle.test(dst_addr.ip()) {
-                                server.send_to(data.as_slice(), dst_addr);
+                                socket.send_to(data.as_slice(), dst_addr);
                             }
                         }
                         Err(TryRecvError::Empty) => {}

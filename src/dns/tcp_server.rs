@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::{io, thread};
-use std::io::ErrorKind;
-use std::net::{Ipv4Addr, SocketAddr, TcpListener, UdpSocket};
+use std::net::{Ipv4Addr, SocketAddr, TcpListener, TcpStream, UdpSocket};
 use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{channel, Sender, TryRecvError};
@@ -18,7 +17,7 @@ use crate::utils::spam_throttle::SpamThrottle;
 pub struct TcpServer {
     running: Arc<AtomicBool>,
     pub(crate) socket: Option<TcpListener>,
-    tx_sender_pool: Option<Sender<(Vec<u8>, SocketAddr)>>,
+    tx_sender_pool: Option<Sender<(TcpStream, SocketAddr)>>,
     query_mapping: QueryMap
 }
 
@@ -35,7 +34,7 @@ impl TcpServer {
 
     pub fn run(&mut self, port: u16) -> io::Result<JoinHandle<()>> {
         if self.is_running() {
-            return Err(io::Error::new(ErrorKind::Unsupported, "Dns is already running"));
+            return Err(io::Error::new(io::ErrorKind::Unsupported, "Dns is already running"));
         }
 
         self.socket = Some(TcpListener::bind(SocketAddr::from((Ipv4Addr::UNSPECIFIED, port)))?);
@@ -46,24 +45,33 @@ impl TcpServer {
         let (tx_sender_pool, rx_sender_pool) = channel();
         self.tx_sender_pool = Some(tx_sender_pool);
 
-        let on_receive = self.on_receive(self.send_message(&sender_throttle));
+        let on_receive = self.on_receive();
 
         self.running.store(true, Ordering::Relaxed);
 
         Ok(thread::spawn({
-            let server = self.socket.as_ref().unwrap().try_clone()?;
+            let socket = self.socket.as_ref().unwrap().try_clone()?;
             let running = Arc::clone(&self.running);
             let sender_throttle = sender_throttle.clone();
             let receiver_throttle = SpamThrottle::new();
 
             move || {
-                let mut buf = [0u8; 65535];
                 let mut last_decay_time = SystemTime::now()
                     .duration_since(UNIX_EPOCH)
                     .expect("Time went backwards")
                     .as_millis();
 
                 while running.load(Ordering::Relaxed) {
+                    match socket.accept() {
+                        Ok((stream, src_addr)) => {
+                            if !receiver_throttle.add_and_test(src_addr.ip()) {
+                                on_receive(stream, src_addr);
+                            }
+                        }
+                        Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {}
+                        _ => break
+                    }
+
                     /*
                     match server.recv_from(&mut buf) {
                         Ok((size, src_addr)) => {
@@ -112,13 +120,15 @@ impl TcpServer {
         self.running.store(false, Ordering::Relaxed);
     }
 
-    fn on_receive<F>(&self, send: F) -> impl Fn(&[u8], SocketAddr)
-    where
-        F: Fn(&MessageBase) -> io::Result<()> + Send + 'static
-    {
+    fn on_receive(&self) -> impl Fn(TcpStream, SocketAddr) {
         let query_mapping = self.query_mapping.clone();
 
-        move |data, src_addr| {
+        move |stream, src_addr| {
+
+            let data = [0x8; 65535];
+
+            println!("{src_addr}");
+
             match MessageBase::from_bytes(&data) {
                 Ok(mut message) => {
                     message.set_origin(src_addr);
@@ -180,13 +190,14 @@ impl TcpServer {
                         response.set_response_code(ResponseCodes::NxDomain);
                     }
 
-                    send(&response);
+                    //send(&response);
                 }
                 Err(_) => {}
             }
         }
     }
 
+    /*
     fn send_message(&self, sender_throttle: &SpamThrottle) -> impl Fn(&MessageBase) -> io::Result<()> {
         let tx = self.tx_sender_pool.as_ref().unwrap().clone();
         let sender_throttle = sender_throttle.clone();
@@ -197,12 +208,13 @@ impl TcpServer {
             }
 
             if !sender_throttle.add_and_test(message.get_destination().unwrap().ip()) {
-                tx.send((message.to_bytes(), message.get_destination().unwrap())).unwrap();
+                //tx.send((message.to_bytes(), message.get_destination().unwrap())).unwrap();
             }
 
             Ok(())
         }
     }
+    */
 
     pub fn register_query_listener<F>(&self, key: RRTypes, callback: F)
     where

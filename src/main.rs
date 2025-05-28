@@ -53,6 +53,7 @@ fn main() -> io::Result<()> {
     dns.start(6767);
 
     println!("UDP Server started on port: {}", dns.get_udp().socket.as_ref().unwrap().local_addr().unwrap().port());
+    println!("TCP Server started on port: {}", dns.get_tcp().socket.as_ref().unwrap().local_addr().unwrap().port());
 
     //let mut unix_rpc = UnixRpc::new()?;
     //unix_rpc.set_database(database.clone());
