@@ -39,6 +39,9 @@ impl Dns {
         //_self.register_query_listener(RRTypes::Soa, on_soa_query());
 
         let tcp = TcpServer::new();
+        tcp.register_query_listener(RRTypes::A, on_a_query(&zones));
+        tcp.register_query_listener(RRTypes::Aaaa, on_aaaa_query(&zones));
+        tcp.register_query_listener(RRTypes::Ns, on_ns_query(&zones));
 
         Self {
             zones,
@@ -49,11 +52,12 @@ impl Dns {
 
     pub fn start(&mut self, port: u16) -> io::Result<()> {
         self.udp.run(port)?;
+        self.tcp.run(port)?;
         Ok(())
     }
 
     pub fn is_running(&self) -> (bool, bool) {
-        (self.udp.is_running(), false)
+        (self.udp.is_running(), self.tcp.is_running())
     }
 
     pub fn stop(&self) {
@@ -62,6 +66,10 @@ impl Dns {
 
     pub fn get_udp(&self) -> &UdpServer {
         &self.udp
+    }
+
+    pub fn get_tcp(&self) -> &TcpServer {
+        &self.tcp
     }
 
     pub fn register_zone(&self, file_path: &str, domain: &str) -> io::Result<()> {
