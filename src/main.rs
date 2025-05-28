@@ -47,6 +47,8 @@ fn main() -> io::Result<()> {
     //dns.get_server().add_fallback(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)), 53));
     dns.start(6767);
 
+    println!("UDP Server started on port: {}", dns.get_udp().socket.as_ref().unwrap().local_addr().unwrap().port());
+
     //let mut unix_rpc = UnixRpc::new()?;
     //unix_rpc.set_database(database.clone());
     //unix_rpc.start()?.join().unwrap();

@@ -15,9 +15,9 @@ use crate::rpc::events::inter::event::Event;
 use crate::rpc::events::query_event::QueryEvent;
 use crate::utils::spam_throttle::SpamThrottle;
 
-#[derive(Clone)]
 pub struct UdpServer {
     running: Arc<AtomicBool>,
+    pub(crate) socket: Option<UdpSocket>,
     tx_sender_pool: Option<Sender<(Vec<u8>, SocketAddr)>>,
     query_mapping: QueryMap
 }
@@ -27,6 +27,7 @@ impl UdpServer {
     pub fn new() -> Self {
         Self {
             running: Arc::new(AtomicBool::new(false)),
+            socket: None,
             tx_sender_pool: None,
             query_mapping: Arc::new(RwLock::new(HashMap::new()))
         }
@@ -37,8 +38,8 @@ impl UdpServer {
             return Err(io::Error::new(ErrorKind::Unsupported, "Dns is already running"));
         }
 
-        let server = UdpSocket::bind(SocketAddr::from((Ipv4Addr::UNSPECIFIED, port)))?;
-        server.set_nonblocking(true)?;
+        self.socket = Some(UdpSocket::bind(SocketAddr::from((Ipv4Addr::UNSPECIFIED, port)))?);
+        self.socket.as_ref().unwrap().set_nonblocking(true)?;
 
         let sender_throttle = SpamThrottle::new();
 
@@ -50,7 +51,7 @@ impl UdpServer {
         self.running.store(true, Ordering::Relaxed);
 
         Ok(thread::spawn({
-            let server = server.try_clone()?;
+            let server = self.socket.as_ref().unwrap().try_clone()?;
             let running = Arc::clone(&self.running);
             let sender_throttle = sender_throttle.clone();
             let receiver_throttle = SpamThrottle::new();
@@ -210,5 +211,9 @@ impl UdpServer {
             return;
         }
         self.query_mapping.write().unwrap().insert(key, vec![Box::new(callback)]);
+    }
+    
+    pub fn get_socket(&self) -> Option<&UdpSocket> {
+        self.socket.as_ref()
     }
 }

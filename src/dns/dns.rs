@@ -11,6 +11,7 @@ use crate::dns::listeners::aaaa_query::on_aaaa_query;
 use crate::dns::listeners::ns_query::on_ns_query;
 use crate::dns::listeners::soa_query::on_soa_query;
 use crate::dns::listeners::txt_query::on_txt_query;
+use crate::dns::tcp_server::TcpServer;
 use crate::dns::udp_server;
 use crate::dns::udp_server::UdpServer;
 use crate::rpc::events::query_event::QueryEvent;
@@ -20,11 +21,9 @@ use crate::zone::zone::Zone;
 pub type QueryMap = Arc<RwLock<HashMap<RRTypes, Vec<Box<dyn Fn(&mut QueryEvent) -> io::Result<()> + Send + Sync>>>>>;
 
 pub struct Dns {
-    //state: DnsState,
     zones: Arc<RwLock<HashMap<String, Zone>>>,
-    udp: UdpServer
-    //pub(crate) query_mapping: QueryMap,
-    //udp_server: Option<JoinHandle<()>>,
+    udp: UdpServer,
+    tcp: TcpServer
 }
 
 impl Dns {
@@ -39,18 +38,17 @@ impl Dns {
         //_self.register_query_listener(RRTypes::Txt, on_txt_query());
         //_self.register_query_listener(RRTypes::Soa, on_soa_query());
 
-        //let udp_server = UdpServer::new();
-
+        let tcp = TcpServer::new();
+        
         Self {
             zones,
             udp,
-            //query_mapping: Arc::new(Mutex::new(HashMap::new()))
+            tcp
         }
     }
 
     pub fn start(&mut self, port: u16) -> io::Result<()> {
         self.udp.run(port)?;
-
         Ok(())
     }
 
