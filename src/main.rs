@@ -30,8 +30,6 @@ use crate::zone::zone::Zone;
 
 //MAKE SURE WE CACHE RECORDS IN MEMORY
 
-//ZONE PARSING FORGET ORIGIN WE GIVE IF ORIGIN IS STATED WITHIN FILE
-
 fn main() -> io::Result<()> {
     /*
     Type	Role

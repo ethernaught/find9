@@ -76,7 +76,7 @@ impl Dns {
             zone.add_record(record);
         }
 
-        self.zones.write().unwrap().insert(domain.to_string(), zone);
+        self.zones.write().unwrap().insert(parser.get_origin(), zone);
         Ok(())
     }
 }
