@@ -165,7 +165,7 @@ impl TcpServer {
                         response.set_response_code(ResponseCodes::NxDomain);
                     }
 
-                    let buf = response.to_bytes();
+                    let buf = response.to_bytes(512);
                     stream.write(&(buf.len() as u16).to_be_bytes()).unwrap();
                     stream.write(&buf).unwrap();
                     stream.flush().unwrap();

@@ -193,7 +193,7 @@ impl UdpServer {
             }
 
             if !sender_throttle.add_and_test(message.get_destination().unwrap().ip()) {
-                tx.send((message.to_bytes(), message.get_destination().unwrap())).unwrap();
+                tx.send((message.to_bytes(512), message.get_destination().unwrap())).unwrap();
             }
 
             Ok(())
