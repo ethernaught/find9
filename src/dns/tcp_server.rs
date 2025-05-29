@@ -98,21 +98,13 @@ impl TcpServer {
         let query_mapping = self.query_mapping.clone();
 
         move |mut stream, src_addr| {
-
-
-            println!("{src_addr}");
-
             let mut len_buf = [0u8; 2];
-            stream.read(&mut len_buf).unwrap();
+            stream.read_exact(&mut len_buf).unwrap();
 
             let mut buf = vec![0x8; u16::from_be_bytes(len_buf) as usize];
+            stream.read_exact(&mut buf).unwrap();
 
-            let len = stream.read(&mut buf).unwrap();
-
-            println!("{:x?}", &buf[..len]);
-
-
-            match MessageBase::from_bytes(&buf[..len]) {
+            match MessageBase::from_bytes(&buf) {
                 Ok(mut message) => {
                     message.set_origin(src_addr);
 
@@ -173,7 +165,7 @@ impl TcpServer {
                         response.set_response_code(ResponseCodes::NxDomain);
                     }
 
-                    let buf = message.to_bytes();
+                    let buf = response.to_bytes();
                     stream.write(&(buf.len() as u16).to_be_bytes()).unwrap();
                     stream.write(&buf).unwrap();
                     stream.flush().unwrap();
