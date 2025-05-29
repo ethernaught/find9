@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::{io, thread};
+use std::io::Read;
 use std::net::{Ipv4Addr, SocketAddr, TcpListener, TcpStream, UdpSocket};
 use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -40,8 +41,6 @@ impl TcpServer {
         self.socket = Some(TcpListener::bind(SocketAddr::from((Ipv4Addr::UNSPECIFIED, port)))?);
         self.socket.as_ref().unwrap().set_nonblocking(true)?;
 
-        let sender_throttle = SpamThrottle::new();
-
         let (tx_sender_pool, rx_sender_pool) = channel();
         self.tx_sender_pool = Some(tx_sender_pool);
 
@@ -52,8 +51,7 @@ impl TcpServer {
         Ok(thread::spawn({
             let socket = self.socket.as_ref().unwrap().try_clone()?;
             let running = Arc::clone(&self.running);
-            let sender_throttle = sender_throttle.clone();
-            let receiver_throttle = SpamThrottle::new();
+            let throttle = SpamThrottle::new();
 
             move || {
                 let mut last_decay_time = SystemTime::now()
@@ -64,7 +62,7 @@ impl TcpServer {
                 while running.load(Ordering::Relaxed) {
                     match socket.accept() {
                         Ok((stream, src_addr)) => {
-                            if !receiver_throttle.add_and_test(src_addr.ip()) {
+                            if !throttle.add_and_test(src_addr.ip()) {
                                 on_receive(stream, src_addr);
                             }
                         }
@@ -72,37 +70,13 @@ impl TcpServer {
                         _ => break
                     }
 
-                    /*
-                    match server.recv_from(&mut buf) {
-                        Ok((size, src_addr)) => {
-                            if !receiver_throttle.add_and_test(src_addr.ip()) {
-                                on_receive(&buf[..size], src_addr);
-                            }
-                        }
-                        Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {}
-                        _ => break
-                    }
-
-                    match rx_sender_pool.try_recv() {
-                        Ok((data, dst_addr)) => {
-                            if !sender_throttle.test(dst_addr.ip()) {
-                                server.send_to(data.as_slice(), dst_addr);
-                            }
-                        }
-                        Err(TryRecvError::Empty) => {}
-                        Err(TryRecvError::Disconnected) => break
-                    }
-                    */
-
                     let now = SystemTime::now()
                         .duration_since(UNIX_EPOCH)
                         .expect("Time went backwards")
                         .as_millis();
 
                     if now - last_decay_time >= 1000 {
-                        receiver_throttle.decay();
-                        sender_throttle.decay();
-
+                        throttle.decay();
                         last_decay_time = now;
                     }
 
@@ -123,13 +97,20 @@ impl TcpServer {
     fn on_receive(&self) -> impl Fn(TcpStream, SocketAddr) {
         let query_mapping = self.query_mapping.clone();
 
-        move |stream, src_addr| {
+        move |mut stream, src_addr| {
 
-            let data = [0x8; 65535];
+            let mut buf = [0x8; 65535];
 
             println!("{src_addr}");
 
-            match MessageBase::from_bytes(&data) {
+
+
+            let len = stream.read(&mut buf).unwrap();
+
+            println!("{:x?}", &buf[..len]);
+
+
+            match MessageBase::from_bytes(&buf) {
                 Ok(mut message) => {
                     message.set_origin(src_addr);
 

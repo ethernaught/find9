@@ -91,7 +91,6 @@ impl UdpServer {
                     if now - last_decay_time >= 1000 {
                         receiver_throttle.decay();
                         sender_throttle.decay();
-
                         last_decay_time = now;
                     }
 
@@ -115,8 +114,8 @@ impl UdpServer {
     {
         let query_mapping = self.query_mapping.clone();
 
-        move |data, src_addr| {
-            match MessageBase::from_bytes(&data) {
+        move |buf, src_addr| {
+            match MessageBase::from_bytes(&buf) {
                 Ok(mut message) => {
                     message.set_origin(src_addr);
 
