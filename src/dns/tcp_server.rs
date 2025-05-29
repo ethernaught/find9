@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::{io, thread};
-use std::io::Read;
-use std::net::{Ipv4Addr, SocketAddr, TcpListener, TcpStream, UdpSocket};
+use std::io::{Read, Write};
+use std::net::{Ipv4Addr, Shutdown, SocketAddr, TcpListener, TcpStream, UdpSocket};
 use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{channel, Sender, TryRecvError};
@@ -104,10 +104,8 @@ impl TcpServer {
 
             let mut len_buf = [0u8; 2];
             stream.read(&mut len_buf).unwrap();
-            let len = u16::from_be_bytes(len_buf) as usize;
 
-
-            let mut buf = [0x8; 65535];
+            let mut buf = vec![0x8; u16::from_be_bytes(len_buf) as usize];
 
             let len = stream.read(&mut buf).unwrap();
 
@@ -175,10 +173,15 @@ impl TcpServer {
                         response.set_response_code(ResponseCodes::NxDomain);
                     }
 
-                    //send(&response);
+                    let buf = message.to_bytes();
+                    stream.write(&(buf.len() as u16).to_be_bytes()).unwrap();
+                    stream.write(&buf).unwrap();
+                    stream.flush().unwrap();
                 }
                 Err(_) => {}
             }
+
+            stream.shutdown(Shutdown::Both).unwrap();
         }
     }
 
