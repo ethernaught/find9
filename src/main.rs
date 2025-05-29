@@ -11,7 +11,7 @@ const MAX_CNAME_CHAIN_SIZE: u8 = 10;
 
 //pub type RecordMap = HashMap<String, HashMap<RRTypes, Vec<Box<dyn RecordBase>>>>;
 
-//dig @127.0.0.1 -p 6767 net.unet
+//dig @127.0.0.1 -p 6767 find9.net
 
 //REDO DNS / SERVER STUFF
 //REDO UNIX-RPC
@@ -25,16 +25,10 @@ const MAX_CNAME_CHAIN_SIZE: u8 = 10;
 
 //MAKE SURE WE CACHE RECORDS IN MEMORY
 
-/*
-THERE CAN BE CHAIN CNAMES...
-www.example.com.          IN CNAME app.service.example.net.
-app.service.example.net.  IN CNAME test.example.net.
-test.example.net.         IN A     192.168.1.100
-*/
-
-
 //if client adds opt - and UDP and size greater than 512 bytes add OPT RR
 /*
+You should always set TC = 1 if the response exceeds the allowed UDP size, regardless of OPT presence.
+
 so basic jist is check for OPT in query
 if exists
 - add records until it wont fit
