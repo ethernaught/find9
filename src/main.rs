@@ -4,15 +4,10 @@ mod dns;
 mod zone;
 //mod unix_rpc;
 
-use std::collections::HashMap;
 use std::io;
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use rlibdns::messages::inter::rr_types::RRTypes;
-use rlibdns::records::inter::record_base::RecordBase;
-use rlibdns::zone::zone_parser::ZoneParser;
 use crate::dns::dns::Dns;
-use crate::zone::inter::zone_types::ZoneTypes;
-use crate::zone::zone::Zone;
+
+const MAX_CNAME_CHAIN_SIZE: u8 = 10;
 
 //pub type RecordMap = HashMap<String, HashMap<RRTypes, Vec<Box<dyn RecordBase>>>>;
 
@@ -35,6 +30,30 @@ THERE CAN BE CHAIN CNAMES...
 www.example.com.          IN CNAME app.service.example.net.
 app.service.example.net.  IN CNAME test.example.net.
 test.example.net.         IN A     192.168.1.100
+*/
+
+
+//if client adds opt - and UDP and size greater than 512 bytes add OPT RR
+/*
+so basic jist is check for OPT in query
+if exists
+- add records until it wont fit
+- set truncated
+- send
+else
+- add records until it wont fit - 512
+
+let max_udp_size = if let Some(opt) = query.opt_record {
+    opt.udp_payload_size
+} else {
+    512
+};
+
+let response_bytes = response.to_bytes();
+if response_bytes.len() > max_udp_size {
+    response.set_truncated(true);
+    truncate_answers(...); // optional
+}
 */
 
 fn main() -> io::Result<()> {
