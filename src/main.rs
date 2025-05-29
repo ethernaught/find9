@@ -12,6 +12,9 @@ const MAX_CNAME_CHAIN_SIZE: u8 = 10;
 //pub type RecordMap = HashMap<String, HashMap<RRTypes, Vec<Box<dyn RecordBase>>>>;
 
 //dig @127.0.0.1 -p 6767 find9.net
+//NS
+//+bufsize=1024
+//+tcp
 
 //REDO DNS / SERVER STUFF
 //REDO UNIX-RPC
