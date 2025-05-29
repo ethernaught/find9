@@ -99,18 +99,22 @@ impl TcpServer {
 
         move |mut stream, src_addr| {
 
-            let mut buf = [0x8; 65535];
 
             println!("{src_addr}");
 
+            let mut len_buf = [0u8; 2];
+            stream.read(&mut len_buf).unwrap();
+            let len = u16::from_be_bytes(len_buf) as usize;
 
+
+            let mut buf = [0x8; 65535];
 
             let len = stream.read(&mut buf).unwrap();
 
             println!("{:x?}", &buf[..len]);
 
 
-            match MessageBase::from_bytes(&buf) {
+            match MessageBase::from_bytes(&buf[..len]) {
                 Ok(mut message) => {
                     message.set_origin(src_addr);
 

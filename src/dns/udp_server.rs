@@ -64,9 +64,9 @@ impl UdpServer {
 
                 while running.load(Ordering::Relaxed) {
                     match socket.recv_from(&mut buf) {
-                        Ok((size, src_addr)) => {
+                        Ok((len, src_addr)) => {
                             if !receiver_throttle.add_and_test(src_addr.ip()) {
-                                on_receive(&buf[..size], src_addr);
+                                on_receive(&buf[..len], src_addr);
                             }
                         }
                         Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {}
