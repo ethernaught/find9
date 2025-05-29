@@ -14,6 +14,8 @@ use crate::rpc::events::inter::event::Event;
 use crate::rpc::events::query_event::QueryEvent;
 use crate::utils::spam_throttle::SpamThrottle;
 
+pub const MAX_UDP_MESSAGE_SIZE: usize = 512;
+
 pub struct UdpServer {
     running: Arc<AtomicBool>,
     pub(crate) socket: Option<UdpSocket>,
@@ -173,7 +175,7 @@ impl UdpServer {
 
                     if !response.has_name_servers() &&
                         !response.has_additional_records() {
-                        response.set_response_code(ResponseCodes::NxDomain);
+                        //response.set_response_code(ResponseCodes::NxDomain);
                     }
 
                     send(&response);
@@ -193,7 +195,7 @@ impl UdpServer {
             }
 
             if !sender_throttle.add_and_test(message.get_destination().unwrap().ip()) {
-                tx.send((message.to_bytes(512), message.get_destination().unwrap())).unwrap();
+                tx.send((message.to_bytes(MAX_UDP_MESSAGE_SIZE), message.get_destination().unwrap())).unwrap();
             }
 
             Ok(())

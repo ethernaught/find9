@@ -15,6 +15,8 @@ use crate::rpc::events::inter::event::Event;
 use crate::rpc::events::query_event::QueryEvent;
 use crate::utils::spam_throttle::SpamThrottle;
 
+pub const MAX_TCP_MESSAGE_SIZE: usize = 65536;
+
 pub struct TcpServer {
     running: Arc<AtomicBool>,
     pub(crate) socket: Option<TcpListener>,
@@ -162,10 +164,10 @@ impl TcpServer {
 
                     if !response.has_name_servers() &&
                         !response.has_additional_records() {
-                        response.set_response_code(ResponseCodes::NxDomain);
+                        //response.set_response_code(ResponseCodes::NxDomain);
                     }
 
-                    let buf = response.to_bytes(512);
+                    let buf = response.to_bytes(MAX_TCP_MESSAGE_SIZE);
                     stream.write(&(buf.len() as u16).to_be_bytes()).unwrap();
                     stream.write(&buf).unwrap();
                     stream.flush().unwrap();
