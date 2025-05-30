@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::io;
 use std::sync::{Arc, RwLock};
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::cname_record::CNameRecord;
@@ -9,7 +10,10 @@ use crate::zone::zone::Zone;
 
 pub fn chain_cname(zones: &Arc<RwLock<HashMap<String, Zone>>>, event: &mut QueryEvent, record: &CNameRecord, depth: u8) {
     let target = record.get_target().unwrap();
-    let (name, tld) = split_domain(&target).unwrap();
+    let (name, tld) = match split_domain(&event.get_query().get_name()) {
+        Some((name, tld)) => (name, tld),
+        None => return
+    };
 
     match zones.read().unwrap().get(&tld).unwrap().get_records(&name, &RRTypes::CName) {
         Some(records) => {

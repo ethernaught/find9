@@ -66,6 +66,9 @@ fn main() -> io::Result<()> {
     hint	Used for root servers (rarely modified)
     */
 
+    //CAUSES CRASH...
+    //dig @127.0.0.1 -p 6767 find9.net +tcp + TCP
+
     let mut dns = Dns::new();
     dns.register_zone("/home/brad/Downloads/find9.net.test.zone", "find9.net").unwrap();
     //dns.get_server().add_fallback(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)), 53));

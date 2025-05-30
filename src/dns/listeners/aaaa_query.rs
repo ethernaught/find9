@@ -12,7 +12,10 @@ pub fn on_aaaa_query(zones: &Arc<RwLock<HashMap<String, Zone>>>) -> impl Fn(&mut
     let zones = zones.clone();
 
     move |event| {
-        let (name, tld) = split_domain(&event.get_query().get_name()).unwrap();
+        let (name, tld) = match split_domain(&event.get_query().get_name()) {
+            Some((name, tld)) => (name, tld),
+            None => return Err(io::Error::new(io::ErrorKind::InvalidInput, "Invalid query name"))
+        };
 
         match zones.read().unwrap().get(&tld).unwrap().get_records(&name, &RRTypes::CName) {
             Some(records) => {
