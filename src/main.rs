@@ -53,6 +53,8 @@ if response_bytes.len() > max_udp_size {
 }
 */
 
+//SHOULD WE HANDLE MORE THAN 1 QUERY?
+
 fn main() -> io::Result<()> {
     /*
     Type	Role
