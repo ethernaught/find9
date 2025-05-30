@@ -6,9 +6,11 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{channel, Sender, TryRecvError};
 use std::thread::{sleep, JoinHandle};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::messages::message_base::MessageBase;
 use crate::dns::dns::QueryMap;
+use crate::MAX_QUERIES;
 use crate::rpc::events::inter::event::Event;
 use crate::rpc::events::query_event::QueryEvent;
 use crate::utils::spam_throttle::SpamThrottle;
@@ -137,32 +139,40 @@ impl UdpServer {
                     //let is_bogon = is_bogon(message.get_origin().unwrap());
 
                     if !message.has_queries() {
-                        //ERROR???
+                        response.set_response_code(ResponseCodes::FormErr);
+                        send(&response);
+                        return;
                     }
 
-                    let query = message.get_queries().get(0).unwrap().clone();
 
-                    if let Some(callbacks) = query_mapping.read().unwrap().get(&query.get_type()) {
-                        let mut query_event = QueryEvent::new(query.clone());
-
-                        for callback in callbacks {
-                            callback(&mut query_event);
+                    for (i, query) in message.get_queries().iter().enumerate() {
+                        if i >= MAX_QUERIES {
+                            break;
                         }
+                        
+                        if let Some(callbacks) = query_mapping.read().unwrap().get(&query.get_type()) {
+                            let mut query_event = QueryEvent::new(query.clone());
 
-                        if query_event.is_prevent_default() {
-                            //ERROR
-                        }
+                            for callback in callbacks {
+                                callback(&mut query_event);
+                            }
 
-                        response.add_query(query_event.get_query().clone());
+                            if query_event.is_prevent_default() {
+                                //ERROR
+                            }
 
-                        if query_event.has_answers() {
-                            for (query, answers) in query_event.get_answers_mut().drain() {
-                                for answer in answers {
-                                    response.add_answer(&query, answer);
+                            response.add_query(query_event.get_query().clone());
+
+                            if query_event.has_answers() {
+                                for (query, records) in query_event.get_answers_mut().drain() {
+                                    for record in records {
+                                        response.add_answer(&query, record);
+                                    }
                                 }
                             }
                         }
                     }
+
 
                     if !response.has_answers() {
                         //DOES DOMAIN EXIST FOR US...? - IF SO ADD AUTHORITY RESPONSE SOA

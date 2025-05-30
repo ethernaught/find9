@@ -8,6 +8,7 @@ use std::io;
 use crate::dns::dns::Dns;
 
 const MAX_CNAME_CHAIN_SIZE: u8 = 10;
+const MAX_QUERIES: usize = 1;
 
 //pub type RecordMap = HashMap<String, HashMap<RRTypes, Vec<Box<dyn RecordBase>>>>;
 

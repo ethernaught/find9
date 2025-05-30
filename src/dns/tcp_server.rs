@@ -11,6 +11,7 @@ use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::messages::message_base::MessageBase;
 use crate::dns::dns::QueryMap;
+use crate::MAX_QUERIES;
 use crate::rpc::events::inter::event::Event;
 use crate::rpc::events::query_event::QueryEvent;
 use crate::utils::spam_throttle::SpamThrottle;
@@ -127,28 +128,37 @@ impl TcpServer {
                     //let is_bogon = is_bogon(message.get_origin().unwrap());
 
                     if !message.has_queries() {
-                        //ERROR???
+                        response.set_response_code(ResponseCodes::FormErr);
+                        let buf = response.to_bytes(MAX_TCP_MESSAGE_SIZE);
+                        stream.write(&(buf.len() as u16).to_be_bytes()).unwrap();
+                        stream.write(&buf).unwrap();
+                        stream.flush().unwrap();
+                        return;
                     }
 
-                    let query = message.get_queries().get(0).unwrap().clone();
-
-                    if let Some(callbacks) = query_mapping.read().unwrap().get(&query.get_type()) {
-                        let mut query_event = QueryEvent::new(query.clone());
-
-                        for callback in callbacks {
-                            callback(&mut query_event);
+                    for (i, query) in message.get_queries().iter().enumerate() {
+                        if i >= MAX_QUERIES {
+                            break;
                         }
 
-                        if query_event.is_prevent_default() {
-                            //ERROR
-                        }
+                        if let Some(callbacks) = query_mapping.read().unwrap().get(&query.get_type()) {
+                            let mut query_event = QueryEvent::new(query.clone());
 
-                        response.add_query(query_event.get_query().clone());
+                            for callback in callbacks {
+                                callback(&mut query_event);
+                            }
 
-                        if query_event.has_answers() {
-                            for (query, answers) in query_event.get_answers_mut().drain() {
-                                for answer in answers {
-                                    response.add_answer(&query, answer);
+                            if query_event.is_prevent_default() {
+                                //ERROR
+                            }
+
+                            response.add_query(query_event.get_query().clone());
+
+                            if query_event.has_answers() {
+                                for (query, records) in query_event.get_answers_mut().drain() {
+                                    for record in records {
+                                        response.add_answer(&query, record);
+                                    }
                                 }
                             }
                         }
