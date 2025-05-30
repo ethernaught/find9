@@ -145,11 +145,15 @@ impl TcpServer {
                             let mut query_event = QueryEvent::new(query.clone());
 
                             for callback in callbacks {
+                                if query_event.is_prevent_default() {
+                                    break;
+                                }
+                                
                                 callback(&mut query_event);
                             }
-
+                            
                             if query_event.is_prevent_default() {
-                                //ERROR
+                                break;
                             }
 
                             response.add_query(query_event.get_query().clone());
