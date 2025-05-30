@@ -6,7 +6,6 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{channel, Sender, TryRecvError};
 use std::thread::{sleep, JoinHandle};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
-use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::messages::message_base::MessageBase;
 use crate::dns::dns::QueryMap;
@@ -137,25 +136,29 @@ impl UdpServer {
 
                     //let is_bogon = is_bogon(message.get_origin().unwrap());
 
-                    for query in message.get_queries() {
-                        if let Some(callbacks) = query_mapping.read().unwrap().get(&query.get_type()) {
-                            let mut query_event = QueryEvent::new(query);
+                    if !message.has_queries() {
+                        //ERROR???
+                    }
 
-                            for callback in callbacks {
-                                callback(&mut query_event);
-                            }
+                    let query = message.get_queries().get(0).unwrap().clone();
 
-                            if query_event.is_prevent_default() {
-                                continue;
-                            }
+                    if let Some(callbacks) = query_mapping.read().unwrap().get(&query.get_type()) {
+                        let mut query_event = QueryEvent::new(query.clone());
 
-                            response.add_query(query_event.get_query().clone());
+                        for callback in callbacks {
+                            callback(&mut query_event);
+                        }
 
-                            if query_event.has_answers() {
-                                for (query, answers) in query_event.get_answers_mut().drain() {
-                                    for answer in answers {
-                                        response.add_answer(&query, answer);
-                                    }
+                        if query_event.is_prevent_default() {
+                            //ERROR
+                        }
+
+                        response.add_query(query_event.get_query().clone());
+
+                        if query_event.has_answers() {
+                            for (query, answers) in query_event.get_answers_mut().drain() {
+                                for answer in answers {
+                                    response.add_answer(&query, answer);
                                 }
                             }
                         }
