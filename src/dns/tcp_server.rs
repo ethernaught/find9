@@ -136,13 +136,15 @@ impl TcpServer {
                         return;
                     }
 
-                    for (i, query) in message.get_queries().iter().enumerate() {
+                    println!("{}", message);
+
+                    for (i, query) in message.get_queries_mut().drain(..).enumerate() {
                         if i >= MAX_QUERIES {
                             break;
                         }
 
                         if let Some(callbacks) = query_mapping.read().unwrap().get(&query.get_type()) {
-                            let mut query_event = QueryEvent::new(query.clone());
+                            let mut query_event = QueryEvent::new(query);
 
                             for callback in callbacks {
                                 if query_event.is_prevent_default() {
@@ -168,9 +170,16 @@ impl TcpServer {
                         }
                     }
 
-                    println!("{:?}", message.get_queries());
-
                     println!("QUERIES COMPLETE");
+
+                    if message.has_additional_records() {
+                        println!("ADDITIONAL RECORDS - CHECK");
+                        for (query, record) in message.get_additional_records_mut().drain() {
+                            if query.eq(".") {
+                                println!("EDNS");
+                            }
+                        }
+                    }
 
                     if !response.has_answers() {
                         //DOES DOMAIN EXIST FOR US...? - IF SO ADD AUTHORITY RESPONSE SOA

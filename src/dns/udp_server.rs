@@ -144,8 +144,9 @@ impl UdpServer {
                         return;
                     }
 
+                    println!("{}", message);
 
-                    for (i, query) in message.get_queries().iter().enumerate() {
+                    for (i, query) in message.get_queries_mut().drain(..).enumerate() {
                         if i >= MAX_QUERIES {
                             break;
                         }
@@ -177,7 +178,23 @@ impl UdpServer {
                         }
                     }
 
-                    println!("QUERIES COMPLETE");
+                    if message.has_additional_records() {
+                        for (query, record) in message.get_additional_records_mut().drain() {
+                            if query.is_empty() {
+                                println!("EDNS");
+
+                                //VERIFY ITS OPT
+
+                                //CHECK IF COOKIE IS PRESENT
+
+                                //CHECK BYTE LENGTH OF COOKIE - 8 = CLIENT ONLY - 24 = CLIENT + SERVER
+                                
+                                //VALIDATE COOKIE FROM OUR HASHMAP???
+                            }
+                        }
+                    }
+
+
 
 
                     if !response.has_answers() {
