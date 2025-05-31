@@ -148,10 +148,10 @@ impl TcpServer {
                                 if query_event.is_prevent_default() {
                                     break;
                                 }
-                                
+
                                 callback(&mut query_event);
                             }
-                            
+
                             if query_event.is_prevent_default() {
                                 break;
                             }
@@ -167,6 +167,10 @@ impl TcpServer {
                             }
                         }
                     }
+
+                    println!("{:?}", message.get_queries());
+
+                    println!("QUERIES COMPLETE");
 
                     if !response.has_answers() {
                         //DOES DOMAIN EXIST FOR US...? - IF SO ADD AUTHORITY RESPONSE SOA

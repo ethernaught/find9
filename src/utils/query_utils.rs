@@ -10,10 +10,11 @@ use crate::zone::zone::Zone;
 
 pub fn chain_cname(zones: &Arc<RwLock<HashMap<String, Zone>>>, event: &mut QueryEvent, record: &CNameRecord, depth: u8) {
     let target = record.get_target().unwrap();
-    let (name, tld) = match split_domain(&event.get_query().get_name()) {
-        Some((name, tld)) => (name, tld),
-        None => return
-    };
+    //let (name, tld) = match split_domain(&event.get_query().get_name()) {
+    //    Some((name, tld)) => (name, tld),
+    //    None => return
+    //};
+    let (name, tld) = split_domain(&target).unwrap();
 
     match zones.read().unwrap().get(&tld).unwrap().get_records(&name, &RRTypes::CName) {
         Some(records) => {

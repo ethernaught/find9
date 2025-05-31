@@ -149,7 +149,7 @@ impl UdpServer {
                         if i >= MAX_QUERIES {
                             break;
                         }
-                        
+
                         if let Some(callbacks) = query_mapping.read().unwrap().get(&query.get_type()) {
                             let mut query_event = QueryEvent::new(query.clone());
 
@@ -176,6 +176,8 @@ impl UdpServer {
                             }
                         }
                     }
+
+                    println!("QUERIES COMPLETE");
 
 
                     if !response.has_answers() {
