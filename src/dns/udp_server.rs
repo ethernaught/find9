@@ -197,10 +197,6 @@ impl UdpServer {
                                 if let Some(cookie) = record.get_option(&OptCodes::Cookie) {
                                     match cookie.len() {
                                         8 => { //CLIENT ONLY
-                                            let client_cookie = &cookie[..8];
-                                            //let server_cookie = hmac(server_secret, client_ip, client_cookie);
-                                            //let response_cookie = [client_cookie, &server_cookie[..]].concat();
-
                                             let hmac = match src_addr.ip() {
                                                 IpAddr::V4(addr) => {
                                                     hmac::<Sha256>(COOKIE_SECRET, &[cookie, addr.octets().as_slice()].concat())
@@ -219,15 +215,23 @@ impl UdpServer {
                                             let client_cookie = &cookie[..8];
                                             let server_cookie = &cookie[8..];
 
-                                            let expected = hmac::<Sha256>(COOKIE_SECRET, client_cookie);
-                                            /*
-                                            let expected = hmac(server_secret, client_ip, client_cookie);
-                                            if server_cookie == expected {
+                                            let hmac = match src_addr.ip() {
+                                                IpAddr::V4(addr) => {
+                                                    hmac::<Sha256>(COOKIE_SECRET, &[client_cookie, addr.octets().as_slice()].concat())
+                                                }
+                                                IpAddr::V6(addr) => {
+                                                    hmac::<Sha256>(COOKIE_SECRET, &[client_cookie, addr.octets().as_slice()].concat())
+                                                }
+                                            };
+
+                                            if server_cookie.eq(&hmac[..16]) {
                                                 // Valid — echo the same cookie
+                                                
                                             } else {
-                                                let response_cookie = [client_cookie, &expected[..]].concat();
+                                                let mut c = vec![0u8; 24];
+                                                c.extend_from_slice(cookie);
+                                                c.extend_from_slice(&hmac);
                                             }
-                                            */
                                         }
                                         _ => unimplemented!()
                                     }
