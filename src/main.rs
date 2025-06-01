@@ -98,7 +98,7 @@ fn main() -> io::Result<()> {
     //unix_rpc.set_database(database.clone());
     //unix_rpc.start()?.join().unwrap();
 
-    //loop {}
+    loop {}
     Ok(())
 }
 
