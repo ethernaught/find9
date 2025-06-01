@@ -22,7 +22,6 @@ pub type QueryMap = Arc<RwLock<HashMap<RRTypes, Vec<Box<dyn Fn(&mut QueryEvent) 
 
 pub struct Dns {
     zones: Arc<RwLock<HashMap<String, Zone>>>,
-    cookies: Arc<RwLock<HashMap<String, String>>>,
     udp: UdpServer,
     tcp: TcpServer
 }
@@ -46,7 +45,6 @@ impl Dns {
 
         Self {
             zones,
-            cookies: Arc::new(RwLock::new(HashMap::new())),
             udp,
             tcp
         }
