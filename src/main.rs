@@ -5,7 +5,11 @@ mod zone;
 //mod unix_rpc;
 
 use std::io;
+use rlibdns::utils::hex;
 use crate::dns::dns::Dns;
+use utils::hash::inter::hash::Hash;
+use crate::utils::hash::hmac::hmac;
+use crate::utils::hash::sha256::Sha256;
 
 const MAX_CNAME_CHAIN_SIZE: u8 = 10;
 const MAX_QUERIES: usize = 1;
@@ -74,6 +78,13 @@ fn main() -> io::Result<()> {
     //OPT bug fixing
     //cookie - server-gen - HMAC(client IP + client cookie + server secret).
 
+    //hmac_sha256("test".as_bytes(), "test".as_bytes());
+
+    let mut sha = Sha256::new();
+    sha.update("test".as_bytes(), 0, 4);
+    println!("{}", hex::encode(&sha.get_value()));
+
+    println!("{}", hex::encode(&hmac::<Sha256>("TEST".as_bytes(), "TEST".as_bytes())));
 
     let mut dns = Dns::new();
     dns.register_zone("/home/brad/Downloads/find9.net.test.zone", "find9.net").unwrap();
@@ -87,6 +98,7 @@ fn main() -> io::Result<()> {
     //unix_rpc.set_database(database.clone());
     //unix_rpc.start()?.join().unwrap();
 
-    loop {}
+    //loop {}
     Ok(())
 }
+

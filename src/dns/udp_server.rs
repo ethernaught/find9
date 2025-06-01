@@ -9,6 +9,8 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::messages::message_base::MessageBase;
+use rlibdns::records::inter::opt_codes::OptCodes;
+use rlibdns::records::opt_record::OptRecord;
 use crate::dns::dns::QueryMap;
 use crate::MAX_QUERIES;
 use crate::rpc::events::inter::event::Event;
@@ -179,16 +181,50 @@ impl UdpServer {
                     }
 
                     if message.has_additional_records() {
-                        for (query, record) in message.get_additional_records_mut().drain() {
-                            if query.is_empty() {
+                        for (query, mut records) in message.get_additional_records_mut().drain() {
+                            if query.is_empty() && !records.is_empty() {
                                 println!("EDNS");
+
+                                let mut record = records.get_mut(0).unwrap();
+                                if !record.get_type().eq(&RRTypes::Opt) {
+                                    continue;
+                                }
+
+                                let mut record = record.as_any_mut().downcast_mut::<OptRecord>().unwrap();
+
+                                if let Some(cookie) = record.get_option(&OptCodes::Cookie) {
+                                    match cookie.len() {
+                                        8 => { //CLIENT ONLY
+                                            let client_cookie = &cookie[..8];
+                                            //let server_cookie = hmac(server_secret, client_ip, client_cookie);
+                                            //let response_cookie = [client_cookie, &server_cookie[..]].concat();
+                                        }
+                                        24 => { //CLIENT + SERVER
+                                            let client_cookie = &cookie[..8];
+                                            let server_cookie = &cookie[8..];
+
+                                            /*
+                                            let expected = hmac(server_secret, client_ip, client_cookie);
+                                            if server_cookie == expected {
+                                                // Valid — echo the same cookie
+                                            } else {
+                                                let response_cookie = [client_cookie, &expected[..]].concat();
+                                            }
+                                            */
+                                        }
+                                        _ => unimplemented!()
+                                    }
+                                    println!("{:x?}", cookie);
+                                }
+
+
 
                                 //VERIFY ITS OPT
 
                                 //CHECK IF COOKIE IS PRESENT
 
                                 //CHECK BYTE LENGTH OF COOKIE - 8 = CLIENT ONLY - 24 = CLIENT + SERVER
-                                
+
                                 //VALIDATE COOKIE FROM OUR HASHMAP???
                             }
                         }
