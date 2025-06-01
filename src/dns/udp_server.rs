@@ -204,25 +204,26 @@ impl UdpServer {
 
                                             let mut c = vec![0u8; 24];
                                             c.extend_from_slice(cookie);
-                                            c.extend_from_slice(&hmac);
+                                            c.extend_from_slice(&hmac[..16]);
 
                                         }
                                         24 => { //CLIENT + SERVER
                                             let client_cookie = &cookie[..8];
                                             let server_cookie = &cookie[8..];
 
-                                            let hmac = match src_addr.ip() {
-                                                IpAddr::V4(addr) => hmac::<Sha256>(COOKIE_SECRET, &[client_cookie, addr.octets().as_slice()].concat()),
-                                                IpAddr::V6(addr) => hmac::<Sha256>(COOKIE_SECRET, &[client_cookie, addr.octets().as_slice()].concat())
-                                            };
-
-                                            if server_cookie.eq(&hmac[..16]) {
+                                            //VERIFY SERVER_COOKIE - EXISTS
+                                            if server_cookie.eq("".as_bytes()) {
                                                 // Valid — echo the same cookie
 
                                             } else {
+                                                let hmac = match src_addr.ip() {
+                                                    IpAddr::V4(addr) => hmac::<Sha256>(COOKIE_SECRET, &[client_cookie, addr.octets().as_slice()].concat()),
+                                                    IpAddr::V6(addr) => hmac::<Sha256>(COOKIE_SECRET, &[client_cookie, addr.octets().as_slice()].concat())
+                                                };
+                                                
                                                 let mut c = vec![0u8; 24];
                                                 c.extend_from_slice(cookie);
-                                                c.extend_from_slice(&hmac);
+                                                c.extend_from_slice(&hmac[..16]);
                                             }
                                         }
                                         _ => unimplemented!()
