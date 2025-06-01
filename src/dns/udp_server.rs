@@ -198,12 +198,8 @@ impl UdpServer {
                                     match cookie.len() {
                                         8 => { //CLIENT ONLY
                                             let hmac = match src_addr.ip() {
-                                                IpAddr::V4(addr) => {
-                                                    hmac::<Sha256>(COOKIE_SECRET, &[cookie, addr.octets().as_slice()].concat())
-                                                }
-                                                IpAddr::V6(addr) => {
-                                                    hmac::<Sha256>(COOKIE_SECRET, &[cookie, addr.octets().as_slice()].concat())
-                                                }
+                                                IpAddr::V4(addr) => hmac::<Sha256>(COOKIE_SECRET, &[cookie, addr.octets().as_slice()].concat()),
+                                                IpAddr::V6(addr) => hmac::<Sha256>(COOKIE_SECRET, &[cookie, addr.octets().as_slice()].concat())
                                             };
 
                                             let mut c = vec![0u8; 24];
@@ -216,17 +212,13 @@ impl UdpServer {
                                             let server_cookie = &cookie[8..];
 
                                             let hmac = match src_addr.ip() {
-                                                IpAddr::V4(addr) => {
-                                                    hmac::<Sha256>(COOKIE_SECRET, &[client_cookie, addr.octets().as_slice()].concat())
-                                                }
-                                                IpAddr::V6(addr) => {
-                                                    hmac::<Sha256>(COOKIE_SECRET, &[client_cookie, addr.octets().as_slice()].concat())
-                                                }
+                                                IpAddr::V4(addr) => hmac::<Sha256>(COOKIE_SECRET, &[client_cookie, addr.octets().as_slice()].concat()),
+                                                IpAddr::V6(addr) => hmac::<Sha256>(COOKIE_SECRET, &[client_cookie, addr.octets().as_slice()].concat())
                                             };
 
                                             if server_cookie.eq(&hmac[..16]) {
                                                 // Valid — echo the same cookie
-                                                
+
                                             } else {
                                                 let mut c = vec![0u8; 24];
                                                 c.extend_from_slice(cookie);
