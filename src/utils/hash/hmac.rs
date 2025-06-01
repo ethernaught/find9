@@ -1,6 +1,6 @@
 use crate::utils::hash::inter::hash::Hash;
 
-pub fn hmac<H>(key: &[u8], message: &[u8]) -> H::Output//[u8; 32]
+pub fn hmac<H>(key: &[u8], message: &[u8]) -> H::Output
 where
     H: Hash,
 {
@@ -11,7 +11,7 @@ where
         hasher.update(key, 0, key.len());
         let digest = hasher.get_value();
         key_block[..digest.as_ref().len()].copy_from_slice(digest.as_ref());
-        
+
     } else {
         key_block[..key.len()].copy_from_slice(key);
     }

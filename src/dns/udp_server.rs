@@ -1,6 +1,6 @@
 use std::{io, thread};
 use std::collections::HashMap;
-use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
+use std::net::{IpAddr, Ipv4Addr, SocketAddr, UdpSocket};
 use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{channel, Sender, TryRecvError};
@@ -12,9 +12,11 @@ use rlibdns::messages::message_base::MessageBase;
 use rlibdns::records::inter::opt_codes::OptCodes;
 use rlibdns::records::opt_record::OptRecord;
 use crate::dns::dns::QueryMap;
-use crate::MAX_QUERIES;
+use crate::{COOKIE_SECRET, MAX_QUERIES};
 use crate::rpc::events::inter::event::Event;
 use crate::rpc::events::query_event::QueryEvent;
+use crate::utils::hash::hmac::hmac;
+use crate::utils::hash::sha256::Sha256;
 use crate::utils::spam_throttle::SpamThrottle;
 
 pub const MAX_UDP_MESSAGE_SIZE: usize = 512;
@@ -198,11 +200,26 @@ impl UdpServer {
                                             let client_cookie = &cookie[..8];
                                             //let server_cookie = hmac(server_secret, client_ip, client_cookie);
                                             //let response_cookie = [client_cookie, &server_cookie[..]].concat();
+
+                                            let hmac = match src_addr.ip() {
+                                                IpAddr::V4(addr) => {
+                                                    hmac::<Sha256>(COOKIE_SECRET, &[cookie, addr.octets().as_slice()].concat())
+                                                }
+                                                IpAddr::V6(addr) => {
+                                                    hmac::<Sha256>(COOKIE_SECRET, &[cookie, addr.octets().as_slice()].concat())
+                                                }
+                                            };
+
+                                            let mut c = vec![0u8; 24];
+                                            c.extend_from_slice(cookie);
+                                            c.extend_from_slice(&hmac);
+
                                         }
                                         24 => { //CLIENT + SERVER
                                             let client_cookie = &cookie[..8];
                                             let server_cookie = &cookie[8..];
 
+                                            let expected = hmac::<Sha256>(COOKIE_SECRET, client_cookie);
                                             /*
                                             let expected = hmac(server_secret, client_ip, client_cookie);
                                             if server_cookie == expected {

@@ -11,8 +11,9 @@ use utils::hash::inter::hash::Hash;
 use crate::utils::hash::hmac::hmac;
 use crate::utils::hash::sha256::Sha256;
 
-const MAX_CNAME_CHAIN_SIZE: u8 = 10;
-const MAX_QUERIES: usize = 1;
+pub const MAX_CNAME_CHAIN_SIZE: u8 = 10;
+pub const MAX_QUERIES: usize = 1;
+pub const COOKIE_SECRET: &[u8] = "HELLO WORLD".as_bytes();
 
 //pub type RecordMap = HashMap<String, HashMap<RRTypes, Vec<Box<dyn RecordBase>>>>;
 
