@@ -71,9 +71,12 @@ fn main() -> io::Result<()> {
     hint	Used for root servers (rarely modified)
     */
 
+    //CAUSES CRASH
+    //dig @127.0.0.1 -p 6767 www.FIND9.net
+
     //CAUSES CRASH...
     //dig @127.0.0.1 -p 6767 find9.net +tcp + TCP
-    
+
     //MAY BE ISSUE WITH AA - AUTHORITY ALWAYS BEING TRUE...?
 
     //ensure we fix bugs with odd queries IE TLD parsing

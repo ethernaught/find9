@@ -268,10 +268,12 @@ impl UdpServer {
 
                     } else {
                         response.set_authoritative(false);
-                        response.set_response_code(ResponseCodes::NxDomain);
+                        response.set_response_code(ResponseCodes::Refused);
 
                         let mut record = OptRecord::new(512, 0, 0, 0);
-                        record.insert_option(OptCodes::EDnsError, b"Not Authoritative".to_vec());
+                        let mut ede = vec![0x00, 0x14]; // 20 = Not Authoritative
+                        ede.extend_from_slice(b"Not Authoritative");
+                        record.insert_option(OptCodes::EDnsError, ede);
                         response.add_additional_record("", record.upcast());
                         //.			86400	IN	SOA	a.root-servers.net. nstld.verisign-grs.com. 2025060101 1800 900 604800 86400
                         //return;
