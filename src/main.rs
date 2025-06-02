@@ -13,7 +13,7 @@ use crate::utils::hash::sha256::Sha256;
 
 pub const MAX_CNAME_CHAIN_SIZE: u8 = 10;
 pub const MAX_QUERIES: usize = 1;
-pub const COOKIE_SECRET: &[u8] = "HELLO WORLD".as_bytes();
+pub const COOKIE_SECRET: &[u8] = b"HELLO WORLD";
 
 //pub type RecordMap = HashMap<String, HashMap<RRTypes, Vec<Box<dyn RecordBase>>>>;
 

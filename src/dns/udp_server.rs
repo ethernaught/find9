@@ -182,7 +182,7 @@ impl UdpServer {
                             }
                         }
                     }
-
+/*
                     if message.has_additional_records() {
                         for (query, mut records) in message.get_additional_records_mut().drain() {
                             if query.is_empty() && !records.is_empty() {
@@ -260,15 +260,21 @@ impl UdpServer {
                             }
                         }
                     }
-
+*/
 
 
 
                     if !response.has_answers() {
-                        //DOES DOMAIN EXIST FOR US...? - IF SO ADD AUTHORITY RESPONSE SOA
+                        response.set_response_code(ResponseCodes::NxDomain);
 
+                        let mut record = OptRecord::new(512, 0, 0, 0);
+                        record.insert_option(OptCodes::EDnsError, b"Not Authoritative".to_vec());
+                        response.add_additional_record("", record.upcast());
+                        //.			86400	IN	SOA	a.root-servers.net. nstld.verisign-grs.com. 2025060101 1800 900 604800 86400
                         //return;
                     }
+
+                    println!("{}", response);
 
                     //IF NAME DOES EXIST BUT NO DATA RETURN
                     // NoError
