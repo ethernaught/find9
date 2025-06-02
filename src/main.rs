@@ -71,6 +71,8 @@ fn main() -> io::Result<()> {
     hint	Used for root servers (rarely modified)
     */
 
+    //plato.ns.cloudflare.com
+
     //CAUSES CRASH
     //dig @127.0.0.1 -p 6767 www.FIND9.net
 
