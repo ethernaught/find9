@@ -7,11 +7,11 @@ use crate::rpc::events::inter::event::Event;
 pub struct QueryEvent {
     prevent_default: bool,
     query: DnsQuery,
+    authoritative: bool,
     answers: OrderedMap<String, Vec<Box<dyn RecordBase>>>,
     name_servers: OrderedMap<String, Vec<Box<dyn RecordBase>>>,
     additional_records: OrderedMap<String, Vec<Box<dyn RecordBase>>>,
-    received_time: u128,
-    response: Option<MessageBase>
+    received_time: u128
 }
 
 impl QueryEvent {
@@ -20,12 +20,20 @@ impl QueryEvent {
         Self {
             prevent_default: false,
             query,
+            authoritative: false,
             answers: OrderedMap::new(),
             name_servers: OrderedMap::new(),
             additional_records: OrderedMap::new(),
-            received_time: 0,
-            response: None
+            received_time: 0
         }
+    }
+
+    pub fn set_authoritative(&mut self, authoritative: bool) {
+        self.authoritative = authoritative;
+    }
+
+    pub fn is_authoritative(&self) -> bool {
+        self.authoritative
     }
 
     pub fn get_query(&self) -> &DnsQuery {

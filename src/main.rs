@@ -13,6 +13,7 @@ use crate::utils::hash::sha256::Sha256;
 
 pub const MAX_CNAME_CHAIN_SIZE: u8 = 10;
 pub const MAX_QUERIES: usize = 1;
+pub const MAX_ANSWERS: usize = 3;
 pub const COOKIE_SECRET: &[u8] = b"HELLO WORLD";
 
 //pub type RecordMap = HashMap<String, HashMap<RRTypes, Vec<Box<dyn RecordBase>>>>;
@@ -95,7 +96,7 @@ fn main() -> io::Result<()> {
     println!("{}", hex::encode(&hmac::<Sha256>("TEST".as_bytes(), "TEST".as_bytes())));
 
     let mut dns = Dns::new();
-    dns.register_zone("/home/brad/Downloads/find9.net.test.zone", "find9.net").unwrap();
+    dns.register_zone("res/find9.net.zone", "find9.net").unwrap();
     //dns.get_server().add_fallback(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)), 53));
     dns.start(6767);
 

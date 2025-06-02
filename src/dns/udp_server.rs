@@ -134,7 +134,8 @@ impl UdpServer {
                     let mut response = MessageBase::new(message.get_id());
                     response.set_op_code(message.get_op_code());
                     response.set_qr(true);
-                    response.set_recursion_desired(true);
+                    response.set_recursion_desired(message.is_recursion_desired());
+                    response.set_recursion_available(false);
                     //response.set_origin(message.get_destination().unwrap());
                     response.set_destination(message.get_origin().unwrap());
 
@@ -157,24 +158,25 @@ impl UdpServer {
                         }
 
                         if let Some(callbacks) = query_mapping.read().unwrap().get(&query.get_type()) {
-                            let mut query_event = QueryEvent::new(query.clone());
+                            let mut event = QueryEvent::new(query.clone());
 
                             for callback in callbacks {
-                                if query_event.is_prevent_default() {
+                                if event.is_prevent_default() {
                                     break;
                                 }
 
-                                callback(&mut query_event);
+                                callback(&mut event);
                             }
 
-                            if query_event.is_prevent_default() {
+                            if event.is_prevent_default() {
                                 break;
                             }
 
-                            response.add_query(query_event.get_query().clone());
+                            response.add_query(event.get_query().clone());
+                            response.set_authoritative(event.is_authoritative());
 
-                            if query_event.has_answers() {
-                                for (query, records) in query_event.get_answers_mut().drain() {
+                            if event.has_answers() {
+                                for (query, records) in event.get_answers_mut().drain() {
                                     for record in records {
                                         response.add_answer(&query, record);
                                     }
@@ -264,6 +266,7 @@ impl UdpServer {
 
 
 
+                    /*
                     if response.has_answers() {
                         response.set_authoritative(true);
 
@@ -275,6 +278,7 @@ impl UdpServer {
                         record.insert_option(OptCodes::EDnsError, vec![0x00, 0x14]);
                         response.add_additional_record("", record.upcast());
                     }
+                    */
 
                     println!("{}", response);
 

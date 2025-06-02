@@ -3,7 +3,7 @@ use std::io;
 use std::sync::{Arc, RwLock};
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::cname_record::CNameRecord;
-use crate::MAX_CNAME_CHAIN_SIZE;
+use crate::{MAX_ANSWERS, MAX_CNAME_CHAIN_SIZE};
 use crate::rpc::events::query_event::QueryEvent;
 use crate::utils::domain_utils::split_domain;
 use crate::zone::zone::Zone;
@@ -44,7 +44,7 @@ pub fn chain_cname(zones: &Arc<RwLock<HashMap<String, Zone>>>, event: &mut Query
 
     match zones.read().unwrap().get(&tld).unwrap().get_records(&name, &event.get_query().get_type()) {
         Some(records) => {
-            for record in records.iter().take(3) {
+            for record in records.iter().take(MAX_ANSWERS) {
                 event.add_answer(&target, record.clone());
             }
         }
