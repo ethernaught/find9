@@ -263,7 +263,7 @@ impl UdpServer {
 
 
 
-                    if !response.has_answers() {
+                    if response.has_answers() {
                         response.set_authoritative(true);
 
                     } else {
