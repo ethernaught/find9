@@ -72,6 +72,17 @@ fn main() -> io::Result<()> {
     hint	Used for root servers (rarely modified)
     */
 
+    /*
+    CHANGE TO THE ZONE HIERARCHY LIKE BELOW...
+
+    (root)
+    ├── org
+    │   └── example
+    ├── net
+    │   └── test
+    └── test
+    */
+
     //plato.ns.cloudflare.com
 
     //CAUSES CRASH
