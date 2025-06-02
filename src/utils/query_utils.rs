@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::io;
 use std::sync::{Arc, RwLock};
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::cname_record::CNameRecord;
@@ -50,4 +49,36 @@ pub fn chain_cname(zones: &Arc<RwLock<HashMap<String, Zone>>>, event: &mut Query
         }
         None => {}
     }
+
+    /*
+    if depth >= MAX_CNAME_CHAIN_SIZE {
+        return;
+    }
+    */
+
+
+    /*
+    let zones = zones.lock().unwrap();
+    let tld = get_tld(&name); // implement get_tld() if not already
+
+    // 1. Try to resolve CNAME
+    if let Some(cname_records) = zones.get(&tld).and_then(|z| z.get_records(&name, &RRTypes::CName)) {
+        let cname = cname_records[0].clone();
+        let cname_target = cname.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().to_string();
+
+        event.add_answer(&name, cname.clone());
+
+        // 2. Recurse on CNAME target
+        //follow_cname_chain(zones, event, cname_target, rr_type, depth + 1);
+        chain_cname(zones, event, record.as_any().downcast_ref::<CNameRecord>().unwrap(), depth+1);
+
+    } else {
+        // 3. No CNAME → return actual answer (e.g., A, AAAA, etc.)
+        if let Some(answer_records) = zones.get(&tld).and_then(|z| z.get_records(&name, &rr_type)) {
+            for record in answer_records.iter().take(MAX_ANSWERS) {
+                event.add_answer(&name, record.clone());
+            }
+        }
+    }
+    */
 }
