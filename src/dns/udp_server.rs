@@ -134,6 +134,7 @@ impl UdpServer {
                     let mut response = MessageBase::new(message.get_id());
                     response.set_op_code(message.get_op_code());
                     response.set_qr(true);
+                    response.set_recursion_desired(true);
                     //response.set_origin(message.get_destination().unwrap());
                     response.set_destination(message.get_origin().unwrap());
 
@@ -271,12 +272,8 @@ impl UdpServer {
                         response.set_response_code(ResponseCodes::Refused);
 
                         let mut record = OptRecord::new(512, 0, 0, 0);
-                        let mut ede = vec![0x00, 0x14]; // 20 = Not Authoritative
-                        ede.extend_from_slice(b"Not Authoritative");
-                        record.insert_option(OptCodes::EDnsError, ede);
+                        record.insert_option(OptCodes::EDnsError, vec![0x00, 0x14]);
                         response.add_additional_record("", record.upcast());
-                        //.			86400	IN	SOA	a.root-servers.net. nstld.verisign-grs.com. 2025060101 1800 900 604800 86400
-                        //return;
                     }
 
                     println!("{}", response);
