@@ -16,6 +16,18 @@ pub fn chain_cname(zones: &Arc<RwLock<HashMap<String, Zone>>>, event: &mut Query
     //};
     let (name, tld) = split_domain(&target).unwrap();
 
+    /*
+    SERVER CONTAINS
+    x1 -> x2 -> x3 -> ANSWERS (it shouldnt show all cnames just the answer as if the cname was the answer)
+
+    ;; QUESTION SECTION:
+    ;x1.find9.net.			IN	A
+
+    ;; ANSWER SECTION:
+    x1.find9.net.		300	IN	A	104.21.42.137
+    x1.find9.net.		300	IN	A	172.67.206.28
+    */
+
     match zones.read().unwrap().get(&tld).unwrap().get_records(&name, &RRTypes::CName) {
         Some(records) => {
             if depth+1 < MAX_CNAME_CHAIN_SIZE {
