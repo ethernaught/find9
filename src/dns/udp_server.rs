@@ -134,7 +134,6 @@ impl UdpServer {
                     let mut response = MessageBase::new(message.get_id());
                     response.set_op_code(message.get_op_code());
                     response.set_qr(true);
-                    response.set_authoritative(true);
                     //response.set_origin(message.get_destination().unwrap());
                     response.set_destination(message.get_origin().unwrap());
 
@@ -265,6 +264,10 @@ impl UdpServer {
 
 
                     if !response.has_answers() {
+                        response.set_authoritative(true);
+
+                    } else {
+                        response.set_authoritative(false);
                         response.set_response_code(ResponseCodes::NxDomain);
 
                         let mut record = OptRecord::new(512, 0, 0, 0);

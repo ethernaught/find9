@@ -123,7 +123,6 @@ impl TcpServer {
                     let mut response = MessageBase::new(message.get_id());
                     response.set_op_code(message.get_op_code());
                     response.set_qr(true);
-                    response.set_authoritative(true);
                     //response.set_origin(message.get_destination().unwrap());
                     response.set_destination(message.get_origin().unwrap());
 
@@ -176,7 +175,7 @@ impl TcpServer {
                     }
 
                     println!("QUERIES COMPLETE");
-
+/*
                     if message.has_additional_records() {
                         for (query, mut records) in message.get_additional_records_mut().drain() {
                             if query.is_empty() && !records.is_empty() {
@@ -254,8 +253,13 @@ impl TcpServer {
                             }
                         }
                     }
+*/
 
                     if !response.has_answers() {
+                        response.set_authoritative(true);
+
+                    } else {
+                        response.set_authoritative(false);
                         response.set_response_code(ResponseCodes::NxDomain);
                         //return;
                     }
