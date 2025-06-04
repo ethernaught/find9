@@ -27,28 +27,28 @@ pub fn chain_cname(zones: &Arc<RwLock<HashMap<String, Zone>>>, event: &mut Query
     x1.find9.net.		300	IN	A	172.67.206.28
     */
 
-    match zones.read().unwrap().get(&tld).unwrap().get_records(&name, &RRTypes::CName) {
-        Some(records) => {
-            if depth+1 < MAX_CNAME_CHAIN_SIZE {
-                let record = records.get(0).unwrap();
-                event.add_answer(&target, record.clone());
-                chain_cname(zones, event, record.as_any().downcast_ref::<CNameRecord>().unwrap(), depth+1);
+    //match zones.read().unwrap().get(&tld).unwrap().get_records(&name, &RRTypes::CName) {
+    //    Some(records) => {
+    //        if depth+1 < MAX_CNAME_CHAIN_SIZE {
+    //            let record = records.get(0).unwrap();
+    //            event.add_answer(&target, record.clone());
+    //            chain_cname(zones, event, record.as_any().downcast_ref::<CNameRecord>().unwrap(), depth+1);
 
-            } else {
-                event.add_answer(&target, records.get(0).unwrap().clone());
-            }
-        }
-        None => {}
-    }
+    //        } else {
+    //            event.add_answer(&target, records.get(0).unwrap().clone());
+    //        }
+    //    }
+    //    None => {}
+    //}
 
-    match zones.read().unwrap().get(&tld).unwrap().get_records(&name, &event.get_query().get_type()) {
-        Some(records) => {
-            for record in records.iter().take(MAX_ANSWERS) {
-                event.add_answer(&target, record.clone());
-            }
-        }
-        None => {}
-    }
+    //match zones.read().unwrap().get(&tld).unwrap().get_records(&name, &event.get_query().get_type()) {
+    //    Some(records) => {
+    //        for record in records.iter().take(MAX_ANSWERS) {
+    //            event.add_answer(&target, record.clone());
+    //        }
+    //    }
+    //    None => {}
+    //}
 
     /*
     if depth >= MAX_CNAME_CHAIN_SIZE {

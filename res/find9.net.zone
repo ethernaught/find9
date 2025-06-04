@@ -1,4 +1,4 @@
-$ORIGIN find9.
+$ORIGIN find9.net.
 $TTL    604800
 
 @       IN      SOA     ns1.find9.net. admin.find9.net. (
