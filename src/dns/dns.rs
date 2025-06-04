@@ -6,6 +6,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread::JoinHandle;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::zone::zone_parser::ZoneParser;
+use crate::dns::listeners::a_query::on_a_query;
 use crate::dns::tcp_server::TcpServer;
 use crate::dns::udp_server;
 use crate::dns::udp_server::UdpServer;
@@ -27,7 +28,7 @@ impl Dns {
         let zones = Arc::new(RwLock::new(Zone::new(ZoneTypes::Hint)));
 
         let udp = UdpServer::new();
-        //udp.register_query_listener(RRTypes::A, on_a_query(&zones));
+        udp.register_query_listener(RRTypes::A, on_a_query(&zones));
         //udp.register_query_listener(RRTypes::Aaaa, on_aaaa_query(&zones));
         //udp.register_query_listener(RRTypes::Ns, on_ns_query(&zones));
 
@@ -35,7 +36,7 @@ impl Dns {
         //_self.register_query_listener(RRTypes::Soa, on_soa_query());
 
         let tcp = TcpServer::new();
-        //tcp.register_query_listener(RRTypes::A, on_a_query(&zones));
+        tcp.register_query_listener(RRTypes::A, on_a_query(&zones));
         //tcp.register_query_listener(RRTypes::Aaaa, on_aaaa_query(&zones));
         //tcp.register_query_listener(RRTypes::Ns, on_ns_query(&zones));
 

@@ -1,19 +1,40 @@
 use std::collections::HashMap;
+use std::io;
 use std::sync::{Arc, RwLock};
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::cname_record::CNameRecord;
 use crate::{MAX_ANSWERS, MAX_CNAME_CHAIN_SIZE};
 use crate::rpc::events::query_event::QueryEvent;
-use crate::utils::domain_utils::split_domain;
 use crate::zone::zone::Zone;
 
-pub fn chain_cname(zones: &Arc<RwLock<HashMap<String, Zone>>>, event: &mut QueryEvent, record: &CNameRecord, depth: u8) {
-    let target = record.get_target().unwrap();
+pub fn chain_cname(zones: &Arc<RwLock<Zone>>, name: &str, depth: u8) -> Option<String> {
+    if depth > MAX_CNAME_CHAIN_SIZE {
+        return None;
+    }
+
+    let zones_lock = zones.read().unwrap();
+    let records = zones_lock.get_deepest_zone(name)?.get_records(&RRTypes::CName)?;
+
+    if records.is_empty() {
+        return None;
+    }
+
+    let cname_record = records.get(0)?.as_any().downcast_ref::<CNameRecord>()?;
+    let target = cname_record.get_target()?;
+
+    match chain_cname(zones, &target, depth + 1) {
+        Some(next) => Some(next),
+        None => Some(target.to_string())
+    }
+
+
+
+
     //let (name, tld) = match split_domain(&event.get_query().get_name()) {
     //    Some((name, tld)) => (name, tld),
     //    None => return
     //};
-    let (name, tld) = split_domain(&target).unwrap();
+    //let (name, tld) = split_domain(&target).unwrap();
 
     /*
     SERVER CONTAINS

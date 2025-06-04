@@ -5,7 +5,6 @@ use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::cname_record::CNameRecord;
 use crate::MAX_ANSWERS;
 use crate::rpc::events::query_event::QueryEvent;
-use crate::utils::domain_utils::split_domain;
 use crate::utils::query_utils::chain_cname;
 use crate::zone::zone::Zone;
 
@@ -13,6 +12,7 @@ pub fn on_ns_query(zones: &Arc<RwLock<HashMap<String, Zone>>>) -> impl Fn(&mut Q
     let zones = zones.clone();
 
     move |event| {
+        /*
         let (name, tld) = match split_domain(&event.get_query().get_name()) {
             Some((name, tld)) => (name, tld),
             None => return Err(io::Error::new(io::ErrorKind::InvalidInput, "Invalid query name"))
@@ -44,6 +44,7 @@ pub fn on_ns_query(zones: &Arc<RwLock<HashMap<String, Zone>>>) -> impl Fn(&mut Q
             }
             None => event.set_authoritative(false)
         }
+        */
 
         Ok(())
     }

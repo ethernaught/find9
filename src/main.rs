@@ -107,7 +107,7 @@ fn main() -> io::Result<()> {
     let mut dns = Dns::new();
     dns.register_zone("res/find9.net.zone", "find9.net").unwrap();
     //dns.get_server().add_fallback(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)), 53));
-    //dns.start(6767);
+    dns.start(6767);
 
     //println!("UDP Server started on port: {}", dns.get_udp().socket.as_ref().unwrap().local_addr().unwrap().port());
     //println!("TCP Server started on port: {}", dns.get_tcp().socket.as_ref().unwrap().local_addr().unwrap().port());
