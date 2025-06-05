@@ -38,12 +38,25 @@ impl Zone {
         self.children.entry(name.to_string()).or_insert(child);
     }
 
-    pub fn get_sub_zone(&self, name: &str) -> Option<&Self> {
-        self.children.get(name)
+    pub fn add_zone_to(&mut self, domain: &str, zone: Zone, default_type: ZoneTypes) {
+        let labels: Vec<&str> = domain.split('.').rev().collect();
+
+        if labels.is_empty() {
+            return;
+        }
+
+        let mut current = self;
+
+        for label in &labels[..labels.len() - 1] {
+            current = current.children.entry(label.to_string())
+                .or_insert_with(|| Zone::new(default_type.clone()));
+        }
+
+        current.children.insert(labels.last().unwrap().to_string(), zone);
     }
 
-    pub fn remove_sub_zone(&mut self, name: &str) {
-        self.children.remove(name);
+    pub fn get_sub_zone(&self, name: &str) -> Option<&Self> {
+        self.children.get(name)
     }
     
     pub fn get_deepest_zone(&self, domain: &str) -> Option<&Zone> {
@@ -74,23 +87,9 @@ impl Zone {
         Some(current)
     }
 
-    pub fn add_zone_to(&mut self, domain: &str, zone: Zone, default_type: ZoneTypes) {
-        let labels: Vec<&str> = domain.split('.').rev().collect();
-
-        if labels.is_empty() {
-            return;
-        }
-
-        let mut current = self;
-
-        for label in &labels[..labels.len() - 1] {
-            current = current.children.entry(label.to_string())
-                .or_insert_with(|| Zone::new(default_type.clone()));
-        }
-
-        current.children.insert(labels.last().unwrap().to_string(), zone);
+    pub fn remove_sub_zone(&mut self, name: &str) {
+        self.children.remove(name);
     }
-
 
     pub fn add_record(&mut self, record: Box<dyn RecordBase>) {
         self.records.entry(record.get_type()).or_insert(Vec::new()).push(record);
