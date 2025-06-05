@@ -45,11 +45,7 @@ impl Zone {
     pub fn remove_sub_zone(&mut self, name: &str) {
         self.children.remove(name);
     }
-
-
-
-
-
+    
     pub fn get_deepest_zone(&self, domain: &str) -> Option<&Zone> {
         let labels: Vec<&str> = domain.trim_end_matches('.').split('.').rev().collect();
 
@@ -77,9 +73,6 @@ impl Zone {
 
         Some(current)
     }
-
-    //LOOP OBTAIN RECORDS....
-
 
     pub fn add_zone_to(&mut self, domain: &str, zone: Zone, default_type: ZoneTypes) {
         let labels: Vec<&str> = domain.split('.').rev().collect();
