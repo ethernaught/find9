@@ -1,10 +1,7 @@
-use std::collections::HashMap;
-use std::io;
 use std::sync::{Arc, RwLock};
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::cname_record::CNameRecord;
-use crate::{MAX_ANSWERS, MAX_CNAME_CHAIN_SIZE};
-use crate::rpc::events::query_event::QueryEvent;
+use crate::MAX_CNAME_CHAIN_SIZE;
 use crate::zone::zone::Zone;
 
 pub fn chain_cname(zones: &Arc<RwLock<Zone>>, name: &str, depth: u8) -> Option<String> {
