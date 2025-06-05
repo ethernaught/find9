@@ -68,25 +68,6 @@ fn main() -> io::Result<()> {
     hint	Used for root servers (rarely modified)
     */
 
-    /*
-    CHANGE TO THE ZONE HIERARCHY LIKE BELOW...
-
-    (root)
-    ├── org
-    │   └── example
-    ├── net
-    │   └── test
-    └── test
-    */
-
-    //plato.ns.cloudflare.com
-
-    //CAUSES CRASH
-    //dig @127.0.0.1 -p 6767 www.FIND9.net
-
-    //CAUSES CRASH...
-    //dig @127.0.0.1 -p 6767 find9.net +tcp + TCP
-
     //MAY BE ISSUE WITH AA - AUTHORITY ALWAYS BEING TRUE...?
 
     //ensure we fix bugs with odd queries IE TLD parsing
@@ -95,13 +76,6 @@ fn main() -> io::Result<()> {
     //cookie - server-gen - HMAC(client IP + client cookie + server secret).
 
     //hmac_sha256("test".as_bytes(), "test".as_bytes());
-
-
-
-
-
-
-
 
 
     let mut dns = Dns::new();
