@@ -9,6 +9,7 @@ use rlibdns::zone::zone_parser::ZoneParser;
 use crate::dns::listeners::a_query::on_a_query;
 use crate::dns::listeners::aaaa_query::on_aaaa_query;
 use crate::dns::listeners::ns_query::on_ns_query;
+use crate::dns::listeners::txt_query::on_txt_query;
 use crate::dns::tcp_server::TcpServer;
 use crate::dns::udp_server;
 use crate::dns::udp_server::UdpServer;
@@ -33,6 +34,7 @@ impl Dns {
         udp.register_query_listener(RRTypes::A, on_a_query(&zones));
         udp.register_query_listener(RRTypes::Aaaa, on_aaaa_query(&zones));
         udp.register_query_listener(RRTypes::Ns, on_ns_query(&zones));
+        udp.register_query_listener(RRTypes::Txt, on_txt_query(&zones));
 
         //_self.register_query_listener(RRTypes::Txt, on_txt_query());
         //_self.register_query_listener(RRTypes::Soa, on_soa_query());
@@ -41,6 +43,7 @@ impl Dns {
         tcp.register_query_listener(RRTypes::A, on_a_query(&zones));
         tcp.register_query_listener(RRTypes::Aaaa, on_aaaa_query(&zones));
         tcp.register_query_listener(RRTypes::Ns, on_ns_query(&zones));
+        tcp.register_query_listener(RRTypes::Txt, on_txt_query(&zones));
 
         Self {
             zones,

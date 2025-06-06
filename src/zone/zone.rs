@@ -3,8 +3,6 @@ use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::inter::record_base::RecordBase;
 use crate::zone::inter::zone_types::ZoneTypes;
 
-pub type RecordMap = HashMap<String, HashMap<RRTypes, Vec<Box<dyn RecordBase>>>>;
-
 #[derive(Debug, Clone)]
 pub struct Zone {
     _type: ZoneTypes,
@@ -58,7 +56,7 @@ impl Zone {
     pub fn get_sub_zone(&self, name: &str) -> Option<&Self> {
         self.children.get(name)
     }
-    
+
     pub fn get_deepest_zone(&self, domain: &str) -> Option<&Zone> {
         let labels: Vec<&str> = domain.trim_end_matches('.').split('.').rev().collect();
 
