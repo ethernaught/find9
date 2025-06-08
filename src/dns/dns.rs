@@ -36,14 +36,13 @@ impl Dns {
         udp.register_query_listener(RRTypes::Ns, on_ns_query(&zones));
         udp.register_query_listener(RRTypes::Txt, on_txt_query(&zones));
 
-        //_self.register_query_listener(RRTypes::Txt, on_txt_query());
-        //_self.register_query_listener(RRTypes::Soa, on_soa_query());
-
         let tcp = TcpServer::new();
         tcp.register_query_listener(RRTypes::A, on_a_query(&zones));
         tcp.register_query_listener(RRTypes::Aaaa, on_aaaa_query(&zones));
         tcp.register_query_listener(RRTypes::Ns, on_ns_query(&zones));
         tcp.register_query_listener(RRTypes::Txt, on_txt_query(&zones));
+
+        //_self.register_query_listener(RRTypes::Soa, on_soa_query());
 
         Self {
             zones,
