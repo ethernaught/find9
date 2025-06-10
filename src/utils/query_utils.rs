@@ -1,10 +1,88 @@
 use std::sync::{Arc, RwLock};
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::cname_record::CNameRecord;
-use crate::MAX_CNAME_CHAIN_SIZE;
+use rlibdns::records::inter::record_base::RecordBase;
+use crate::{MAX_ANSWERS, MAX_CNAME_CHAIN_SIZE};
+use crate::rpc::events::query_event::QueryEvent;
 use crate::zone::zone::Zone;
 
-pub fn chain_cname(zones: &Arc<RwLock<Zone>>, name: &str, depth: u8) -> Option<String> {
+//pub fn chain_cname(zones: &Arc<RwLock<Zone>>, name: &str, depth: u8) -> Option<String> {
+pub fn chain_cname(zones: &Arc<RwLock<Zone>>, event: &mut QueryEvent, record: &CNameRecord, depth: u8) {
+    let target = record.get_target().unwrap();
+    let zones_lock = zones.read().unwrap();
+
+    match zones_lock.get_deepest_zone(&target).unwrap().get_records(&RRTypes::CName) {
+        Some(records) => {
+
+            if depth+1 < MAX_CNAME_CHAIN_SIZE {
+                let record = records.get(0).unwrap();
+                event.add_answer(&target, record.clone());
+                chain_cname(zones, event, record.as_any().downcast_ref::<CNameRecord>().unwrap(), depth+1);
+
+            } else {
+                event.add_answer(&target, records.get(0).unwrap().clone());
+            }
+
+        }
+        None => {}
+    }
+
+    match zones_lock.get_deepest_zone(&target).unwrap().get_records(&event.get_query().get_type()) {
+        Some(records) => {
+            for record in records.iter().take(MAX_ANSWERS) {
+                event.add_answer(&target, record.clone());
+            }
+        }
+        None => {}
+    }
+
+    /*
+    let target = cname_record.get_target()?;
+
+    match chain_cname(zones, &target, depth + 1) {
+        Some(next) => {
+            if depth+1 < MAX_CNAME_CHAIN_SIZE {
+                let record = records.get(0).unwrap();
+                event.add_answer(&target, record.clone());
+                chain_cname(zones, event, record.as_any().downcast_ref::<CNameRecord>().unwrap(), depth+1);
+
+            } else {
+                event.add_answer(&target, records.get(0).unwrap().clone());
+            }
+            //Some(next)
+        },
+        None => {}//Some(target.to_string())
+    }*/
+
+
+    /*
+    match zones.read().unwrap().get(&tld).unwrap().get_records(&name, &RRTypes::CName) {
+        Some(records) => {
+            if depth+1 < MAX_CNAME_CHAIN_SIZE {
+                let record = records.get(0).unwrap();
+                event.add_answer(&target, record.clone());
+                chain_cname(zones, event, record.as_any().downcast_ref::<CNameRecord>().unwrap(), depth+1);
+
+            } else {
+                event.add_answer(&target, records.get(0).unwrap().clone());
+            }
+        }
+        None => {}
+    }
+
+    match zones.read().unwrap().get(&tld).unwrap().get_records(&name, &event.get_query().get_type()) {
+        Some(records) => {
+            for record in records.iter().take(MAX_ANSWERS) {
+                event.add_answer(&target, record.clone());
+            }
+        }
+        None => {}
+    }*/
+
+
+
+
+    /*
     if depth > MAX_CNAME_CHAIN_SIZE {
         return None;
     }
@@ -23,6 +101,7 @@ pub fn chain_cname(zones: &Arc<RwLock<Zone>>, name: &str, depth: u8) -> Option<S
         Some(next) => Some(next),
         None => Some(target.to_string())
     }
+    */
 
 
 

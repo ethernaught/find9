@@ -7,7 +7,7 @@ mod zone;
 use std::io;
 use crate::dns::dns::Dns;
 
-pub const MAX_CNAME_CHAIN_SIZE: u8 = 2;
+pub const MAX_CNAME_CHAIN_SIZE: u8 = 10;
 pub const MAX_QUERIES: usize = 1;
 pub const MAX_ANSWERS: usize = 3;
 pub const COOKIE_SECRET: &[u8] = b"HELLO WORLD";
