@@ -24,10 +24,12 @@ ns1     IN      A       127.0.0.1
 ns2     IN      A       127.0.0.1
 
 ; TEST
-x1      IN      CNAME   zen.find9.net.
-x2      IN      CNAME   gin.find9.net.
-x3      IN      CNAME   ted.find9.net.
-x4      IN      CNAME   alp.find9.net.
+x1      IN      CNAME   x2.find9.net.
+x2      IN      CNAME   x3.find9.net.
+x3      IN      CNAME   x4.find9.net.
+x4      IN      CNAME   x5.find9.net.
 x5      IN      A       192.168.0.2
+
+zz      IN      CNAME   zen.find9.net.
 
 @    3600    IN    TXT    "v=bla bla"
