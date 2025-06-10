@@ -15,6 +15,7 @@ use rlibdns::records::inter::record_base::RecordBase;
 use rlibdns::records::opt_record::OptRecord;
 use crate::dns::dns::QueryMap;
 use crate::{COOKIE_SECRET, MAX_QUERIES};
+use crate::dns::listeners::errors::response_error::ResponseResult;
 use crate::rpc::events::inter::event::Event;
 use crate::rpc::events::query_event::QueryEvent;
 use crate::utils::hash::hmac::hmac;
@@ -318,7 +319,7 @@ impl TcpServer {
 
     pub fn register_query_listener<F>(&self, key: RRTypes, callback: F)
     where
-        F: Fn(&mut QueryEvent) -> io::Result<()> + Send + Sync + 'static
+        F: Fn(&mut QueryEvent) -> ResponseResult<()> + Send + Sync + 'static
     {
         if self.query_mapping.read().unwrap().contains_key(&key) {
             self.query_mapping.write().unwrap().get_mut(&key).unwrap().push(Box::new(callback));

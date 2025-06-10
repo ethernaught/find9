@@ -1,40 +1,43 @@
 use std::sync::{Arc, RwLock};
+use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::cname_record::CNameRecord;
-use rlibdns::records::inter::record_base::RecordBase;
 use crate::{MAX_ANSWERS, MAX_CNAME_CHAIN_SIZE};
+use crate::dns::listeners::errors::response_error::{ResponseError, ResponseResult};
 use crate::rpc::events::query_event::QueryEvent;
 use crate::zone::zone::Zone;
 
 //pub fn chain_cname(zones: &Arc<RwLock<Zone>>, name: &str, depth: u8) -> Option<String> {
-pub fn chain_cname(zones: &Arc<RwLock<Zone>>, event: &mut QueryEvent, record: &CNameRecord, depth: u8) {
-    let target = record.get_target().unwrap();
+pub fn chain_cname(zones: &Arc<RwLock<Zone>>, event: &mut QueryEvent, name: &str/*, record: &CNameRecord*/, depth: u8) -> ResponseResult<()> {
+    //let target = record.get_target().unwrap();
     let zones_lock = zones.read().unwrap();
 
-    match zones_lock.get_deepest_zone(&target).unwrap().get_records(&RRTypes::CName) {
-        Some(records) => {
+    println!("{}: {:?}", name, zones_lock.get_deepest_zone(&name));
 
+    match zones_lock.get_deepest_zone(&name).ok_or(ResponseError::new(ResponseCodes::NxDomain, ""))?.get_records(&RRTypes::CName) {
+        Some(records) => {
             if depth+1 < MAX_CNAME_CHAIN_SIZE {
                 let record = records.get(0).unwrap();
-                event.add_answer(&target, record.clone());
-                chain_cname(zones, event, record.as_any().downcast_ref::<CNameRecord>().unwrap(), depth+1);
+                event.add_answer(&name, record.clone());
+                chain_cname(zones, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), depth+1)?;
 
             } else {
-                event.add_answer(&target, records.get(0).unwrap().clone());
+                return Err(ResponseError::new(ResponseCodes::ServFail, "")) //EXESSIVE CHAIN
             }
-
         }
-        None => {}
+        None => return Err(ResponseError::new(ResponseCodes::NxDomain, "")) //CHAIN FAIL
     }
 
-    match zones_lock.get_deepest_zone(&target).unwrap().get_records(&event.get_query().get_type()) {
+    match zones_lock.get_deepest_zone(&name).unwrap().get_records(&event.get_query().get_type()) {
         Some(records) => {
             for record in records.iter().take(MAX_ANSWERS) {
-                event.add_answer(&target, record.clone());
+                event.add_answer(&name, record.clone());
             }
         }
-        None => {}
+        None => return Err(ResponseError::new(ResponseCodes::NxDomain, "")) //CHAIN FAIL
     }
+
+    Ok(())
 
     /*
     let target = cname_record.get_target()?;

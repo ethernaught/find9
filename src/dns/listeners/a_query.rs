@@ -1,14 +1,14 @@
-use std::io;
 use std::sync::{Arc, RwLock};
+use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::cname_record::CNameRecord;
-use rlibdns::records::inter::record_base::RecordBase;
+use crate::dns::listeners::errors::response_error::{ResponseError, ResponseResult};
 use crate::MAX_ANSWERS;
 use crate::rpc::events::query_event::QueryEvent;
 use crate::utils::query_utils::chain_cname;
 use crate::zone::zone::Zone;
 
-pub fn on_a_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> io::Result<()> {
+pub fn on_a_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> ResponseResult<()> {
     let zones = zones.clone();
 
     move |event| {
@@ -20,7 +20,7 @@ pub fn on_a_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> io::
                     Some(records) => {
                         let record = records.get(0).unwrap();
                         event.add_answer(&event.get_query().get_name(), record.clone());
-                        chain_cname(&zones, event, record.as_any().downcast_ref::<CNameRecord>().unwrap(), 0);
+                        chain_cname(&zones, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), 0)?;
                     }
                     None => {
                         match zone.get_records(&event.get_query().get_type()) {
@@ -29,7 +29,7 @@ pub fn on_a_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> io::
                                     event.add_answer(&event.get_query().get_name(), record.clone());
                                 }
                             }
-                            None => return Err(io::Error::new(io::ErrorKind::Other, "Document not found"))
+                            None => return Err(ResponseError::new(ResponseCodes::NxDomain, ""))
                         }
                     }
                 }

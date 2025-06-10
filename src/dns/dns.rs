@@ -4,13 +4,14 @@ use std::sync::{Arc, RwLock};
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::zone::zone_parser::ZoneParser;
 use crate::dns::listeners::a_query::on_a_query;
+use crate::dns::listeners::errors::response_error::ResponseResult;
 use crate::dns::tcp_server::TcpServer;
 use crate::dns::udp_server::UdpServer;
 use crate::rpc::events::query_event::QueryEvent;
 use crate::zone::inter::zone_types::ZoneTypes;
 use crate::zone::zone::Zone;
 
-pub type QueryMap = Arc<RwLock<HashMap<RRTypes, Vec<Box<dyn Fn(&mut QueryEvent) -> io::Result<()> + Send + Sync>>>>>;
+pub type QueryMap = Arc<RwLock<HashMap<RRTypes, Vec<Box<dyn Fn(&mut QueryEvent) -> ResponseResult<()> + Send + Sync>>>>>;
 
 pub struct Dns {
     zones: Arc<RwLock<Zone>>,
