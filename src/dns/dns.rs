@@ -1,9 +1,6 @@
 use std::collections::HashMap;
 use std::io;
-use std::io::ErrorKind;
-use std::sync::{Arc, Mutex, RwLock};
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::thread::JoinHandle;
+use std::sync::{Arc, RwLock};
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::zone::zone_parser::ZoneParser;
 use crate::dns::listeners::a_query::on_a_query;
@@ -11,7 +8,6 @@ use crate::dns::listeners::aaaa_query::on_aaaa_query;
 use crate::dns::listeners::ns_query::on_ns_query;
 use crate::dns::listeners::txt_query::on_txt_query;
 use crate::dns::tcp_server::TcpServer;
-use crate::dns::udp_server;
 use crate::dns::udp_server::UdpServer;
 use crate::rpc::events::query_event::QueryEvent;
 use crate::zone::inter::zone_types::ZoneTypes;
@@ -42,7 +38,7 @@ impl Dns {
         tcp.register_query_listener(RRTypes::Ns, on_ns_query(&zones));
         tcp.register_query_listener(RRTypes::Txt, on_txt_query(&zones));
 
-        //_self.register_query_listener(RRTypes::Soa, on_soa_query());
+        //tcp.register_query_listener(RRTypes::Soa, on_soa_query(&zones));
 
         Self {
             zones,
