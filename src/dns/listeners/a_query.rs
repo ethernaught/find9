@@ -2,7 +2,7 @@ use std::sync::{Arc, RwLock};
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::cname_record::CNameRecord;
-use crate::dns::listeners::errors::response_error::{ResponseError, ResponseResult};
+use crate::dns::dns::ResponseResult;
 use crate::MAX_ANSWERS;
 use crate::rpc::events::query_event::QueryEvent;
 use crate::utils::query_utils::chain_cname;
@@ -29,7 +29,7 @@ pub fn on_a_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Resp
                                     event.add_answer(&event.get_query().get_name(), record.clone());
                                 }
                             }
-                            None => return Err(ResponseError::new(ResponseCodes::NxDomain, ""))
+                            None => return Err(ResponseCodes::NxDomain)
                         }
                     }
                 }

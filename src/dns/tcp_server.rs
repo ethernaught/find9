@@ -13,9 +13,8 @@ use rlibdns::messages::message_base::MessageBase;
 use rlibdns::records::inter::opt_codes::OptCodes;
 use rlibdns::records::inter::record_base::RecordBase;
 use rlibdns::records::opt_record::OptRecord;
-use crate::dns::dns::QueryMap;
+use crate::dns::dns::{QueryMap, ResponseResult};
 use crate::{COOKIE_SECRET, MAX_QUERIES};
-use crate::dns::listeners::errors::response_error::ResponseResult;
 use crate::rpc::events::inter::event::Event;
 use crate::rpc::events::query_event::QueryEvent;
 use crate::utils::hash::hmac::hmac;
@@ -145,6 +144,7 @@ impl TcpServer {
 
                     println!("{}", message);
 
+                    /*
                     for (i, query) in message.get_queries_mut().drain(..).enumerate() {
                         if i >= MAX_QUERIES {
                             break;
@@ -176,7 +176,7 @@ impl TcpServer {
                                 }
                             }
                         }
-                    }
+                    }*/
 
                     println!("QUERIES COMPLETE");
 /*
@@ -321,11 +321,7 @@ impl TcpServer {
     where
         F: Fn(&mut QueryEvent) -> ResponseResult<()> + Send + Sync + 'static
     {
-        if self.query_mapping.read().unwrap().contains_key(&key) {
-            self.query_mapping.write().unwrap().get_mut(&key).unwrap().push(Box::new(callback));
-            return;
-        }
-        self.query_mapping.write().unwrap().insert(key, vec![Box::new(callback)]);
+        self.query_mapping.write().unwrap().insert(key, Box::new(callback));
     }
 
     pub fn get_socket(&self) -> Option<&TcpListener> {

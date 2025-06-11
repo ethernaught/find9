@@ -1,17 +1,21 @@
 use std::collections::HashMap;
 use std::io;
 use std::sync::{Arc, RwLock};
+use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::zone::zone_parser::ZoneParser;
 use crate::dns::listeners::a_query::on_a_query;
-use crate::dns::listeners::errors::response_error::ResponseResult;
+use crate::dns::listeners::aaaa_query::on_aaaa_query;
+use crate::dns::listeners::ns_query::on_ns_query;
+use crate::dns::listeners::txt_query::on_txt_query;
 use crate::dns::tcp_server::TcpServer;
 use crate::dns::udp_server::UdpServer;
 use crate::rpc::events::query_event::QueryEvent;
 use crate::zone::inter::zone_types::ZoneTypes;
 use crate::zone::zone::Zone;
 
-pub type QueryMap = Arc<RwLock<HashMap<RRTypes, Vec<Box<dyn Fn(&mut QueryEvent) -> ResponseResult<()> + Send + Sync>>>>>;
+pub type QueryMap = Arc<RwLock<HashMap<RRTypes, Box<dyn Fn(&mut QueryEvent) -> ResponseResult<()> + Send + Sync>>>>;
+pub type ResponseResult<T> = Result<T, ResponseCodes>;
 
 pub struct Dns {
     zones: Arc<RwLock<Zone>>,
@@ -26,15 +30,15 @@ impl Dns {
 
         let udp = UdpServer::new();
         udp.register_query_listener(RRTypes::A, on_a_query(&zones));
-        //udp.register_query_listener(RRTypes::Aaaa, on_aaaa_query(&zones));
-        //udp.register_query_listener(RRTypes::Ns, on_ns_query(&zones));
-        //udp.register_query_listener(RRTypes::Txt, on_txt_query(&zones));
+        udp.register_query_listener(RRTypes::Aaaa, on_aaaa_query(&zones));
+        udp.register_query_listener(RRTypes::Ns, on_ns_query(&zones));
+        udp.register_query_listener(RRTypes::Txt, on_txt_query(&zones));
 
         let tcp = TcpServer::new();
         tcp.register_query_listener(RRTypes::A, on_a_query(&zones));
-        //tcp.register_query_listener(RRTypes::Aaaa, on_aaaa_query(&zones));
-        //tcp.register_query_listener(RRTypes::Ns, on_ns_query(&zones));
-        //tcp.register_query_listener(RRTypes::Txt, on_txt_query(&zones));
+        tcp.register_query_listener(RRTypes::Aaaa, on_aaaa_query(&zones));
+        tcp.register_query_listener(RRTypes::Ns, on_ns_query(&zones));
+        tcp.register_query_listener(RRTypes::Txt, on_txt_query(&zones));
 
         //tcp.register_query_listener(RRTypes::Soa, on_soa_query(&zones));
 

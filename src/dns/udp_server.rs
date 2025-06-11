@@ -12,9 +12,8 @@ use rlibdns::messages::message_base::MessageBase;
 use rlibdns::records::inter::opt_codes::OptCodes;
 use rlibdns::records::inter::record_base::RecordBase;
 use rlibdns::records::opt_record::OptRecord;
-use crate::dns::dns::QueryMap;
+use crate::dns::dns::{QueryMap, ResponseResult};
 use crate::{COOKIE_SECRET, MAX_QUERIES};
-use crate::dns::listeners::errors::response_error::ResponseResult;
 use crate::rpc::events::inter::event::Event;
 use crate::rpc::events::query_event::QueryEvent;
 use crate::utils::hash::hmac::hmac;
@@ -153,42 +152,58 @@ impl UdpServer {
 
                     //EVENT SHOULD PROBABLY PASS THE RESPONSE NOT JUST HOLD INFORMATION TO ADD LATER ON...
 
-                    println!("{}", message);
+                    //println!("{}", message);
 
                     for (i, query) in message.get_queries_mut().drain(..).enumerate() {
                         if i >= MAX_QUERIES {
                             break;
                         }
 
-                        if let Some(callbacks) = query_mapping.read().unwrap().get(&query.get_type()) {
+                        if let Some(callback) = query_mapping.read().unwrap().get(&query.get_type()) {
                             let mut event = QueryEvent::new(query.clone());
 
-                            for callback in callbacks {
-                                match callback(&mut event) {
-                                    Ok(_) => {}
-                                    Err(e) => {
-                                        response.set_response_code(e.get_code());
-                                        break;
+                            match callback(&mut event) {
+                                Ok(_) => {
+                                    if event.is_prevent_default() {
+                                        return;
+                                    }
+
+                                    response.add_query(query);
+                                    response.set_authoritative(event.is_authoritative());
+
+                                    if event.has_answers() {
+                                        for (query, records) in event.get_answers_mut().drain() {
+                                            for record in records {
+                                                response.add_answer(&query, record);
+                                            }
+                                        }
+                                    }
+
+                                    if event.has_name_servers() {
+                                        for (query, records) in event.get_name_servers_mut().drain() {
+                                            for record in records {
+                                                response.add_name_server(&query, record);
+                                            }
+                                        }
+                                    }
+
+                                    if event.has_additional_records() {
+                                        for (query, records) in event.get_additional_records_mut().drain() {
+                                            for record in records {
+                                                response.add_additional_record(&query, record);
+                                            }
+                                        }
                                     }
                                 }
-                            }
-
-                            if event.is_prevent_default() {
-                                break;
-                            }
-
-                            response.add_query(event.get_query().clone());
-                            response.set_authoritative(event.is_authoritative());
-
-                            if event.has_answers() {
-                                for (query, records) in event.get_answers_mut().drain() {
-                                    for record in records {
-                                        response.add_answer(&query, record);
-                                    }
+                                Err(e) => {
+                                    response.set_response_code(e);
+                                    break;
                                 }
                             }
                         }
                     }
+
+
 /*
                     if message.has_additional_records() {
                         for (query, mut records) in message.get_additional_records_mut().drain() {
@@ -285,18 +300,7 @@ impl UdpServer {
                     }
                     */
 
-                    println!("{}", response);
-
-                    //IF NAME DOES EXIST BUT NO DATA RETURN
-                    // NoError
-
-                    //If QName does not exist
-                    // NxDomain
-
-                    if !response.has_name_servers() &&
-                        !response.has_additional_records() {
-                        //response.set_response_code(ResponseCodes::NxDomain);
-                    }
+                    //println!("{}", response);
 
                     send(&response);
                 }
@@ -326,11 +330,7 @@ impl UdpServer {
     where
         F: Fn(&mut QueryEvent) -> ResponseResult<()> + Send + Sync + 'static
     {
-        if self.query_mapping.read().unwrap().contains_key(&key) {
-            self.query_mapping.write().unwrap().get_mut(&key).unwrap().push(Box::new(callback));
-            return;
-        }
-        self.query_mapping.write().unwrap().insert(key, vec![Box::new(callback)]);
+        self.query_mapping.write().unwrap().insert(key, Box::new(callback));
     }
 
     pub fn get_socket(&self) -> Option<&UdpSocket> {
