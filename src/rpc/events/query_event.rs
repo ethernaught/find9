@@ -1,5 +1,4 @@
 use rlibdns::messages::dns_query::DnsQuery;
-use rlibdns::messages::message_base::MessageBase;
 use rlibdns::records::inter::record_base::RecordBase;
 use rlibdns::utils::ordered_map::OrderedMap;
 use crate::rpc::events::inter::event::Event;

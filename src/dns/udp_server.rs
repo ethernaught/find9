@@ -164,10 +164,6 @@ impl UdpServer {
                             let mut event = QueryEvent::new(query.clone());
 
                             for callback in callbacks {
-                                if event.is_prevent_default() {
-                                    break;
-                                }
-
                                 match callback(&mut event) {
                                     Ok(_) => {}
                                     Err(e) => {
