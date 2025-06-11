@@ -142,43 +142,54 @@ impl TcpServer {
                         return;
                     }
 
-                    println!("{}", message);
-
-                    /*
                     for (i, query) in message.get_queries_mut().drain(..).enumerate() {
                         if i >= MAX_QUERIES {
                             break;
                         }
 
-                        if let Some(callbacks) = query_mapping.read().unwrap().get(&query.get_type()) {
-                            let mut event = QueryEvent::new(query);
+                        if let Some(callback) = query_mapping.read().unwrap().get(&query.get_type()) {
+                            let mut event = QueryEvent::new(query.clone());
 
-                            for callback in callbacks {
-                                if event.is_prevent_default() {
-                                    break;
-                                }
-
-                                callback(&mut event);
-                            }
-
-                            if event.is_prevent_default() {
-                                break;
-                            }
-
-                            response.add_query(event.get_query().clone());
-                            response.set_authoritative(event.is_authoritative());
-
-                            if event.has_answers() {
-                                for (query, records) in event.get_answers_mut().drain() {
-                                    for record in records {
-                                        response.add_answer(&query, record);
+                            match callback(&mut event) {
+                                Ok(_) => {
+                                    if event.is_prevent_default() {
+                                        return;
                                     }
+
+                                    response.add_query(query);
+                                    response.set_authoritative(event.is_authoritative());
+
+                                    if event.has_answers() {
+                                        for (query, records) in event.get_answers_mut().drain() {
+                                            for record in records {
+                                                response.add_answer(&query, record);
+                                            }
+                                        }
+                                    }
+
+                                    if event.has_name_servers() {
+                                        for (query, records) in event.get_name_servers_mut().drain() {
+                                            for record in records {
+                                                response.add_name_server(&query, record);
+                                            }
+                                        }
+                                    }
+
+                                    if event.has_additional_records() {
+                                        for (query, records) in event.get_additional_records_mut().drain() {
+                                            for record in records {
+                                                response.add_additional_record(&query, record);
+                                            }
+                                        }
+                                    }
+                                }
+                                Err(e) => {
+                                    response.set_response_code(e);
+                                    break;
                                 }
                             }
                         }
-                    }*/
-
-                    println!("QUERIES COMPLETE");
+                    }
 /*
                     if message.has_additional_records() {
                         for (query, mut records) in message.get_additional_records_mut().drain() {
@@ -272,19 +283,6 @@ impl TcpServer {
                         response.add_additional_record("", record.upcast());
                     }
                     */
-
-                    println!("{}", response);
-
-                    //IF NAME DOES EXIST BUT NO DATA RETURN
-                    // NoError
-
-                    //If QName does not exist
-                    // NxDomain
-
-                    if !response.has_name_servers() &&
-                        !response.has_additional_records() {
-                        //response.set_response_code(ResponseCodes::NxDomain);
-                    }
 
                     let buf = response.to_bytes(MAX_TCP_MESSAGE_SIZE);
                     stream.write(&(buf.len() as u16).to_be_bytes()).unwrap();
