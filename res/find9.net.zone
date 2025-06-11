@@ -32,4 +32,6 @@ x5      IN      A       192.168.0.2
 
 zz      IN      CNAME   zen.find9.net.
 
+a.b.c   IN      CNAME   find9.net.
+
 @    3600    IN    TXT    "v=bla bla"
