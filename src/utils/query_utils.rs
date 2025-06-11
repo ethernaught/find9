@@ -18,7 +18,7 @@ pub fn chain_cname(zones: &Arc<RwLock<Zone>>, event: &mut QueryEvent, name: &str
                 chain_cname(zones, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), depth+1)?;
 
             } else {
-                return Err(ResponseCodes::ServFail) //EXESSIVE CHAIN
+                return Err(ResponseCodes::ServFail)
             }
         }
         None => {
@@ -28,7 +28,7 @@ pub fn chain_cname(zones: &Arc<RwLock<Zone>>, event: &mut QueryEvent, name: &str
                         event.add_answer(&name, record.clone());
                     }
                 }
-                None => return Err(ResponseCodes::NxDomain) //CHAIN FAIL
+                None => return Err(ResponseCodes::NxDomain)
             }
         }
     }
