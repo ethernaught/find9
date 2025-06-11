@@ -82,22 +82,7 @@ impl Dns {
             match name.as_str() {
                 "." => self.zones.write().unwrap().add_record(record), //BE CAREFUL WITH THIS ONE - DONT ALLOW MOST OF THE TIME
                 "@" => zone.add_record(record),
-                _ => {
-                    //WE NEED TO HANDLE DEPTH SUB ZONES IE a.b.c.BLANK.com
-                    /*
-                    if name.contains('.') {
-                        for name in name.split('.') {
-                            let mut sub_zone = Zone::new(ZoneTypes::Master);
-                            sub_zone.add_record(record);
-                            zone.add_sub_zone(&name, sub_zone);
-                        }
-                    }
-                    */
-
-                    let mut sub_zone = Zone::new(ZoneTypes::Master);
-                    sub_zone.add_record(record);
-                    zone.add_sub_zone(&name, sub_zone);
-                }
+                _ => zone.add_record_to(&name, record, ZoneTypes::Master)
             }
         }
 

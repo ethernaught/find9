@@ -36,8 +36,8 @@ impl Zone {
         self.children.entry(name.to_string()).or_insert(child);
     }
 
-    pub fn add_zone_to(&mut self, domain: &str, zone: Zone, default_type: ZoneTypes) {
-        let labels: Vec<&str> = domain.split('.').rev().collect();
+    pub fn add_zone_to(&mut self, name: &str, zone: Zone, default_type: ZoneTypes) {
+        let labels: Vec<&str> = name.split('.').rev().collect();
 
         if labels.is_empty() {
             return;
@@ -57,8 +57,8 @@ impl Zone {
         self.children.get(name)
     }
 
-    pub fn get_deepest_zone(&self, domain: &str) -> Option<&Zone> {
-        let labels: Vec<&str> = domain.trim_end_matches('.').split('.').rev().collect();
+    pub fn get_deepest_zone(&self, name: &str) -> Option<&Zone> {
+        let labels: Vec<&str> = name.trim_end_matches('.').split('.').rev().collect();
 
         let mut current = self;
         for label in labels {
@@ -71,8 +71,8 @@ impl Zone {
         Some(current)
     }
 
-    pub fn get_deepest_zone_mut(&mut self, domain: &str) -> Option<&mut Zone> {
-        let labels: Vec<&str> = domain.trim_end_matches('.').split('.').rev().collect();
+    pub fn get_deepest_zone_mut(&mut self, name: &str) -> Option<&mut Zone> {
+        let labels: Vec<&str> = name.trim_end_matches('.').split('.').rev().collect();
 
         let mut current = self;
         for label in labels {
@@ -91,6 +91,25 @@ impl Zone {
 
     pub fn add_record(&mut self, record: Box<dyn RecordBase>) {
         self.records.entry(record.get_type()).or_insert(Vec::new()).push(record);
+    }
+
+    pub fn add_record_to(&mut self, name: &str, record: Box<dyn RecordBase>, default_type: ZoneTypes) {
+        let labels: Vec<&str> = name.trim_end_matches('.').split('.').rev().collect();
+
+        let mut current = self;
+
+        for label in &labels[..labels.len().saturating_sub(1)] {
+            current = current.children
+                .entry(label.to_string())
+                .or_insert_with(|| Zone::new(default_type.clone()));
+        }
+
+        if let Some(leaf_label) = labels.last() {
+            let leaf_zone = current.children
+                .entry(leaf_label.to_string())
+                .or_insert_with(|| Zone::new(default_type.clone()));
+            leaf_zone.add_record(record);
+        }
     }
 
     pub fn get_records(&self, _type: &RRTypes) -> Option<&Vec<Box<dyn RecordBase>>> {

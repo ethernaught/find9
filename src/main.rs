@@ -57,90 +57,13 @@ if response_bytes.len() > max_udp_size {
 
 
 
+SOA
 
+When a server receives a query:
 
-CNAME CHAIN WITH NO END
-brad@brad-lp:~$ dig @elisabeth.ns.cloudflare.com x1.find9.net
+It tries to find the best match for the query name in its zones.
 
-; <<>> DiG 9.18.30-0ubuntu0.22.04.2-Ubuntu <<>> @elisabeth.ns.cloudflare.com x1.find9.net
-; (6 servers found)
-;; global options: +cmd
-;; Got answer:
-;; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 31131
-;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
-;; WARNING: recursion requested but not available
-
-;; OPT PSEUDOSECTION:
-; EDNS: version: 0, flags:; udp: 1232
-;; QUESTION SECTION:
-;x1.find9.net.			IN	A
-
-;; AUTHORITY SECTION:
-find9.net.		1800	IN	SOA	elisabeth.ns.cloudflare.com. dns.cloudflare.com. 2374971435 10000 2400 604800 1800
-
-;; Query time: 34 msec
-;; SERVER: 108.162.194.224#53(elisabeth.ns.cloudflare.com) (UDP)
-;; WHEN: Mon Jun 09 10:15:54 MDT 2025
-;; MSG SIZE  rcvd: 108
-
-
-
-
-
-PROPER CNAME RESPONSE
-brad@brad-lp:~$ dig @elisabeth.ns.cloudflare.com x1.find9.net
-
-; <<>> DiG 9.18.30-0ubuntu0.22.04.2-Ubuntu <<>> @elisabeth.ns.cloudflare.com x1.find9.net
-; (6 servers found)
-;; global options: +cmd
-;; Got answer:
-;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 27890
-;; flags: qr aa rd; QUERY: 1, ANSWER: 9, AUTHORITY: 0, ADDITIONAL: 1
-;; WARNING: recursion requested but not available
-
-;; OPT PSEUDOSECTION:
-; EDNS: version: 0, flags:; udp: 1232
-;; QUESTION SECTION:
-;x1.find9.net.			IN	A
-
-;; ANSWER SECTION:
-x1.find9.net.		300	IN	CNAME	x2.find9.net.
-x2.find9.net.		300	IN	CNAME	x3.find9.net.
-x3.find9.net.		300	IN	CNAME	x4.find9.net.
-x4.find9.net.		300	IN	CNAME	x5.find9.net.
-x5.find9.net.		300	IN	CNAME	x6.find9.net.
-x6.find9.net.		300	IN	CNAME	x7.find9.net.
-x7.find9.net.		300	IN	CNAME	x8.find9.net.
-x8.find9.net.		300	IN	CNAME	x9.find9.net.
-x9.find9.net.		300	IN	A	127.0.0.1
-
-;; Query time: 65 msec
-;; SERVER: 162.159.38.224#53(elisabeth.ns.cloudflare.com) (UDP)
-;; WHEN: Mon Jun 09 10:18:09 MDT 2025
-;; MSG SIZE  rcvd: 193
-
-
-EXESSIVE CNAME CHAIN
-brad@brad-lp:~$ dig @elisabeth.ns.cloudflare.com x1.find9.net
-
-; <<>> DiG 9.18.30-0ubuntu0.22.04.2-Ubuntu <<>> @elisabeth.ns.cloudflare.com x1.find9.net
-; (6 servers found)
-;; global options: +cmd
-;; Got answer:
-;; ->>HEADER<<- opcode: QUERY, status: SERVFAIL, id: 10804
-;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
-;; WARNING: recursion requested but not available
-
-;; OPT PSEUDOSECTION:
-; EDNS: version: 0, flags:; udp: 1232
-;; QUESTION SECTION:
-;x1.find9.net.			IN	A
-
-;; Query time: 55 msec
-;; SERVER: 172.64.34.224#53(elisabeth.ns.cloudflare.com) (UDP)
-;; WHEN: Mon Jun 09 10:20:28 MDT 2025
-;; MSG SIZE  rcvd: 41
-
+If the exact name doesn't exist, the server returns an NXDOMAIN with the SOA record of the nearest enclosing zone.
 */
 
 //SHOULD WE HANDLE MORE THAN 1 QUERY?
