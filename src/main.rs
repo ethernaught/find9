@@ -89,6 +89,8 @@ fn main() -> io::Result<()> {
 
 
     let mut dns = Dns::new();
+    dns.register_zone("res/nine.zone", "nine")?;
+    dns.register_zone("res/find.nine.zone", "find.nine")?;
     dns.register_zone("res/find9.net.zone", "find9.net")?;
     //dns.get_server().add_fallback(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)), 53));
     dns.start(6767)?;
