@@ -4,7 +4,7 @@ mod dns;
 mod zone;
 //mod unix_rpc;
 
-use std::io;
+use std::{io, thread};
 use crate::dns::dns::Dns;
 
 pub const MAX_CNAME_CHAIN_SIZE: u8 = 10;
@@ -108,7 +108,7 @@ fn main() -> io::Result<()> {
     //unix_rpc.set_database(database.clone());
     //unix_rpc.start()?.join().unwrap();
 
-    loop {}
+    thread::park();
     Ok(())
 }
 

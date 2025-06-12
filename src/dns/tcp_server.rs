@@ -47,7 +47,7 @@ impl TcpServer {
         }
 
         self.socket = Some(TcpListener::bind(SocketAddr::from((Ipv4Addr::UNSPECIFIED, port)))?);
-        self.socket.as_ref().unwrap().set_nonblocking(true)?;
+        //self.socket.as_ref().unwrap().set_nonblocking(true)?;
 
         let (tx_sender_pool, rx_sender_pool) = channel();
         self.tx_sender_pool = Some(tx_sender_pool);
@@ -70,25 +70,23 @@ impl TcpServer {
                 while running.load(Ordering::Relaxed) {
                     match socket.accept() {
                         Ok((stream, src_addr)) => {
+                            let now = SystemTime::now()
+                                .duration_since(UNIX_EPOCH)
+                                .expect("Time went backwards")
+                                .as_millis();
+
+                            if now - last_decay_time >= 1000 {
+                                throttle.decay();
+                                last_decay_time = now;
+                            }
+
                             if !throttle.add_and_test(src_addr.ip()) {
                                 on_receive(stream, src_addr);
                             }
                         }
-                        Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {}
-                        _ => break
+                        //Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {}
+                        Err(_) => break
                     }
-
-                    let now = SystemTime::now()
-                        .duration_since(UNIX_EPOCH)
-                        .expect("Time went backwards")
-                        .as_millis();
-
-                    if now - last_decay_time >= 1000 {
-                        throttle.decay();
-                        last_decay_time = now;
-                    }
-
-                    sleep(Duration::from_millis(1));
                 }
             }
         }))
