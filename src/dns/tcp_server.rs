@@ -26,7 +26,6 @@ pub const MAX_TCP_MESSAGE_SIZE: usize = 65536;
 pub struct TcpServer {
     running: Arc<AtomicBool>,
     pub(crate) socket: Option<TcpListener>,
-    tx_sender_pool: Option<Sender<(TcpStream, SocketAddr)>>,
     query_mapping: QueryMap
 }
 
@@ -36,7 +35,6 @@ impl TcpServer {
         Self {
             running: Arc::new(AtomicBool::new(false)),
             socket: None,
-            tx_sender_pool: None,
             query_mapping: Arc::new(RwLock::new(HashMap::new()))
         }
     }
@@ -49,17 +47,13 @@ impl TcpServer {
         self.socket = Some(TcpListener::bind(SocketAddr::from((Ipv4Addr::UNSPECIFIED, port)))?);
         //self.socket.as_ref().unwrap().set_nonblocking(true)?;
 
-        let (tx_sender_pool, rx_sender_pool) = channel();
-        self.tx_sender_pool = Some(tx_sender_pool);
-
-        let on_receive = self.on_receive();
-
         self.running.store(true, Ordering::Relaxed);
 
         Ok(thread::spawn({
             let socket = self.socket.as_ref().unwrap().try_clone()?;
             let running = Arc::clone(&self.running);
             let throttle = SpamThrottle::new();
+            let on_receive = self.on_receive();
 
             move || {
                 let mut last_decay_time = SystemTime::now()
@@ -84,7 +78,6 @@ impl TcpServer {
                                 on_receive(stream, src_addr);
                             }
                         }
-                        //Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {}
                         Err(_) => break
                     }
                 }

@@ -25,7 +25,7 @@ pub const MAX_UDP_MESSAGE_SIZE: usize = 512;
 pub struct UdpServer {
     running: Arc<AtomicBool>,
     pub(crate) socket: Option<UdpSocket>,
-    tx_sender_pool: Option<Sender<(Vec<u8>, SocketAddr)>>,
+    sender_throttle: SpamThrottle,
     query_mapping: QueryMap
 }
 
@@ -35,7 +35,7 @@ impl UdpServer {
         Self {
             running: Arc::new(AtomicBool::new(false)),
             socket: None,
-            tx_sender_pool: None,
+            sender_throttle: SpamThrottle::new(),
             query_mapping: Arc::new(RwLock::new(HashMap::new()))
         }
     }
@@ -46,22 +46,16 @@ impl UdpServer {
         }
 
         self.socket = Some(UdpSocket::bind(SocketAddr::from((Ipv4Addr::UNSPECIFIED, port)))?);
-        self.socket.as_ref().unwrap().set_nonblocking(true)?;
-
-        let sender_throttle = SpamThrottle::new();
-
-        let (tx_sender_pool, rx_sender_pool) = channel();
-        self.tx_sender_pool = Some(tx_sender_pool);
-
-        let on_receive = self.on_receive(self.send_message(&sender_throttle));
+        //self.socket.as_ref().unwrap().set_nonblocking(true)?;
 
         self.running.store(true, Ordering::Relaxed);
 
         Ok(thread::spawn({
             let socket = self.socket.as_ref().unwrap().try_clone()?;
             let running = Arc::clone(&self.running);
-            let sender_throttle = sender_throttle.clone();
+            let sender_throttle = self.sender_throttle.clone();
             let receiver_throttle = SpamThrottle::new();
+            let on_receive = self.on_receive();
 
             move || {
                 let mut buf = [0u8; 65535];
@@ -73,36 +67,23 @@ impl UdpServer {
                 while running.load(Ordering::Relaxed) {
                     match socket.recv_from(&mut buf) {
                         Ok((len, src_addr)) => {
+                            let now = SystemTime::now()
+                                .duration_since(UNIX_EPOCH)
+                                .expect("Time went backwards")
+                                .as_millis();
+
+                            if now - last_decay_time >= 1000 {
+                                receiver_throttle.decay();
+                                sender_throttle.decay();
+                                last_decay_time = now;
+                            }
+
                             if !receiver_throttle.add_and_test(src_addr.ip()) {
                                 on_receive(&buf[..len], src_addr);
                             }
                         }
-                        Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {}
-                        _ => break
+                        Err(_) => break
                     }
-
-                    match rx_sender_pool.try_recv() {
-                        Ok((data, dst_addr)) => {
-                            if !sender_throttle.test(dst_addr.ip()) {
-                                socket.send_to(data.as_slice(), dst_addr);
-                            }
-                        }
-                        Err(TryRecvError::Empty) => {}
-                        Err(TryRecvError::Disconnected) => break
-                    }
-
-                    let now = SystemTime::now()
-                        .duration_since(UNIX_EPOCH)
-                        .expect("Time went backwards")
-                        .as_millis();
-
-                    if now - last_decay_time >= 1000 {
-                        receiver_throttle.decay();
-                        sender_throttle.decay();
-                        last_decay_time = now;
-                    }
-
-                    sleep(Duration::from_millis(10));
                 }
             }
         }))
@@ -116,10 +97,22 @@ impl UdpServer {
         self.running.store(false, Ordering::Relaxed);
     }
 
-    fn on_receive<F>(&self, send: F) -> impl Fn(&[u8], SocketAddr)
-    where
-        F: Fn(&MessageBase) -> io::Result<()> + Send + 'static
-    {
+    fn on_receive(&self) -> impl Fn(&[u8], SocketAddr) {
+        let socket = self.socket.as_ref().unwrap().try_clone().unwrap();
+        let sender_throttle = self.sender_throttle.clone();
+
+        let send = move |message: &MessageBase| {
+            if message.get_destination().is_none() {
+                return Err::<(), io::Error>(io::Error::new(io::ErrorKind::InvalidData, "Message destination set to null"));
+            }
+
+            if !sender_throttle.add_and_test(message.get_destination().unwrap().ip()) {
+                socket.send_to(message.to_bytes(MAX_UDP_MESSAGE_SIZE).as_slice(), message.get_destination().unwrap())?;
+            }
+
+            Err(io::Error::new(io::ErrorKind::TooManyLinks, "Too many outgoing messages to ip"))
+        };
+
         let query_mapping = self.query_mapping.clone();
 
         move |buf, src_addr| {
@@ -309,21 +302,16 @@ impl UdpServer {
         }
     }
 
-    fn send_message(&self, sender_throttle: &SpamThrottle) -> impl Fn(&MessageBase) -> io::Result<()> {
-        let tx = self.tx_sender_pool.as_ref().unwrap().clone();
-        let sender_throttle = sender_throttle.clone();
-
-        move |message| {
-            if message.get_destination().is_none() {
-                return Err(io::Error::new(io::ErrorKind::InvalidData, "Message destination set to null"));
-            }
-
-            if !sender_throttle.add_and_test(message.get_destination().unwrap().ip()) {
-                tx.send((message.to_bytes(MAX_UDP_MESSAGE_SIZE), message.get_destination().unwrap())).unwrap();
-            }
-
-            Ok(())
+    fn send(&self, message: &MessageBase) -> io::Result<()> {
+        if message.get_destination().is_none() {
+            return Err(io::Error::new(io::ErrorKind::InvalidData, "Message destination set to null"));
         }
+
+        if !self.sender_throttle.add_and_test(message.get_destination().unwrap().ip()) {
+            self.socket.as_ref().unwrap().send_to(message.to_bytes(MAX_UDP_MESSAGE_SIZE).as_slice(), message.get_destination().unwrap())?;
+        }
+
+        Err(io::Error::new(io::ErrorKind::TooManyLinks, "Too many outgoing messages to ip"))
     }
 
     pub fn register_query_listener<F>(&self, key: RRTypes, callback: F)
