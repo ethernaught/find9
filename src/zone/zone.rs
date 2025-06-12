@@ -28,6 +28,10 @@ impl Zone {
         self._type
     }
 
+    pub fn is_authority(&self) -> bool {
+        self._type.eq(&ZoneTypes::Master) || self._type.eq(&ZoneTypes::Slave)
+    }
+
     pub fn has_sub_zone(&self, name: &str) -> bool {
         self.children.contains_key(name)
     }

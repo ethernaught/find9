@@ -14,7 +14,7 @@ pub fn on_aaaa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
     move |event| {
         match zones.read().unwrap().get_deepest_zone(&event.get_query().get_name()) {
             Some(zone) => {
-                event.set_authoritative(true);
+                event.set_authoritative(zone.is_authority());
 
                 match zone.get_records(&RRTypes::CName) {
                     Some(records) => {
@@ -50,7 +50,7 @@ pub fn on_aaaa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
             }
             None => event.set_authoritative(false)
         }
-        
+
         Ok(())
     }
 }

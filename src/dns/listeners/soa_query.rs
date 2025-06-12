@@ -15,7 +15,7 @@ pub fn on_soa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
     move |event| {
         let name = match zones.read().unwrap().get_deepest_zone(&event.get_query().get_name()) {
             Some(zone) => {
-                event.set_authoritative(true);
+                event.set_authoritative(zone.is_authority());
 
                 match zone.get_records(&RRTypes::CName) {
                     Some(records) => {
@@ -31,7 +31,7 @@ pub fn on_soa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                 event.get_query().get_name()
             }
         };
-        
+
         match zones.read().unwrap().find_closest_records(&name, &event.get_query().get_type()) {
             Some((name, records)) => {
                 for record in records.iter().take(MAX_ANSWERS) {

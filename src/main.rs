@@ -66,6 +66,10 @@ When a server receives a query:
 It tries to find the best match for the query name in its zones.
 
 If the exact name doesn't exist, the server returns an NXDOMAIN with the SOA record of the nearest enclosing zone.
+
+
+- OUR USE OF NxDomain & Refused may be slightly off...
+
 */
 
 //SHOULD WE HANDLE MORE THAN 1 QUERY?
