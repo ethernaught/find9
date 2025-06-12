@@ -2,7 +2,6 @@ use std::sync::{Arc, RwLock};
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::cname_record::CNameRecord;
-use rlibdns::records::inter::record_base::RecordBase;
 use crate::dns::dns::ResponseResult;
 use crate::MAX_ANSWERS;
 use crate::rpc::events::query_event::QueryEvent;
@@ -32,7 +31,7 @@ pub fn on_soa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
             }
         };
 
-        match zones.read().unwrap().find_closest_records(&name, &event.get_query().get_type()) {
+        match zones.read().unwrap().get_deepest_records(&name, &event.get_query().get_type()) {
             Some((name, records)) => {
                 for record in records.iter().take(MAX_ANSWERS) {
                     event.add_answer(&name, record.clone());

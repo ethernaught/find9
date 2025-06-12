@@ -120,7 +120,7 @@ impl Zone {
         self.records.get(_type)
     }
 
-    pub fn find_closest_records(&self, name: &str, _type: &RRTypes) -> Option<(String, &Vec<Box<dyn RecordBase>>)> {
+    pub fn get_deepest_records(&self, name: &str, _type: &RRTypes) -> Option<(String, &Vec<Box<dyn RecordBase>>)> {
         let labels: Vec<&str> = name.trim_end_matches('.').split('.').rev().collect();
 
         if self.records.contains_key(_type) {
