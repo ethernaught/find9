@@ -116,6 +116,30 @@ impl Zone {
         self.records.get(_type)
     }
 
+    pub fn find_closest_records(&self, name: &str, _type: &RRTypes) -> Option<&Vec<Box<dyn RecordBase>>> {
+        let labels: Vec<&str> = name.trim_end_matches('.').split('.').rev().collect();
+
+        if self.records.contains_key(_type) {
+            return self.records.get(_type);
+        }
+
+        let mut current = self;
+
+        for label in labels {
+            match current.children.get(label) {
+                Some(child) => {
+                    current = child;
+                    if current.records.contains_key(_type) {
+                        return current.records.get(_type);
+                    }
+                }
+                None => break
+            }
+        }
+
+        None
+    }
+
     pub fn get_all_records(&self) -> &HashMap<RRTypes, Vec<Box<dyn RecordBase>>> {
         &self.records
     }

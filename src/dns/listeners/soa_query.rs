@@ -2,6 +2,7 @@ use std::sync::{Arc, RwLock};
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::cname_record::CNameRecord;
+use rlibdns::records::inter::record_base::RecordBase;
 use crate::dns::dns::ResponseResult;
 use crate::MAX_ANSWERS;
 use crate::rpc::events::query_event::QueryEvent;
@@ -23,6 +24,18 @@ pub fn on_soa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                         chain_cname(&zones, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), 0)?;
                     }
                     None => {
+                        match zone.find_closest_records(&event.get_query().get_name(), &event.get_query().get_type()) {
+                            Some(records) => {
+                                println!("{:?}", records);
+                                for record in records.iter().take(MAX_ANSWERS) {
+                                    event.add_answer(&event.get_query().get_name(), record.clone());
+                                }
+                            }
+                            None => return Err(ResponseCodes::NxDomain)
+                        }
+
+
+                        /*
                         match zone.get_records(&event.get_query().get_type()) {
                             Some(records) => {
                                 for record in records.iter().take(MAX_ANSWERS) {
@@ -31,6 +44,7 @@ pub fn on_soa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                             }
                             None => return Err(ResponseCodes::NxDomain)
                         }
+                        */
                     }
                 }
             }
