@@ -20,7 +20,21 @@ pub fn on_txt_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                     Some(records) => {
                         let record = records.get(0).unwrap();
                         event.add_answer(&event.get_query().get_name(), record.clone());
-                        chain_cname(&zones, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), 0)?;
+                        let target = chain_cname(&zones, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), 0)?;
+
+                        match zones.read().unwrap().get_deepest_zone(&target) {
+                            Some(zone) => {
+                                match zone.get_records(&event.get_query().get_type()) {
+                                    Some(records) => {
+                                        for record in records.iter().take(MAX_ANSWERS) {
+                                            event.add_answer(&target, record.clone());
+                                        }
+                                    }
+                                    None => return Err(ResponseCodes::NxDomain)
+                                }
+                            }
+                            _ => {}
+                        }
                     }
                     None => {
                         match zone.get_records(&event.get_query().get_type()) {

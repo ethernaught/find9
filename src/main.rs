@@ -26,6 +26,8 @@ pub const COOKIE_SECRET: &[u8] = b"HELLO WORLD";
 //USE ZONE FILE FORMAT
 //https://en.wikipedia.org/wiki/Zone_file
 
+//elisabeth.ns.cloudflare.com
+
 //STORE ZONES IN:
 // - /etc/find
 

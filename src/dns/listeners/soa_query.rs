@@ -13,7 +13,7 @@ pub fn on_soa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
     let zones = zones.clone();
 
     move |event| {
-        match zones.read().unwrap().get_deepest_zone(&event.get_query().get_name()) {
+        let name = match zones.read().unwrap().get_deepest_zone(&event.get_query().get_name()) {
             Some(zone) => {
                 event.set_authoritative(true);
 
@@ -21,34 +21,24 @@ pub fn on_soa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                     Some(records) => {
                         let record = records.get(0).unwrap();
                         event.add_answer(&event.get_query().get_name(), record.clone());
-                        chain_cname(&zones, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), 0)?;
+                        chain_cname(&zones, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), 0)?
                     }
-                    None => {
-                        match zone.find_closest_records(&event.get_query().get_name(), &event.get_query().get_type()) {
-                            Some(records) => {
-                                println!("{:?}", records);
-                                for record in records.iter().take(MAX_ANSWERS) {
-                                    event.add_answer(&event.get_query().get_name(), record.clone());
-                                }
-                            }
-                            None => return Err(ResponseCodes::NxDomain)
-                        }
-
-
-                        /*
-                        match zone.get_records(&event.get_query().get_type()) {
-                            Some(records) => {
-                                for record in records.iter().take(MAX_ANSWERS) {
-                                    event.add_answer(&event.get_query().get_name(), record.clone());
-                                }
-                            }
-                            None => return Err(ResponseCodes::NxDomain)
-                        }
-                        */
-                    }
+                    None => event.get_query().get_name()
                 }
             }
-            None => event.set_authoritative(false)
+            None => {
+                event.set_authoritative(false);
+                event.get_query().get_name()
+            }
+        };
+        
+        match zones.read().unwrap().find_closest_records(&name, &event.get_query().get_type()) {
+            Some((name, records)) => {
+                for record in records.iter().take(MAX_ANSWERS) {
+                    event.add_answer(&name, record.clone());
+                }
+            }
+            None => return Err(ResponseCodes::Refused)
         }
 
         Ok(())
