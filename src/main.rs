@@ -70,6 +70,35 @@ If the exact name doesn't exist, the server returns an NXDOMAIN with the SOA rec
 
 - OUR USE OF NxDomain & Refused may be slightly off...
 
+
+
+
+
+
+
+
+TODO REQUIRED
+Type	Name	Purpose
+SOA	Start of Authority	Identifies the zone's authoritative info and controls zone transfers.
+NS	Name Server	Specifies the authoritative name servers for the zone.
+A	Address (IPv4)	Maps domain names to IPv4 addresses.
+AAAA	Address (IPv6)	Maps domain names to IPv6 addresses.
+
+
+
+TODO EXPECTED
+x  MX	Mail Exchange	Specifies mail servers for email delivery.
+CNAME	Canonical Name	Alias one domain to another.
+x  TXT	Text	Stores human-readable data (SPF, DKIM, etc).
+PTR	Pointer	Used in reverse DNS (served from reverse zones).
+SRV	Service Locator	Maps services (e.g., SIP, LDAP) to target hosts and ports.
+DNSKEY / DS	DNSSEC Records	Needed if DNSSEC is enabled.
+CAA	Certification Authority Authorization	Limits which CAs can issue certs for a domain.
+IXFR
+AXFR
+
+
+
 */
 
 //SHOULD WE HANDLE MORE THAN 1 QUERY?
