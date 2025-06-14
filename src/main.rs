@@ -99,6 +99,31 @@ AXFR
 
 
 
+
+brad@brads-pc:~/Downloads/done$ dig @elisabeth.ns.cloudflare.com x2.find9.net NS
+
+; <<>> DiG 9.18.30-0ubuntu0.22.04.2-Ubuntu <<>> @elisabeth.ns.cloudflare.com x2.find9.net NS
+; (6 servers found)
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 34998
+;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+;; WARNING: recursion requested but not available
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+;; QUESTION SECTION:
+;x2.find9.net.			IN	NS
+
+;; AUTHORITY SECTION:
+find9.net.		1800	IN	SOA	elisabeth.ns.cloudflare.com. dns.cloudflare.com. 2375191312 10000 2400 604800 1800
+
+;; Query time: 61 msec
+;; SERVER: 162.159.38.224#53(elisabeth.ns.cloudflare.com) (UDP)
+;; WHEN: Sat Jun 14 13:25:31 MDT 2025
+;; MSG SIZE  rcvd: 108
+
+
 */
 
 //SHOULD WE HANDLE MORE THAN 1 QUERY?
