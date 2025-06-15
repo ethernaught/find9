@@ -33,7 +33,7 @@ pub fn on_txt_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                                     None => return Err(ResponseCodes::NxDomain)
                                 }
                             }
-                            _ => {}
+                            None => {}
                         }
                     }
                     None => {

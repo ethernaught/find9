@@ -33,7 +33,7 @@ pub fn on_aaaa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                                     None => return Err(ResponseCodes::NxDomain)
                                 }
                             }
-                            _ => {}
+                            None => {}
                         }
                     }
                     None => {

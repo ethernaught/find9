@@ -30,10 +30,16 @@ pub fn on_ns_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Res
                                             event.add_answer(&target, record.clone());
                                         }
                                     }
-                                    None => return Err(ResponseCodes::NxDomain)
+                                    None => {
+                                        //WE NEED TO NOT ADD THE ANSWERS FROM THE CNAMES...
+                                        //WE NEED TO ADD SOA TO THE AUTHORITY...
+                                        //NO_ERROR TYPE
+                                        //KEEP AA
+                                        //return Err(ResponseCodes::NxDomain)
+                                    }
                                 }
                             }
-                            _ => {}
+                            None => {}
                         }
                     }
                     None => {
