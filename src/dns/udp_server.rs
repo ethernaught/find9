@@ -189,6 +189,24 @@ impl UdpServer {
                                 }
                                 Err(e) => {
                                     response.set_response_code(e);
+                                    response.add_query(query);
+
+                                    if event.has_name_servers() {
+                                        for (query, records) in event.get_name_servers_mut().drain() {
+                                            for record in records {
+                                                response.add_name_server(&query, record);
+                                            }
+                                        }
+                                    }
+
+                                    if event.has_additional_records() {
+                                        for (query, records) in event.get_additional_records_mut().drain() {
+                                            for record in records {
+                                                response.add_additional_record(&query, record);
+                                            }
+                                        }
+                                    }
+                                    
                                     break;
                                 }
                             }
