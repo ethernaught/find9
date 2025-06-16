@@ -1,9 +1,11 @@
 use std::sync::{Arc, RwLock};
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
+use rlibdns::records::cname_record::CNameRecord;
 use crate::dns::dns::ResponseResult;
 use crate::MAX_ANSWERS;
 use crate::rpc::events::query_event::QueryEvent;
+use crate::utils::query_utils::chain_cname;
 use crate::zone::zone::Zone;
 
 pub fn on_ns_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> ResponseResult<()> {
@@ -16,31 +18,55 @@ pub fn on_ns_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Res
             Some(zone) => {
                 event.set_authoritative(zone.is_authority());
 
-                match zone.get_records(&event.get_query().get_type()) {
+                match zone.get_records(&RRTypes::CName) {
                     Some(records) => {
-                        for record in records.iter().take(MAX_ANSWERS) {
-                            event.add_answer(&name, record.clone());
-                        }
+                        let record = records.get(0).unwrap();
+                        event.add_answer(&name, record.clone());
+                        let target = chain_cname(&zones, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), 0)?;
 
-                        return Ok(());
+                        match zones.read().unwrap().get_deepest_zone(&target) {
+                            Some(zone) => {
+                                match zone.get_records(&event.get_query().get_type()) {
+                                    Some(records) => {
+                                        for record in records.iter().take(MAX_ANSWERS) {
+                                            event.add_answer(&target, record.clone());
+                                        }
+                                    }
+                                    None => {}
+                                }
+                            }
+                            None => {}
+                        }
                     }
-                    None => {}
+                    None => {
+                        match zone.get_records(&event.get_query().get_type()) {
+                            Some(records) => {
+                                for record in records.iter().take(MAX_ANSWERS) {
+                                    event.add_answer(&name, record.clone());
+                                }
+                            }
+                            None => return Err(ResponseCodes::NxDomain)
+                        }
+                    }
                 }
             }
             None => {
-                event.set_authoritative(false)
-            }
-        }
+                match zones.read().unwrap().get_deepest_zone_with_records(&name, &RRTypes::Soa) {
+                    Some((name, zone)) => {
+                        event.set_authoritative(zone.is_authority());
 
-        match zones.read().unwrap().get_deepest_records(&name, &RRTypes::Soa) {
-            Some((n, records)) => {
-                for record in records.iter().take(MAX_ANSWERS) {
-                    event.add_name_server(&n, record.clone());
+                        for record in zone.get_records(&RRTypes::Soa)
+                            .ok_or(ResponseCodes::Refused)?.iter().take(MAX_ANSWERS) {
+                            event.add_name_server(&name, record.clone());
+                        }
+                    }
+                    None => return Err(ResponseCodes::Refused)
                 }
 
-                Ok(())
+                return Err(ResponseCodes::NxDomain)
             }
-            None => Err(ResponseCodes::Refused)
         }
+
+        Ok(())
     }
 }

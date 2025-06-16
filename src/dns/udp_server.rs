@@ -190,6 +190,7 @@ impl UdpServer {
                                 Err(e) => {
                                     response.set_response_code(e);
                                     response.add_query(query);
+                                    response.set_authoritative(event.is_authoritative());
 
                                     if event.has_name_servers() {
                                         for (query, records) in event.get_name_servers_mut().drain() {
@@ -206,7 +207,7 @@ impl UdpServer {
                                             }
                                         }
                                     }
-                                    
+
                                     break;
                                 }
                             }

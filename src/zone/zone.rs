@@ -40,7 +40,7 @@ impl Zone {
         self.children.entry(name.to_string()).or_insert(child);
     }
 
-    pub fn add_zone_to(&mut self, name: &str, zone: Zone, default_type: ZoneTypes) {
+    pub fn add_zone_to(&mut self, name: &str, zone: Self, default_type: ZoneTypes) {
         let labels: Vec<&str> = name.split('.').rev().collect();
 
         if labels.is_empty() {
@@ -51,7 +51,7 @@ impl Zone {
 
         for label in &labels[..labels.len() - 1] {
             current = current.children.entry(label.to_string())
-                .or_insert_with(|| Zone::new(default_type.clone()));
+                .or_insert_with(|| Self::new(default_type.clone()));
         }
 
         current.children.insert(labels.last().unwrap().to_string(), zone);
@@ -61,7 +61,7 @@ impl Zone {
         self.children.get(name)
     }
 
-    pub fn get_deepest_zone(&self, name: &str) -> Option<&Zone> {
+    pub fn get_deepest_zone(&self, name: &str) -> Option<&Self> {
         let labels: Vec<&str> = name.trim_end_matches('.').split('.').rev().collect();
 
         let mut current = self;
@@ -75,7 +75,7 @@ impl Zone {
         Some(current)
     }
 
-    pub fn get_deepest_zone_mut(&mut self, name: &str) -> Option<&mut Zone> {
+    pub fn get_deepest_zone_mut(&mut self, name: &str) -> Option<&mut Self> {
         let labels: Vec<&str> = name.trim_end_matches('.').split('.').rev().collect();
 
         let mut current = self;
@@ -87,6 +87,36 @@ impl Zone {
         }
 
         Some(current)
+    }
+
+    pub fn get_deepest_zone_with_records(&self, name: &str, _type: &RRTypes) -> Option<(String, &Self)> {
+        let labels: Vec<&str> = name.trim_end_matches('.').split('.').rev().collect();
+
+        if self.records.contains_key(_type) {
+            return Some((name.to_string(), self));
+        }
+
+        let mut current = self;
+        let mut last_match: Option<(String, &Self)> = None;
+        let mut current_labels = Vec::new();
+
+        for label in &labels {
+            current_labels.push(*label);
+
+            match current.children.get(*label) {
+                Some(child) => {
+                    current = child;
+                    if let Some(records) = current.get_records(_type) {
+                        if !records.is_empty() {
+                            last_match = Some((current_labels.iter().rev().cloned().collect::<Vec<_>>().join("."), current));
+                        }
+                    }
+                }
+                None => {}
+            }
+        }
+
+        last_match
     }
 
     pub fn remove_sub_zone(&mut self, name: &str) {
@@ -105,49 +135,19 @@ impl Zone {
         for label in &labels[..labels.len().saturating_sub(1)] {
             current = current.children
                 .entry(label.to_string())
-                .or_insert_with(|| Zone::new(default_type.clone()));
+                .or_insert_with(|| Self::new(default_type.clone()));
         }
 
         if let Some(leaf_label) = labels.last() {
             let leaf_zone = current.children
                 .entry(leaf_label.to_string())
-                .or_insert_with(|| Zone::new(default_type.clone()));
+                .or_insert_with(|| Self::new(default_type.clone()));
             leaf_zone.add_record(record);
         }
     }
 
     pub fn get_records(&self, _type: &RRTypes) -> Option<&Vec<Box<dyn RecordBase>>> {
         self.records.get(_type)
-    }
-
-    pub fn get_deepest_records(&self, name: &str, _type: &RRTypes) -> Option<(String, &Vec<Box<dyn RecordBase>>)> {
-        let labels: Vec<&str> = name.trim_end_matches('.').split('.').rev().collect();
-
-        if self.records.contains_key(_type) {
-            return Some((String::new(), self.records.get(_type).unwrap()));
-        }
-
-        let mut current = self;
-        let mut last_match: Option<(String, &Vec<Box<dyn RecordBase>>)> = None;
-        let mut current_labels = Vec::new();
-
-        for label in &labels {
-            current_labels.push(*label);
-
-            match current.children.get(*label) {
-                Some(child) => {
-                    current = child;
-                    if let Some(records) = current.get_records(_type) {
-                        if !records.is_empty() {
-                            last_match = Some((current_labels.iter().rev().cloned().collect::<Vec<_>>().join("."), records));
-                        }
-                    }
-                }
-                None => {}
-            }
-        }
-
-        last_match
     }
 
     pub fn get_all_records(&self) -> &HashMap<RRTypes, Vec<Box<dyn RecordBase>>> {

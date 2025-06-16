@@ -51,11 +51,12 @@ pub fn on_txt_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                 }
             }
             None => {
-                event.set_authoritative(false);
+                match zones.read().unwrap().get_deepest_zone_with_records(&name, &RRTypes::Soa) {
+                    Some((name, zone)) => {
+                        event.set_authoritative(zone.is_authority());
 
-                match zones.read().unwrap().get_deepest_records(&name, &RRTypes::Soa) {
-                    Some((name, records)) => {
-                        for record in records.iter().take(MAX_ANSWERS) {
+                        for record in zone.get_records(&RRTypes::Soa)
+                                .ok_or(ResponseCodes::Refused)?.iter().take(MAX_ANSWERS) {
                             event.add_name_server(&name, record.clone());
                         }
                     }

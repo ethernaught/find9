@@ -25,9 +25,10 @@ pub fn chain_cname(zones: &Arc<RwLock<Zone>>, event: &mut QueryEvent, name: &str
             }
         }
         None => {
-            match zones.read().unwrap().get_deepest_records(&event.get_query().get_name(), &RRTypes::Soa) {
-                Some((name, records)) => {
-                    for record in records.iter().take(MAX_ANSWERS) {
+            match zones.read().unwrap().get_deepest_zone_with_records(&event.get_query().get_name(), &RRTypes::Soa) {
+                Some((name, zone)) => {
+                    for record in zone.get_records(&RRTypes::Soa)
+                            .ok_or(ResponseCodes::Refused)?.iter().take(MAX_ANSWERS) {
                         event.add_name_server(&name, record.clone());
                     }
                 }
