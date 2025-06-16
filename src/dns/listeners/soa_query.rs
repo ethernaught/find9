@@ -11,7 +11,6 @@ pub fn on_soa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
     move |event| {
         let name = event.get_query().get_name();
 
-
         match zones.read().unwrap().get_deepest_zone(&name) {
             Some(zone) => {
                 event.set_authoritative(zone.is_authority());
@@ -31,8 +30,7 @@ pub fn on_soa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                 event.set_authoritative(false)
             }
         }
-
-
+        
         match zones.read().unwrap().get_deepest_records(&name, &event.get_query().get_type()) {
             Some((n, records)) => {
                 for record in records.iter().take(MAX_ANSWERS) {

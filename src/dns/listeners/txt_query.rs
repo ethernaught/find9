@@ -13,7 +13,7 @@ pub fn on_txt_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
 
     move |event| {
         let name = event.get_query().get_name();
-        
+
         match zones.read().unwrap().get_deepest_zone(&name) {
             Some(zone) => {
                 event.set_authoritative(zone.is_authority());
@@ -32,7 +32,7 @@ pub fn on_txt_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                                             event.add_answer(&target, record.clone());
                                         }
                                     }
-                                    None => return Err(ResponseCodes::NxDomain)
+                                    None => {}
                                 }
                             }
                             None => {}
@@ -50,7 +50,20 @@ pub fn on_txt_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                     }
                 }
             }
-            None => event.set_authoritative(false)
+            None => {
+                event.set_authoritative(false);
+
+                match zones.read().unwrap().get_deepest_records(&name, &RRTypes::Soa) {
+                    Some((name, records)) => {
+                        for record in records.iter().take(MAX_ANSWERS) {
+                            event.add_name_server(&name, record.clone());
+                        }
+                    }
+                    None => return Err(ResponseCodes::Refused)
+                }
+
+                return Err(ResponseCodes::NxDomain)
+            }
         }
 
         Ok(())

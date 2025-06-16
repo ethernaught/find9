@@ -39,4 +39,5 @@ zz      IN      CNAME   zen.find9.net.
 
 a.b.c   IN      CNAME   find9.net.
 
-@    3600    IN    TXT    "v=bla bla"
+a4      IN      CNAME   a5.find9.net.
+a5    3600    IN    TXT    "v=bla bla"
