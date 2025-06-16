@@ -30,7 +30,7 @@ pub fn on_aaaa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                                             event.add_answer(&target, record.clone());
                                         }
                                     }
-                                    None => return Err(ResponseCodes::NxDomain)
+                                    None => {}
                                 }
                             }
                             None => {}
@@ -48,7 +48,18 @@ pub fn on_aaaa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                     }
                 }
             }
-            None => event.set_authoritative(false)
+            None => {
+                event.set_authoritative(false);
+
+                match zones.read().unwrap().get_deepest_records(&event.get_query().get_name(), &RRTypes::Soa) {
+                    Some((name, records)) => {
+                        for record in records.iter().take(MAX_ANSWERS) {
+                            event.add_answer(&name, record.clone());
+                        }
+                    }
+                    None => return Err(ResponseCodes::Refused)
+                }
+            }
         }
 
         Ok(())

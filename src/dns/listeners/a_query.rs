@@ -30,7 +30,7 @@ pub fn on_a_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Resp
                                             event.add_answer(&target, record.clone());
                                         }
                                     }
-                                    None => {}//return Err(ResponseCodes::NxDomain)
+                                    None => {}
                                 }
                             }
                             None => {}
