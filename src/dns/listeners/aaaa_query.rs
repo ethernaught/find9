@@ -54,11 +54,13 @@ pub fn on_aaaa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                 match zones.read().unwrap().get_deepest_records(&event.get_query().get_name(), &RRTypes::Soa) {
                     Some((name, records)) => {
                         for record in records.iter().take(MAX_ANSWERS) {
-                            event.add_answer(&name, record.clone());
+                            event.add_name_server(&name, record.clone());
                         }
                     }
                     None => return Err(ResponseCodes::Refused)
                 }
+
+                return Err(ResponseCodes::NxDomain)
             }
         }
 
