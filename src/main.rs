@@ -78,7 +78,7 @@ NS	Delegates authority; meaningful only at apex or delegation points
 DNSKEY/DS	Only at apex or delegation boundary
 RRSIG/NSEC/NSEC3	DNSSEC-related, tied to zone structure
 AXFR/IXFR	Not answered like A/AAAA — used for transfers
-ANY	Special query type (discouraged); not record type itself 
+ANY	Special query type (discouraged); not record type itself
 
 
 
@@ -96,32 +96,31 @@ AXFR
 
 
 
+brad@brad-lp:~$ dig @elisabeth.ns.cloudflare.com c5.find9.net NS
 
-brad@brad-lp:~$ dig @elisabeth.ns.cloudflare.com b4.find9.net 
-
-; <<>> DiG 9.18.30-0ubuntu0.22.04.2-Ubuntu <<>> @elisabeth.ns.cloudflare.com b4.find9.net
+; <<>> DiG 9.18.30-0ubuntu0.22.04.2-Ubuntu <<>> @elisabeth.ns.cloudflare.com c5.find9.net NS
 ; (6 servers found)
 ;; global options: +cmd
 ;; Got answer:
-;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 9907
-;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 1, ADDITIONAL: 1
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 23829
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 2
 ;; WARNING: recursion requested but not available
 
 ;; OPT PSEUDOSECTION:
 ; EDNS: version: 0, flags:; udp: 1232
 ;; QUESTION SECTION:
-;b4.find9.net.			IN	A
-
-;; ANSWER SECTION:
-b4.find9.net.		300	IN	CNAME	b5.find9.net.
+;c5.find9.net.			IN	NS
 
 ;; AUTHORITY SECTION:
-b5.find9.net.		300	IN	NS	robinhood.ns.find9.net.
+c5.find9.net.		300	IN	NS	find9.net.
 
-;; Query time: 29 msec
-;; SERVER: 108.162.194.224#53(elisabeth.ns.cloudflare.com) (UDP)
-;; WHEN: Wed Jun 18 08:47:06 MDT 2025
-;; MSG SIZE  rcvd: 85
+;; ADDITIONAL SECTION:
+find9.net.		300	IN	A	161.97.248.234
+
+;; Query time: 30 msec
+;; SERVER: 172.64.34.224#53(elisabeth.ns.cloudflare.com) (UDP)
+;; WHEN: Wed Jun 18 11:23:35 MDT 2025
+;; MSG SIZE  rcvd: 71
 
 */
 
