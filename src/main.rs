@@ -59,30 +59,27 @@ if response_bytes.len() > max_udp_size {
 
 
 
-SOA
 
-When a server receives a query:
+TODO (SAME AS A, AAAA)
+SRV	Service locator (used in VoIP, Kerberos, etc.)
+CAA	Certificate Authority Authorization — defined per FQDN
+NAPTR	Naming Authority Pointer (used in SIP, ENUM)
+TLSA	Used in DANE for certificate binding
+SSHFP	SSH public key fingerprints (host-based)
+PTR	Used in reverse DNS zones, also host-specific
+SPF	(Deprecated, use TXT) — still answered if defined
+CERT	Stores certificates or related PKI data
+LOC	Location information per FQDN
+OPENPGPKEY	For OpenPGP key discovery
+SVCB/HTTPS	New service discovery records (used by modern browsers)
 
-It tries to find the best match for the query name in its zones.
+TODO (NOT LIKE A, AAAA)
+NS	Delegates authority; meaningful only at apex or delegation points
+DNSKEY/DS	Only at apex or delegation boundary
+RRSIG/NSEC/NSEC3	DNSSEC-related, tied to zone structure
+AXFR/IXFR	Not answered like A/AAAA — used for transfers
+ANY	Special query type (discouraged); not record type itself 
 
-If the exact name doesn't exist, the server returns an NXDOMAIN with the SOA record of the nearest enclosing zone.
-
-
-- OUR USE OF NxDomain & Refused may be slightly off...
-
-
-
-
-
-
-
-
-TODO REQUIRED
-Type	Name	Purpose
-SOA	Start of Authority	Identifies the zone's authoritative info and controls zone transfers.
-NS	Name Server	Specifies the authoritative name servers for the zone.
-A	Address (IPv4)	Maps domain names to IPv4 addresses.
-AAAA	Address (IPv6)	Maps domain names to IPv6 addresses.
 
 
 
@@ -100,29 +97,31 @@ AXFR
 
 
 
-brad@brads-pc:~/Downloads/done$ dig @elisabeth.ns.cloudflare.com x2.find9.net NS
+brad@brad-lp:~$ dig @elisabeth.ns.cloudflare.com b4.find9.net 
 
-; <<>> DiG 9.18.30-0ubuntu0.22.04.2-Ubuntu <<>> @elisabeth.ns.cloudflare.com x2.find9.net NS
+; <<>> DiG 9.18.30-0ubuntu0.22.04.2-Ubuntu <<>> @elisabeth.ns.cloudflare.com b4.find9.net
 ; (6 servers found)
 ;; global options: +cmd
 ;; Got answer:
-;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 34998
-;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 9907
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 1, ADDITIONAL: 1
 ;; WARNING: recursion requested but not available
 
 ;; OPT PSEUDOSECTION:
 ; EDNS: version: 0, flags:; udp: 1232
 ;; QUESTION SECTION:
-;x2.find9.net.			IN	NS
+;b4.find9.net.			IN	A
+
+;; ANSWER SECTION:
+b4.find9.net.		300	IN	CNAME	b5.find9.net.
 
 ;; AUTHORITY SECTION:
-find9.net.		1800	IN	SOA	elisabeth.ns.cloudflare.com. dns.cloudflare.com. 2375191312 10000 2400 604800 1800
+b5.find9.net.		300	IN	NS	robinhood.ns.find9.net.
 
-;; Query time: 61 msec
-;; SERVER: 162.159.38.224#53(elisabeth.ns.cloudflare.com) (UDP)
-;; WHEN: Sat Jun 14 13:25:31 MDT 2025
-;; MSG SIZE  rcvd: 108
-
+;; Query time: 29 msec
+;; SERVER: 108.162.194.224#53(elisabeth.ns.cloudflare.com) (UDP)
+;; WHEN: Wed Jun 18 08:47:06 MDT 2025
+;; MSG SIZE  rcvd: 85
 
 */
 
