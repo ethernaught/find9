@@ -23,7 +23,8 @@ pub fn on_soa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                     Some(records) => {
                         let record = records.get(0).unwrap();
                         event.add_answer(&name, record.clone());
-                        let target = chain_cname(&zones, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), 0)?;
+                        let target = record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap();
+                        //let target = chain_cname(&zones, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), 0)?;
 
                         match zones.read().unwrap().get_deepest_zone(&target) {
                             Some(zone) => {
