@@ -1,4 +1,52 @@
 find9
 ====
 
-Find9 is a Rust based DNS server that allows you to easily host your own DNS server.
+Find9 is a Rust based DNS server that allows you to easily host your own DNS Name server.
+
+This follows RFC for the most part, except for some small adjustments as the RFC isn't great with all real world scenarios.
+For example, RFC allows for more than 1 query per request, however handling for example (AA) in the headers wouldn't make sense
+as we don't know what the response is authoritative for. Another example that I have viered from is NS and SOA records should not
+contain CName responses as per RFC. However almost all clients accept this and large CDNs like CloudFlare utilize this for faster
+lookups.
+
+> [!important]
+> This project is not complete
+
+Supported Record Types
+| RR Type | Status   |
+| ---     | ---      |
+| SOA     | Complete |
+| NS      | Complete |
+| A       | Complete |
+| AAAA    | Complete |
+| TXT     | Complete |
+| MX      | Testing  |
+| AXFR    | Todo     |
+| IXFR    | Todo     |
+| OPT     | Partial  |
+| CName   | Todo     |
+| PTR     | Todo     |
+| SRV     | Todo     |
+| CAA     | Todo     |
+| CERT    | Todo     |
+| DS      | Todo     |
+| HTTPS   | Todo     |
+| DNSKEY  | Todo     |
+| LOC     | Todo     |
+| NAPTR   | Todo     |
+| SMIMEA  | Todo     |
+| SSHFP   | Todo     |
+| SVCB    | Todo     |
+| TLSA    | Todo     |
+| URI     | Todo     |
+
+This currently supports `.zone` files and will be moved as a library so that you can minipulate the queries to use a DB if you dont want to use a Zone file
+Not all Zone methods are working quite yet.
+
+| Zone Type | Status |
+| ---       | ---      |
+| Master    | Complete |
+| Slave     | Partial  |
+| Stub      | Todo     |
+| Forward   | Todo     |
+| Hint      | Complete |
