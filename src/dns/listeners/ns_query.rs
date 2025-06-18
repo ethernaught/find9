@@ -29,7 +29,7 @@ pub fn on_ns_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Res
                                 match zone.get_records(&event.get_query().get_type()) {
                                     Some(records) => {
                                         for record in records.iter().take(MAX_ANSWERS) {
-                                            event.add_name_server(&target, record.clone());
+                                            event.add_authority_record(&target, record.clone());
                                         }
                                     }
                                     None => {}
@@ -57,7 +57,7 @@ pub fn on_ns_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Res
 
                         for record in zone.get_records(&RRTypes::Soa)
                             .ok_or(ResponseCodes::Refused)?.iter().take(MAX_ANSWERS) {
-                            event.add_name_server(&name, record.clone());
+                            event.add_authority_record(&name, record.clone());
                         }
                     }
                     None => return Err(ResponseCodes::Refused)

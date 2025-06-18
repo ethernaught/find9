@@ -29,7 +29,7 @@ pub fn chain_cname(zones: &Arc<RwLock<Zone>>, event: &mut QueryEvent, name: &str
                 Some((name, zone)) => {
                     for record in zone.get_records(&RRTypes::Soa)
                             .ok_or(ResponseCodes::Refused)?.iter().take(MAX_ANSWERS) {
-                        event.add_name_server(&name, record.clone());
+                        event.add_authority_record(&name, record.clone());
                     }
                 }
                 None => return Err(ResponseCodes::Refused)

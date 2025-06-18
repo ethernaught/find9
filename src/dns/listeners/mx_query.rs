@@ -57,7 +57,7 @@ pub fn on_mx_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Res
 
                         for record in zone.get_records(&RRTypes::Soa)
                             .ok_or(ResponseCodes::Refused)?.iter().take(MAX_ANSWERS) {
-                            event.add_name_server(&name, record.clone());
+                            event.add_authority_record(&name, record.clone());
                         }
                     }
                     None => return Err(ResponseCodes::Refused)

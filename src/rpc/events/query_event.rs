@@ -8,7 +8,7 @@ pub struct QueryEvent {
     query: DnsQuery,
     authoritative: bool,
     answers: OrderedMap<String, Vec<Box<dyn RecordBase>>>,
-    name_servers: OrderedMap<String, Vec<Box<dyn RecordBase>>>,
+    authority_records: OrderedMap<String, Vec<Box<dyn RecordBase>>>,
     additional_records: OrderedMap<String, Vec<Box<dyn RecordBase>>>,
     received_time: u128
 }
@@ -21,7 +21,7 @@ impl QueryEvent {
             query,
             authoritative: false,
             answers: OrderedMap::new(),
-            name_servers: OrderedMap::new(),
+            authority_records: OrderedMap::new(),
             additional_records: OrderedMap::new(),
             received_time: 0
         }
@@ -60,25 +60,25 @@ impl QueryEvent {
         &mut self.answers
     }
 
-    pub fn has_name_servers(&self) -> bool {
-        self.name_servers.len() > 0
+    pub fn has_authority_records(&self) -> bool {
+        self.authority_records.len() > 0
     }
 
-    pub fn add_name_server(&mut self, query: &str, record: Box<dyn RecordBase>) {
-        if self.name_servers.contains_key(&query.to_string()) {
-            self.name_servers.get_mut(&query.to_string()).unwrap().push(record);
+    pub fn add_authority_record(&mut self, query: &str, record: Box<dyn RecordBase>) {
+        if self.authority_records.contains_key(&query.to_string()) {
+            self.authority_records.get_mut(&query.to_string()).unwrap().push(record);
             return;
         }
 
-        self.name_servers.insert(query.to_string(), vec![record]);
+        self.authority_records.insert(query.to_string(), vec![record]);
     }
 
-    pub fn get_name_servers(&self) -> &OrderedMap<String, Vec<Box<dyn RecordBase>>> {
-        &self.name_servers
+    pub fn get_authority_records(&self) -> &OrderedMap<String, Vec<Box<dyn RecordBase>>> {
+        &self.authority_records
     }
 
-    pub fn get_name_servers_mut(&mut self) -> &mut OrderedMap<String, Vec<Box<dyn RecordBase>>> {
-        &mut self.name_servers
+    pub fn get_authority_records_mut(&mut self) -> &mut OrderedMap<String, Vec<Box<dyn RecordBase>>> {
+        &mut self.authority_records
     }
 
     pub fn has_additional_records(&self) -> bool {
