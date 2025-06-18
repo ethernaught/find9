@@ -29,7 +29,7 @@ pub fn on_ns_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Res
                                 match zone.get_records(&event.get_query().get_type()) {
                                     Some(records) => {
                                         for record in records.iter().take(MAX_ANSWERS) {
-                                            event.add_answer(&target, record.clone());
+                                            event.add_name_server(&target, record.clone());
                                         }
                                     }
                                     None => {}

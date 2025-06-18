@@ -41,3 +41,6 @@ a.b.c   IN      CNAME   find9.net.
 
 a4      IN      CNAME   a5.find9.net.
 a5    3600    IN    TXT    "v=bla bla"
+
+c4      IN      CNAME   c5.find9.net.
+c5      IN      NS      find9.net.

@@ -32,7 +32,16 @@ pub fn on_soa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                                             event.add_answer(&target, record.clone());
                                         }
                                     }
-                                    None => {}
+                                    None => {
+                                        match zone.get_records(&RRTypes::Ns) {
+                                            Some(records) => {
+                                                for record in records.iter().take(MAX_ANSWERS) {
+                                                    event.add_name_server(&target, record.clone());
+                                                }
+                                            }
+                                            None => {}
+                                        }
+                                    }
                                 }
                             }
                             None => {}
