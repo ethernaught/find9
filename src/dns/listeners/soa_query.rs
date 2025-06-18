@@ -2,6 +2,7 @@ use std::sync::{Arc, RwLock};
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::cname_record::CNameRecord;
+use rlibdns::records::ns_record::NsRecord;
 use crate::dns::dns::ResponseResult;
 use crate::MAX_ANSWERS;
 use crate::rpc::events::query_event::QueryEvent;
@@ -54,7 +55,33 @@ pub fn on_soa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                                     event.add_answer(&name, record.clone());
                                 }
                             }
-                            None => return Err(ResponseCodes::NxDomain)
+                            None => {
+                                match zone.get_records(&RRTypes::Ns) {
+                                    Some(records) => {
+                                        for record in records.iter().take(MAX_ANSWERS) {
+                                            event.add_authority_record(&name, record.clone());
+
+                                            /*
+                                            let name = record.as_any().downcast_ref::<NsRecord>().unwrap();
+
+                                            match zone.get_records(&RRTypes::A) {
+                                                Some(records) => {
+                                                    for record in records.iter().take(MAX_ANSWERS) {
+                                                        event.add_authority_record(&name, record.clone());
+
+                                                        //ADDITIONAL RECORDS - A TYPE FOR THE NS...
+                                                    }
+                                                }
+                                                None => {}
+                                            }
+                                            */
+                                            //ADDITIONAL RECORDS - A TYPE FOR THE NS...
+                                        }
+                                    }
+                                    None => {}
+                                }
+                                //return Err(ResponseCodes::NxDomain)
+                            }
                         }
                     }
                 }
