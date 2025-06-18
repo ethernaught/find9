@@ -45,33 +45,7 @@ pub fn on_ns_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Res
                                     event.add_answer(&name, record.clone());
                                 }
                             }
-                            None => {
-                                match zone.get_records(&RRTypes::Ns) {
-                                    Some(records) => {
-                                        for record in records.iter().take(MAX_ANSWERS) {
-                                            event.add_authority_record(&name, record.clone());
-
-                                            /*
-                                            let name = record.as_any().downcast_ref::<NsRecord>().unwrap();
-
-                                            match zone.get_records(&RRTypes::A) {
-                                                Some(records) => {
-                                                    for record in records.iter().take(MAX_ANSWERS) {
-                                                        event.add_authority_record(&name, record.clone());
-
-                                                        //ADDITIONAL RECORDS - A TYPE FOR THE NS...
-                                                    }
-                                                }
-                                                None => {}
-                                            }
-                                            */
-                                            //ADDITIONAL RECORDS - A TYPE FOR THE NS...
-                                        }
-                                    }
-                                    None => {}
-                                }
-                                //return Err(ResponseCodes::NxDomain)
-                            }
+                            None => return Err(ResponseCodes::NxDomain)
                         }
                     }
                 }
