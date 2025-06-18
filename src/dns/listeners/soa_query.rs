@@ -6,7 +6,7 @@ use rlibdns::records::ns_record::NsRecord;
 use crate::dns::dns::ResponseResult;
 use crate::MAX_ANSWERS;
 use crate::rpc::events::query_event::QueryEvent;
-use crate::utils::query_utils::chain_cname;
+use crate::utils::query_utils::add_glue;
 use crate::zone::zone::Zone;
 
 pub fn on_soa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> ResponseResult<()> {
@@ -17,14 +17,13 @@ pub fn on_soa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
 
         match zones.read().unwrap().get_deepest_zone(&name) {
             Some(zone) => {
-                event.set_authoritative(zone.is_authority());
-
                 match zone.get_records(&RRTypes::CName) {
                     Some(records) => {
-                        let record = records.get(0).unwrap();
+                        event.set_authoritative(zone.is_authority());
+
+                        let record = records.first().unwrap();
                         event.add_answer(&name, record.clone());
                         let target = record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap();
-                        //let target = chain_cname(&zones, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), 0)?;
 
                         match zones.read().unwrap().get_deepest_zone(&target) {
                             Some(zone) => {
@@ -52,6 +51,8 @@ pub fn on_soa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                     None => {
                         match zone.get_records(&event.get_query().get_type()) {
                             Some(records) => {
+                                event.set_authoritative(zone.is_authority());
+
                                 for record in records.iter().take(MAX_ANSWERS) {
                                     event.add_answer(&name, record.clone());
                                 }
@@ -61,27 +62,11 @@ pub fn on_soa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                                     Some(records) => {
                                         for record in records.iter().take(MAX_ANSWERS) {
                                             event.add_authority_record(&name, record.clone());
-
-                                            /*
-                                            let name = record.as_any().downcast_ref::<NsRecord>().unwrap();
-
-                                            match zone.get_records(&RRTypes::A) {
-                                                Some(records) => {
-                                                    for record in records.iter().take(MAX_ANSWERS) {
-                                                        event.add_authority_record(&name, record.clone());
-
-                                                        //ADDITIONAL RECORDS - A TYPE FOR THE NS...
-                                                    }
-                                                }
-                                                None => {}
-                                            }
-                                            */
-                                            //ADDITIONAL RECORDS - A TYPE FOR THE NS...
+                                            add_glue(&zones, event, &record.as_any().downcast_ref::<NsRecord>().unwrap().get_server().unwrap());
                                         }
                                     }
-                                    None => {}
+                                    None => return Err(ResponseCodes::NxDomain)
                                 }
-                                //return Err(ResponseCodes::NxDomain)
                             }
                         }
                     }
@@ -93,7 +78,7 @@ pub fn on_soa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                         event.set_authoritative(zone.is_authority());
 
                         for record in zone.get_records(&RRTypes::Soa)
-                            .ok_or(ResponseCodes::Refused)?.iter().take(MAX_ANSWERS) {
+                                .ok_or(ResponseCodes::Refused)?.iter().take(MAX_ANSWERS) {
                             event.add_authority_record(&name, record.clone());
                         }
                     }

@@ -20,7 +20,7 @@ pub fn on_aaaa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
 
                 match zone.get_records(&RRTypes::CName) {
                     Some(records) => {
-                        let record = records.get(0).unwrap();
+                        let record = records.first().unwrap();
                         event.add_answer(&name, record.clone());
                         let target = chain_cname(&zones, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), 0)?;
 

@@ -39,3 +39,29 @@ pub fn chain_cname(zones: &Arc<RwLock<Zone>>, event: &mut QueryEvent, name: &str
         }
     }
 }
+
+pub fn add_glue(zones: &Arc<RwLock<Zone>>, event: &mut QueryEvent, name: &str) {
+    match zones.read().unwrap().get_deepest_zone_with_records(&name, &RRTypes::A) {
+        Some((name, zone)) => {
+            match zone.get_records(&RRTypes::A) {
+                Some(records) => {
+                    event.add_additional_record(&name, records.first().unwrap().clone());
+                }
+                None => {}
+            }
+        }
+        None => {}
+    }
+
+    match zones.read().unwrap().get_deepest_zone_with_records(&name, &RRTypes::Aaaa) {
+        Some((name, zone)) => {
+            match zone.get_records(&RRTypes::Aaaa) {
+                Some(records) => {
+                    event.add_additional_record(&name, records.first().unwrap().clone());
+                }
+                None => {}
+            }
+        }
+        None => {}
+    }
+}
