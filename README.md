@@ -21,7 +21,7 @@ Supported Record Types
 | TXT     | Complete | MX      | Testing  |
 | AXFR    | Todo     | IXFR    | Todo     |
 | OPT     | Partial  | CName   | Complete |
-| PTR     | Complete | SRV     | Partial  |
+| PTR     | Complete | SRV     | Complete |
 | CAA     | Todo     | CERT    | Todo     |
 | DS      | Todo     | HTTPS   | Todo     |
 | DNSKEY  | Todo     | LOC     | Todo     |

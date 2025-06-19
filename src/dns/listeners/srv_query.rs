@@ -33,7 +33,6 @@ pub fn on_srv_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                                         for record in records.iter().take(MAX_ANSWERS) {
                                             event.add_answer(&target, record.clone());
                                             add_glue(&zones, event, &record.as_any().downcast_ref::<SrvRecord>().unwrap().get_target().unwrap());
-                                            println!("{:?}", event.get_additional_records());
                                         }
                                     }
                                     None => {
@@ -59,7 +58,6 @@ pub fn on_srv_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                                 for record in records.iter().take(MAX_ANSWERS) {
                                     event.add_answer(&name, record.clone());
                                     add_glue(&zones, event, &record.as_any().downcast_ref::<SrvRecord>().unwrap().get_target().unwrap());
-                                    println!("{:?}", event.get_additional_records());
                                 }
                             }
                             None => {
