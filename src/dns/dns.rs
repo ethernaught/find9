@@ -11,6 +11,7 @@ use crate::dns::listeners::mx_query::on_mx_query;
 use crate::dns::listeners::ns_query::on_ns_query;
 use crate::dns::listeners::ptr_query::on_ptr_query;
 use crate::dns::listeners::soa_query::on_soa_query;
+use crate::dns::listeners::srv_query::on_srv_query;
 use crate::dns::listeners::txt_query::on_txt_query;
 use crate::dns::tcp_server::TcpServer;
 use crate::dns::udp_server::UdpServer;
@@ -40,6 +41,7 @@ impl Dns {
         udp.register_query_listener(RRTypes::Mx, on_mx_query(&zones)); //TEST
         udp.register_query_listener(RRTypes::Ptr, on_ptr_query(&zones));
         udp.register_query_listener(RRTypes::CName, on_cname_query(&zones));
+        udp.register_query_listener(RRTypes::Srv, on_srv_query(&zones));
         
         udp.register_query_listener(RRTypes::Soa, on_soa_query(&zones));
 
@@ -51,6 +53,7 @@ impl Dns {
         tcp.register_query_listener(RRTypes::Mx, on_mx_query(&zones)); //TEST
         tcp.register_query_listener(RRTypes::Ptr, on_ptr_query(&zones));
         tcp.register_query_listener(RRTypes::CName, on_cname_query(&zones));
+        tcp.register_query_listener(RRTypes::Srv, on_srv_query(&zones));
 
         tcp.register_query_listener(RRTypes::Soa, on_soa_query(&zones));
 

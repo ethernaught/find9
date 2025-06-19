@@ -46,4 +46,6 @@ c3      IN      CNAME   c4.find9.net.
 c4      IN      CNAME   c5.find9.net.
 c5      IN      NS      find9.net.
 
+vpn     IN      CNAME   _openvpn._udp.find9.net.
 _openvpn._udp.find9.net. 300	IN	SRV	0 0 1194 openvpn.find9.net.
+openvpn     IN      A   192.168.0.5
