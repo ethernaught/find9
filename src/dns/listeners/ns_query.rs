@@ -74,7 +74,7 @@ pub fn on_ns_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Res
                     None => return Err(ResponseCodes::Refused)
                 }
 
-                return Err(ResponseCodes::NxDomain)
+                return Err(ResponseCodes::NxDomain);
             }
         }
 

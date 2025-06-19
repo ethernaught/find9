@@ -85,7 +85,7 @@ pub fn on_ptr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                     None => return Err(ResponseCodes::Refused)
                 }
 
-                return Err(ResponseCodes::NxDomain)
+                return Err(ResponseCodes::NxDomain);
             }
         }
 

@@ -85,7 +85,7 @@ pub fn on_aaaa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                     None => return Err(ResponseCodes::Refused)
                 }
 
-                return Err(ResponseCodes::NxDomain)
+                return Err(ResponseCodes::NxDomain);
             }
         }
 

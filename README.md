@@ -24,7 +24,7 @@ Supported Record Types
 | AXFR    | Todo     |
 | IXFR    | Todo     |
 | OPT     | Partial  |
-| CName   | Todo     |
+| CName   | Complete |
 | PTR     | Complete |
 | SRV     | Todo     |
 | CAA     | Todo     |
