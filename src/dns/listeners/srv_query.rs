@@ -3,6 +3,7 @@ use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::cname_record::CNameRecord;
 use rlibdns::records::ns_record::NsRecord;
+use rlibdns::records::srv_record::SrvRecord;
 use crate::dns::dns::ResponseResult;
 use crate::MAX_ANSWERS;
 use crate::rpc::events::query_event::QueryEvent;
@@ -31,6 +32,8 @@ pub fn on_srv_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                                     Some(records) => {
                                         for record in records.iter().take(MAX_ANSWERS) {
                                             event.add_answer(&target, record.clone());
+                                            add_glue(&zones, event, &record.as_any().downcast_ref::<SrvRecord>().unwrap().get_target().unwrap());
+                                            println!("{:?}", event.get_additional_records());
                                         }
                                     }
                                     None => {
@@ -55,6 +58,8 @@ pub fn on_srv_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
 
                                 for record in records.iter().take(MAX_ANSWERS) {
                                     event.add_answer(&name, record.clone());
+                                    add_glue(&zones, event, &record.as_any().downcast_ref::<SrvRecord>().unwrap().get_target().unwrap());
+                                    println!("{:?}", event.get_additional_records());
                                 }
                             }
                             None => {
@@ -78,7 +83,7 @@ pub fn on_srv_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                         event.set_authoritative(zone.is_authority());
 
                         for record in zone.get_records(&RRTypes::Soa)
-                            .ok_or(ResponseCodes::Refused)?.iter().take(MAX_ANSWERS) {
+                                .ok_or(ResponseCodes::Refused)?.iter().take(MAX_ANSWERS) {
                             event.add_authority_record(&name, record.clone());
                         }
                     }
