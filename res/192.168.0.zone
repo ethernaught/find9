@@ -1,12 +1,3 @@
 $TTL 86400
-@    IN    SOA    ns1.find9.net. admin.find9.net. (
-                  2023070501 ; Serial
-                  3600       ; Refresh
-                  1800       ; Retry
-                  604800     ; Expire
-                  86400      ; Minimum TTL
-)
-
-@       IN    NS    ns1.find9.net.
 
 5       IN    PTR   find9.net.

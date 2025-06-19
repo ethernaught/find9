@@ -65,7 +65,7 @@ pub fn on_ptr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                                             add_glue(&zones, event, &record.as_any().downcast_ref::<NsRecord>().unwrap().get_server().unwrap());
                                         }
                                     }
-                                    None => return Err(ResponseCodes::NxDomain)
+                                    None => return Err(ResponseCodes::Refused)
                                 }
                             }
                         }
