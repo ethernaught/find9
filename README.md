@@ -13,38 +13,27 @@ lookups.
 > This project is not complete
 
 Supported Record Types
-| RR Type | Status   |
-| ---     | ---      |
-| SOA     | Complete |
-| NS      | Complete |
-| A       | Complete |
-| AAAA    | Complete |
-| TXT     | Complete |
-| MX      | Testing  |
-| AXFR    | Todo     |
-| IXFR    | Todo     |
-| OPT     | Partial  |
-| CName   | Complete |
-| PTR     | Complete |
-| SRV     | Todo     |
-| CAA     | Todo     |
-| CERT    | Todo     |
-| DS      | Todo     |
-| HTTPS   | Todo     |
-| DNSKEY  | Todo     |
-| LOC     | Todo     |
-| NAPTR   | Todo     |
-| SMIMEA  | Todo     |
-| SSHFP   | Todo     |
-| SVCB    | Todo     |
-| TLSA    | Todo     |
-| URI     | Todo     |
+
+| RR Type | Status   | RR Type | Status   |
+|---------|----------|---------|----------|
+| SOA     | Complete | NS      | Complete |
+| A       | Complete | AAAA    | Complete |
+| TXT     | Complete | MX      | Testing  |
+| AXFR    | Todo     | IXFR    | Todo     |
+| OPT     | Partial  | CName   | Complete |
+| PTR     | Complete | SRV     | Partial  |
+| CAA     | Todo     | CERT    | Todo     |
+| DS      | Todo     | HTTPS   | Todo     |
+| DNSKEY  | Todo     | LOC     | Todo     |
+| NAPTR   | Todo     | SMIMEA  | Todo     |
+| SSHFP   | Todo     | SVCB    | Todo     |
+| TLSA    | Todo     | URI     | Todo     |
 
 This currently supports `.zone` files and will be moved as a library so that you can minipulate the queries to use a DB if you dont want to use a Zone file
 Not all Zone methods are working quite yet.
 
-| Zone Type | Status |
-| ---       | ---      |
+| Zone Type | Status   |
+|-----------|----------|
 | Master    | Complete |
 | Slave     | Partial  |
 | Stub      | Todo     |

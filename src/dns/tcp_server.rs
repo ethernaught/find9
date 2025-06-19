@@ -280,10 +280,7 @@ impl TcpServer {
 */
 
                     /*
-                    if response.has_answers() {
-                        response.set_authoritative(true);
-
-                    } else {
+                    if !response.has_answers() {
                         response.set_authoritative(false);
                         response.set_response_code(ResponseCodes::Refused);
 

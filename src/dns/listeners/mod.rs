@@ -6,4 +6,5 @@ pub mod soa_query;
 pub mod mx_query;
 pub mod ptr_query;
 pub mod cname_query;
+pub mod srv_query;
 //pub mod opt_record;
