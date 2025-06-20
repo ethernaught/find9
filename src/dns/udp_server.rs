@@ -142,10 +142,6 @@ impl UdpServer {
                         return;
                     }
 
-                    //EVENT SHOULD PROBABLY PASS THE RESPONSE NOT JUST HOLD INFORMATION TO ADD LATER ON...
-
-                    //println!("{}", message);
-
                     for (i, query) in message.get_queries_mut().drain(..).enumerate() {
                         if i >= MAX_QUERIES {
                             break;
