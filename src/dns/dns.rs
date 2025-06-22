@@ -7,6 +7,7 @@ use rlibdns::zone::zone_parser::ZoneParser;
 use crate::dns::listeners::a_query::on_a_query;
 use crate::dns::listeners::aaaa_query::on_aaaa_query;
 use crate::dns::listeners::cname_query::on_cname_query;
+use crate::dns::listeners::https_query::on_https_query;
 use crate::dns::listeners::mx_query::on_mx_query;
 use crate::dns::listeners::ns_query::on_ns_query;
 use crate::dns::listeners::ptr_query::on_ptr_query;
@@ -41,6 +42,7 @@ impl Dns {
         udp.register_query_listener(RRTypes::Mx, on_mx_query(&zones)); //TEST
         udp.register_query_listener(RRTypes::Ptr, on_ptr_query(&zones));
         udp.register_query_listener(RRTypes::CName, on_cname_query(&zones));
+        udp.register_query_listener(RRTypes::Https, on_https_query(&zones));
         udp.register_query_listener(RRTypes::Srv, on_srv_query(&zones));
         
         udp.register_query_listener(RRTypes::Soa, on_soa_query(&zones));
@@ -53,6 +55,7 @@ impl Dns {
         tcp.register_query_listener(RRTypes::Mx, on_mx_query(&zones)); //TEST
         tcp.register_query_listener(RRTypes::Ptr, on_ptr_query(&zones));
         tcp.register_query_listener(RRTypes::CName, on_cname_query(&zones));
+        tcp.register_query_listener(RRTypes::Https, on_https_query(&zones));
         tcp.register_query_listener(RRTypes::Srv, on_srv_query(&zones));
 
         tcp.register_query_listener(RRTypes::Soa, on_soa_query(&zones));

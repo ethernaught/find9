@@ -23,7 +23,7 @@ Supported Record Types
 | OPT     | Partial  | CNAME   | Complete |
 | PTR     | Complete | SRV     | Complete |
 | CAA     | Todo     | CERT    | Todo     |
-| DS      | Todo     | HTTPS   | Todo     |
+| DS      | Todo     | HTTPS   | Testing  |
 | DNSKEY  | Todo     | LOC     | Todo     |
 | NAPTR   | Todo     | SMIMEA  | Todo     |
 | SSHFP   | Todo     | SVCB    | Todo     |
