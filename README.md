@@ -39,3 +39,16 @@ Not all Zone methods are working quite yet.
 | Stub      | Todo     |
 | Forward   | Todo     |
 | Hint      | Complete |
+
+To Do
+----
+
+> Ability to generate ECH based off users server private key for HTTPS and SVCB Records
+
+> Implement OPT for EDNS
+
+> Finish IXFR and AXFR (TCP Only)
+
+> Implement DNS not just NS (IE config option for fallback / recursive)
+
+> Calculate serial for SOA records
