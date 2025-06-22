@@ -37,26 +37,26 @@ impl Dns {
         let udp = UdpServer::new();
         udp.register_query_listener(RRTypes::A, on_a_query(&zones));
         udp.register_query_listener(RRTypes::Aaaa, on_aaaa_query(&zones));
-        udp.register_query_listener(RRTypes::Ns, on_ns_query(&zones)); //FIX
+        udp.register_query_listener(RRTypes::Ns, on_ns_query(&zones));
         udp.register_query_listener(RRTypes::Txt, on_txt_query(&zones));
         udp.register_query_listener(RRTypes::Mx, on_mx_query(&zones)); //TEST
         udp.register_query_listener(RRTypes::Ptr, on_ptr_query(&zones));
         udp.register_query_listener(RRTypes::CName, on_cname_query(&zones));
-        udp.register_query_listener(RRTypes::Https, on_https_query(&zones));
         udp.register_query_listener(RRTypes::Srv, on_srv_query(&zones));
+        udp.register_query_listener(RRTypes::Https, on_https_query(&zones));
         
         udp.register_query_listener(RRTypes::Soa, on_soa_query(&zones));
 
         let tcp = TcpServer::new();
         tcp.register_query_listener(RRTypes::A, on_a_query(&zones));
         tcp.register_query_listener(RRTypes::Aaaa, on_aaaa_query(&zones));
-        tcp.register_query_listener(RRTypes::Ns, on_ns_query(&zones)); //FIX
+        tcp.register_query_listener(RRTypes::Ns, on_ns_query(&zones));
         tcp.register_query_listener(RRTypes::Txt, on_txt_query(&zones));
         tcp.register_query_listener(RRTypes::Mx, on_mx_query(&zones)); //TEST
         tcp.register_query_listener(RRTypes::Ptr, on_ptr_query(&zones));
         tcp.register_query_listener(RRTypes::CName, on_cname_query(&zones));
-        tcp.register_query_listener(RRTypes::Https, on_https_query(&zones));
         tcp.register_query_listener(RRTypes::Srv, on_srv_query(&zones));
+        tcp.register_query_listener(RRTypes::Https, on_https_query(&zones));
 
         tcp.register_query_listener(RRTypes::Soa, on_soa_query(&zones));
 
