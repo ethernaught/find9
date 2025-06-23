@@ -32,7 +32,21 @@ pub fn on_cname_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> 
                                     add_glue(&zones, event, &record.as_any().downcast_ref::<NsRecord>().unwrap().get_server().unwrap());
                                 }
                             }
-                            None => return Err(ResponseCodes::Refused)
+                            None => {
+                                match zones.read().unwrap().get_deepest_zone_with_records(&name, &RRTypes::Soa) {
+                                    Some((name, zone)) => {
+                                        event.set_authoritative(zone.is_authority());
+
+                                        for record in zone.get_records(&RRTypes::Soa)
+                                            .ok_or(ResponseCodes::Refused)?.iter().take(MAX_ANSWERS) {
+                                            event.add_authority_record(&name, record.clone());
+                                        }
+                                    }
+                                    None => return Err(ResponseCodes::Refused)
+                                }
+
+                                return Err(ResponseCodes::NxDomain);
+                            }
                         }
                     }
                 }
