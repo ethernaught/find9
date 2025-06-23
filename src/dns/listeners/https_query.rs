@@ -17,57 +17,23 @@ pub fn on_https_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> 
 
         match zones.read().unwrap().get_deepest_zone(&name) {
             Some(zone) => {
-                match zone.get_records(&RRTypes::CName) {
+                match zone.get_records(&event.get_query().get_type()) {
                     Some(records) => {
                         event.set_authoritative(zone.is_authority());
 
-                        let record = records.first().unwrap();
-                        event.add_answer(&name, record.clone());
-                        let target = chain_cname(&zones, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), 0)?;
-
-                        match zones.read().unwrap().get_deepest_zone(&target) {
-                            Some(zone) => {
-                                match zone.get_records(&event.get_query().get_type()) {
-                                    Some(records) => {
-                                        for record in records.iter().take(MAX_ANSWERS) {
-                                            event.add_answer(&target, record.clone());
-                                        }
-                                    }
-                                    None => {
-                                        match zone.get_records(&RRTypes::Ns) {
-                                            Some(records) => {
-                                                for record in records.iter().take(MAX_ANSWERS) {
-                                                    event.add_authority_record(&target, record.clone());
-                                                }
-                                            }
-                                            None => {}
-                                        }
-                                    }
-                                }
-                            }
-                            None => {}
+                        for record in records.iter().take(MAX_ANSWERS) {
+                            event.add_answer(&name, record.clone());
                         }
                     }
                     None => {
-                        match zone.get_records(&event.get_query().get_type()) {
+                        match zone.get_records(&RRTypes::Ns) {
                             Some(records) => {
-                                event.set_authoritative(zone.is_authority());
-
                                 for record in records.iter().take(MAX_ANSWERS) {
-                                    event.add_answer(&name, record.clone());
+                                    event.add_authority_record(&name, record.clone());
+                                    add_glue(&zones, event, &record.as_any().downcast_ref::<NsRecord>().unwrap().get_server().unwrap());
                                 }
                             }
-                            None => {
-                                match zone.get_records(&RRTypes::Ns) {
-                                    Some(records) => {
-                                        for record in records.iter().take(MAX_ANSWERS) {
-                                            event.add_authority_record(&name, record.clone());
-                                            add_glue(&zones, event, &record.as_any().downcast_ref::<NsRecord>().unwrap().get_server().unwrap());
-                                        }
-                                    }
-                                    None => return Err(ResponseCodes::Refused)
-                                }
-                            }
+                            None => return Err(ResponseCodes::Refused)
                         }
                     }
                 }
