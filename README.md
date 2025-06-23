@@ -23,10 +23,10 @@ Supported Record Types
 | OPT     | Partial  | CNAME   | Complete |
 | PTR     | Complete | SRV     | Complete |
 | CAA     | Todo     | CERT    | Todo     |
-| DS      | Todo     | HTTPS   | Complete |
-| DNSKEY  | Todo     | LOC     | Todo     |
-| NAPTR   | Todo     | SMIMEA  | Todo     |
-| SSHFP   | Todo     | SVCB    | Todo     |
+| DS      | Todo     | DNSKEY  | Todo     |
+| LOC     | Todo     | NAPTR   | Todo     |
+| SMIMEA  | Todo     | SSHFP   | Todo     |
+| SVCB    | Testing  | HTTPS   | Testing  |
 | TLSA    | Todo     | URI     | Todo     |
 
 This currently supports `.zone` files and will be moved as a library so that you can minipulate the queries to use a DB if you dont want to use a Zone file

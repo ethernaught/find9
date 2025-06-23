@@ -44,6 +44,7 @@ impl Dns {
         udp.register_query_listener(RRTypes::CName, on_cname_query(&zones));
         udp.register_query_listener(RRTypes::Srv, on_srv_query(&zones));
         udp.register_query_listener(RRTypes::Https, on_https_query(&zones));
+        udp.register_query_listener(RRTypes::Svcb, on_https_query(&zones));
         
         udp.register_query_listener(RRTypes::Soa, on_soa_query(&zones));
 
@@ -57,6 +58,7 @@ impl Dns {
         tcp.register_query_listener(RRTypes::CName, on_cname_query(&zones));
         tcp.register_query_listener(RRTypes::Srv, on_srv_query(&zones));
         tcp.register_query_listener(RRTypes::Https, on_https_query(&zones));
+        udp.register_query_listener(RRTypes::Svcb, on_https_query(&zones));
 
         tcp.register_query_listener(RRTypes::Soa, on_soa_query(&zones));
 
