@@ -9,7 +9,7 @@ use crate::rpc::events::query_event::QueryEvent;
 use crate::utils::query_utils::{add_glue, chain_cname};
 use crate::zone::zone::Zone;
 
-pub fn on_svcb_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> ResponseResult<()> {
+pub fn on_loc_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> ResponseResult<()> {
     let zones = zones.clone();
 
     move |event| {

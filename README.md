@@ -14,20 +14,20 @@ lookups.
 
 Supported Record Types
 
-| RR Type | Status   | RR Type | Status      |
-|---------|----------|---------|-------------|
-| SOA     | Complete | NS      | Complete    |
-| A       | Complete | AAAA    | Complete    |
-| TXT     | Complete | MX      | Testing     |
-| AXFR    | Todo     | IXFR    | Todo        |
-| OPT     | Partial  | CNAME   | Complete    |
-| PTR     | Complete | SRV     | Complete    |
-| CAA     | Todo     | CERT    | Todo        |
-| DS      | Todo     | DNSKEY  | Todo        |
-| LOC     | Todo     | NAPTR   | Todo        |
-| SMIMEA  | Todo     | SSHFP   | Todo        |
-| SVCB    | Complete | HTTPS   | Complete    |
-| TLSA    | Todo     | URI     | In Progress |
+| RR Type | Status   | RR Type | Status   |
+|---------|----------|---------|----------|
+| SOA     | Complete | NS      | Complete |
+| A       | Complete | AAAA    | Complete |
+| TXT     | Complete | MX      | Testing  |
+| AXFR    | Todo     | IXFR    | Todo     |
+| OPT     | Partial  | CNAME   | Complete |
+| PTR     | Complete | SRV     | Complete |
+| CAA     | Todo     | CERT    | Todo     |
+| DS      | Todo     | DNSKEY  | Todo     |
+| LOC     | Complete | NAPTR   | Todo     |
+| SMIMEA  | Todo     | SSHFP   | Todo     |
+| SVCB    | Complete | HTTPS   | Complete |
+| TLSA    | Todo     | URI     | Complete |
 
 This currently supports `.zone` files and will be moved as a library so that you can minipulate the queries to use a DB if you dont want to use a Zone file
 Not all Zone methods are working quite yet.

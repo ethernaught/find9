@@ -9,4 +9,6 @@ pub mod cname_query;
 pub mod srv_query;
 pub mod svcb_query;
 pub mod https_query;
+pub mod uri_query;
+pub mod loc_query;
 //pub mod opt_record;
