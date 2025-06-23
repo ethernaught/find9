@@ -126,6 +126,8 @@ find9.net.		300	IN	A	161.97.248.234
 
 //SHOULD WE HANDLE MORE THAN 1 QUERY?
 
+//ADD TEST CASES...
+
 fn main() -> io::Result<()> {
     /*
     Type	Role

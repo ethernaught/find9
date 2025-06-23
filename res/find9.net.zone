@@ -52,3 +52,5 @@ openvpn     IN      A   192.168.0.5
 
 @		300	IN	HTTPS	1 www.find9.net. alpn="h3,h2" ipv4hint=104.21.42.137,172.67.206.28 ech=AEX+DQBB2gAgACCt7osYztq6KxXkbhZXwfSRJ0HA2L8GIlWh1oAnY35OEAAEAAEAAQASY2xvdWRmbGFyZS1lY2guY29tAAA= ipv6hint=2606:4700:3030::6815:2a89,2606:4700:3035::ac43:ce1c
 @		300	IN	SVCB	1 www.find9.net. alpn="h3,h2" ipv4hint=127.0.0.1 ipv6hint=::1
+
+@		300	IN	URI	1 1 "find9://nameserver"
