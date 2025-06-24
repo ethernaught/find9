@@ -19,7 +19,8 @@ pub const COOKIE_SECRET: &[u8] = b"HELLO WORLD";
 //+bufsize=1024
 //+tcp
 
-//REDO DNS / SERVER STUFF
+
+
 //REDO UNIX-RPC
 
 
