@@ -93,53 +93,11 @@ DNSKEY / DS	DNSSEC Records	Needed if DNSSEC is enabled.
 CAA	Certification Authority Authorization	Limits which CAs can issue certs for a domain.
 IXFR
 AXFR
-
-
-
-brad@brad-lp:~$ dig @elisabeth.ns.cloudflare.com c5.find9.net NS
-
-; <<>> DiG 9.18.30-0ubuntu0.22.04.2-Ubuntu <<>> @elisabeth.ns.cloudflare.com c5.find9.net NS
-; (6 servers found)
-;; global options: +cmd
-;; Got answer:
-;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 23829
-;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 2
-;; WARNING: recursion requested but not available
-
-;; OPT PSEUDOSECTION:
-; EDNS: version: 0, flags:; udp: 1232
-;; QUESTION SECTION:
-;c5.find9.net.			IN	NS
-
-;; AUTHORITY SECTION:
-c5.find9.net.		300	IN	NS	find9.net.
-
-;; ADDITIONAL SECTION:
-find9.net.		300	IN	A	161.97.248.234
-
-;; Query time: 30 msec
-;; SERVER: 172.64.34.224#53(elisabeth.ns.cloudflare.com) (UDP)
-;; WHEN: Wed Jun 18 11:23:35 MDT 2025
-;; MSG SIZE  rcvd: 71
-
 */
-
-//SHOULD WE HANDLE MORE THAN 1 QUERY?
 
 //ADD TEST CASES...
 
 fn main() -> io::Result<()> {
-    /*
-    Type	Role
-    master	Owns the original zone data, serves it authoritatively
-    slave	Gets zone data from the master via zone transfers (AXFR, IXFR) RECORDS - TCP (SOA - SERIAL IS USED TO KNOW ABOUT UPDATES TO RECORDS - MASTER NOTIFIES SLAVES)
-    stub	Only stores NS records of a zone, not full data
-    forward	Forwards queries to another server (like a proxy)
-    hint	Used for root servers (rarely modified)
-    */
-
-    //MAY BE ISSUE WITH AA - AUTHORITY ALWAYS BEING TRUE...?
-
     //ensure we fix bugs with odd queries IE TLD parsing
 
     //OPT bug fixing
