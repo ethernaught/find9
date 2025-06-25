@@ -28,9 +28,9 @@ Supported Record Types
 | SMIMEA  | Todo     | SSHFP   | Todo     |
 | SVCB    | Complete | HTTPS   | Complete |
 | TLSA    | Todo     | URI     | Complete |
-| HINFO   | Testing  | ANY     | Partial  |
+| HINFO   | Testing  | ANY     | Complete |
 
-13.5 / 24 Complete
+14.5 / 24 Complete
 
 This currently supports `.zone` files and will be moved as a library so that you can minipulate the queries to use a DB if you dont want to use a Zone file
 Not all Zone methods are working quite yet.
@@ -55,3 +55,5 @@ To Do
 > Implement DNS not just NS (IE config option for fallback / recursive)
 
 > Calculate serial for SOA records
+
+> Max answers isnt functioning as it should, it only limits to max of specific type

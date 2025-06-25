@@ -55,4 +55,4 @@ openvpn     IN      A   192.168.0.5
 
 @		300	IN	URI	1 1 "find9://nameserver"
 @		300	IN	LOC	82 0 28.000 S 135 0 0.000 E 0.00m 0.00m 0.00m 0.00m
-@		300	IN	HINFO "RFC8482" ""
+@		300	IN	HINFO "AMD" ""
