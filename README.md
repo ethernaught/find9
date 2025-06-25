@@ -30,7 +30,7 @@ Supported Record Types
 | TLSA    | Todo     | URI     | Complete |
 | HINFO   | Testing  | ANY     | Partial  |
 
-13.5 / 23 Complete
+13.5 / 24 Complete
 
 This currently supports `.zone` files and will be moved as a library so that you can minipulate the queries to use a DB if you dont want to use a Zone file
 Not all Zone methods are working quite yet.
