@@ -11,5 +11,6 @@ pub mod svcb_query;
 pub mod https_query;
 pub mod uri_query;
 pub mod loc_query;
+pub mod axfr_query;
 pub mod any_query;
 //pub mod opt_record;

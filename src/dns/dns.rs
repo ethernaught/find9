@@ -7,6 +7,7 @@ use rlibdns::zone::zone_parser::ZoneParser;
 use crate::dns::listeners::a_query::on_a_query;
 use crate::dns::listeners::aaaa_query::on_aaaa_query;
 use crate::dns::listeners::any_query::on_any_query;
+use crate::dns::listeners::axfr_query::on_axfr_query;
 use crate::dns::listeners::cname_query::on_cname_query;
 use crate::dns::listeners::https_query::on_https_query;
 use crate::dns::listeners::loc_query::on_uri_query;
@@ -70,6 +71,7 @@ impl Dns {
         tcp.register_query_listener(RRTypes::Loc, on_loc_query(&zones));
 
         tcp.register_query_listener(RRTypes::Soa, on_soa_query(&zones));
+        tcp.register_query_listener(RRTypes::Axfr, on_axfr_query(&zones));
         tcp.register_query_listener(RRTypes::Any, on_any_query(&zones));
 
         Self {
