@@ -29,7 +29,7 @@ Supported Record Types
 | SVCB    | Complete | HTTPS   | Complete |
 | TLSA    | Todo     | URI     | Complete |
 | HINFO   | Partial  | ANY     | Complete |
-| RRSIG   | Todo     | TSIG    | Todo     |
+| RRSIG   | Partial  | TSIG    | Todo     |
 
 14.5 / 26 Complete
 
@@ -58,3 +58,5 @@ To Do
 > Calculate serial for SOA records
 
 > Max answers isnt functioning as it should, it only limits to max of specific type
+
+> ECDSA Curve P-256 with SHA-256 code for DS Records
