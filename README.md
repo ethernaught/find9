@@ -28,7 +28,7 @@ Supported Record Types
 | SMIMEA  | Todo     | SSHFP   | Todo     |
 | SVCB    | Complete | HTTPS   | Complete |
 | TLSA    | Todo     | URI     | Complete |
-| HINFO   | Testing  | ANY     | Complete |
+| HINFO   | Partial  | ANY     | Complete |
 
 14.5 / 24 Complete
 
