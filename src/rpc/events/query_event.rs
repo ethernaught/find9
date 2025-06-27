@@ -60,6 +60,10 @@ impl QueryEvent {
         &mut self.answers
     }
 
+    pub fn calculate_total_answers(&self) -> usize {
+        self.answers.values().map(|v| v.len()).sum()
+    }
+
     pub fn has_authority_records(&self) -> bool {
         self.authority_records.len() > 0
     }
@@ -81,6 +85,10 @@ impl QueryEvent {
         &mut self.authority_records
     }
 
+    pub fn calculate_total_authority_records(&self) -> usize {
+        self.authority_records.values().map(|v| v.len()).sum()
+    }
+
     pub fn has_additional_records(&self) -> bool {
         self.additional_records.len() > 0
     }
@@ -100,6 +108,10 @@ impl QueryEvent {
 
     pub fn get_additional_records_mut(&mut self) -> &mut OrderedMap<String, Vec<Box<dyn RecordBase>>> {
         &mut self.additional_records
+    }
+
+    pub fn calculate_total_additional_records(&self) -> usize {
+        self.additional_records.values().map(|v| v.len()).sum()
     }
 }
 

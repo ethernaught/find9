@@ -19,7 +19,7 @@ Supported Record Types
 | SOA     | Complete | NS      | Complete |
 | A       | Complete | AAAA    | Complete |
 | TXT     | Complete | MX      | Testing  |
-| AXFR    | Partial  | IXFR    | Todo     |
+| AXFR    | Partial  | IXFR    | Partial  |
 | OPT     | Partial  | CNAME   | Complete |
 | PTR     | Complete | SRV     | Complete |
 | CAA     | Todo     | CERT    | Todo     |
