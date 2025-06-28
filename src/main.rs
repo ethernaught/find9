@@ -95,6 +95,10 @@ DNSKEY / DS	DNSSEC Records	Needed if DNSSEC is enabled.
 CAA	Certification Authority Authorization	Limits which CAs can issue certs for a domain.
 IXFR
 AXFR
+
+
+FOR AXFR AND IFXR ONLY ALLOW SPECIFIC IPS
+
 */
 
 //ADD TEST CASES...
