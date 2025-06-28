@@ -13,6 +13,11 @@ pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
         match zones.read().unwrap().get_deepest_zone(&name) {
             Some(zone) => {
                 event.set_authoritative(zone.is_authority());
+                
+                //ONLY ALLOW SPECIFIC IPS
+                //SOA
+                //OTHER RECORDS - RECURSIVE
+                //SOA
             }
             None => return Err(ResponseCodes::Refused)
         }
