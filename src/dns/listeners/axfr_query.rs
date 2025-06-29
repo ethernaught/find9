@@ -19,7 +19,11 @@ pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                 match zone.get_records(&RRTypes::Soa) {
                     Some(records) => {
                         for record in records.iter().take(MAX_ANSWERS) {
-                            event.add_authority_record(&name, record.clone());
+                            event.add_answer(&name, record.clone());
+                            
+                            //OTHER ANSWERS
+                            
+                            event.add_answer(&name, record.clone());
                         }
                     }
                     None => {}
