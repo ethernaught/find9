@@ -78,7 +78,7 @@ pub fn on_svcb_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                         event.set_authoritative(zone.is_authority());
 
                         for record in zone.get_records(&RRTypes::Soa)
-                            .ok_or(ResponseCodes::Refused)?.iter().take(MAX_ANSWERS) {
+                                .ok_or(ResponseCodes::Refused)?.iter().take(MAX_ANSWERS) {
                             event.add_authority_record(&name, record.clone());
                         }
                     }

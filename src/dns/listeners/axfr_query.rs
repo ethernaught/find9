@@ -1,6 +1,8 @@
 use std::sync::{Arc, RwLock};
 use rlibdns::messages::inter::response_codes::ResponseCodes;
+use rlibdns::messages::inter::rr_types::RRTypes;
 use crate::dns::dns::ResponseResult;
+use crate::MAX_ANSWERS;
 use crate::rpc::events::query_event::QueryEvent;
 use crate::zone::zone::Zone;
 
@@ -13,13 +15,21 @@ pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
         match zones.read().unwrap().get_deepest_zone(&name) {
             Some(zone) => {
                 event.set_authoritative(zone.is_authority());
-                
+
+                match zone.get_records(&RRTypes::Soa) {
+                    Some(records) => {
+                        for record in records.iter().take(MAX_ANSWERS) {
+                            event.add_authority_record(&name, record.clone());
+                        }
+                    }
+                    None => {}
+                }
                 //ONLY ALLOW SPECIFIC IPS
                 //SOA
                 //OTHER RECORDS - RECURSIVE
                 //SOA
             }
-            None => return Err(ResponseCodes::Refused)
+            None => return Err(ResponseCodes::Refused) //KILL CONNECTION
         }
 
         Ok(())
