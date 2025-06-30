@@ -21,6 +21,7 @@ pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                         let record = records.get(0).unwrap();
                         event.add_answer(&name, record.clone());
 
+                        //LOOP OVER RECORDS THEN ZONES AND ADD EVERYTHING RECURSIVELY
 
                         event.add_answer(&name, record.clone());
                     }
