@@ -29,7 +29,7 @@ pub fn on_soa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                             Some(zone) => {
                                 match zone.get_records(&event.get_query().get_type()) {
                                     Some(records) => {
-                                        event.add_answer(&target, records.get(0).unwrap().clone());
+                                        event.add_answer(&target, records.first().unwrap().clone());
                                     }
                                     None => {
                                         match zone.get_records(&RRTypes::Ns) {
@@ -50,7 +50,7 @@ pub fn on_soa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                         match zone.get_records(&event.get_query().get_type()) {
                             Some(records) => {
                                 event.set_authoritative(zone.is_authority());
-                                event.add_answer(&name, records.get(0).unwrap().clone());
+                                event.add_answer(&name, records.first().unwrap().clone());
                             }
                             None => {
                                 match zone.get_records(&RRTypes::Ns) {
@@ -72,7 +72,7 @@ pub fn on_soa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                     Some((name, zone)) => {
                         event.set_authoritative(zone.is_authority());
                         event.add_authority_record(&name, zone.get_records(&RRTypes::Soa)
-                            .ok_or(ResponseCodes::Refused)?.get(0).unwrap().clone());
+                            .ok_or(ResponseCodes::Refused)?.first().unwrap().clone());
                     }
                     None => return Err(ResponseCodes::Refused)
                 }

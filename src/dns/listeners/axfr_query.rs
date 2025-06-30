@@ -18,7 +18,7 @@ pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
 
                 match zone.get_records(&RRTypes::Soa) {
                     Some(records) => {
-                        let record = records.get(0).unwrap();
+                        let record = records.first().unwrap();
                         event.add_answer(&name, record.clone());
 
                         //LOOP OVER RECORDS THEN ZONES AND ADD EVERYTHING RECURSIVELY

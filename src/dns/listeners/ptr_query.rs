@@ -77,7 +77,7 @@ pub fn on_ptr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                     Some((name, zone)) => {
                         event.set_authoritative(zone.is_authority());
                         event.add_authority_record(&name, zone.get_records(&RRTypes::Soa)
-                            .ok_or(ResponseCodes::Refused)?.get(0).unwrap().clone());
+                            .ok_or(ResponseCodes::Refused)?.first().unwrap().clone());
                     }
                     None => return Err(ResponseCodes::Refused)
                 }
