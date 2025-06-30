@@ -76,11 +76,8 @@ pub fn on_aaaa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                 match zones.read().unwrap().get_deepest_zone_with_records(&name, &RRTypes::Soa) {
                     Some((name, zone)) => {
                         event.set_authoritative(zone.is_authority());
-
-                        for record in zone.get_records(&RRTypes::Soa)
-                                .ok_or(ResponseCodes::Refused)?.iter().take(MAX_ANSWERS) {
-                            event.add_authority_record(&name, record.clone());
-                        }
+                        event.add_authority_record(&name, zone.get_records(&RRTypes::Soa)
+                            .ok_or(ResponseCodes::Refused)?.get(0).unwrap().clone());
                     }
                     None => return Err(ResponseCodes::Refused)
                 }

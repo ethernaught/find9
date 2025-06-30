@@ -29,9 +29,7 @@ pub fn on_soa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                             Some(zone) => {
                                 match zone.get_records(&event.get_query().get_type()) {
                                     Some(records) => {
-                                        for record in records.iter().take(MAX_ANSWERS) {
-                                            event.add_answer(&target, record.clone());
-                                        }
+                                        event.add_answer(&target, records.get(0).unwrap().clone());
                                     }
                                     None => {
                                         match zone.get_records(&RRTypes::Ns) {
@@ -52,10 +50,7 @@ pub fn on_soa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                         match zone.get_records(&event.get_query().get_type()) {
                             Some(records) => {
                                 event.set_authoritative(zone.is_authority());
-
-                                for record in records.iter().take(MAX_ANSWERS) {
-                                    event.add_answer(&name, record.clone());
-                                }
+                                event.add_answer(&name, records.get(0).unwrap().clone());
                             }
                             None => {
                                 match zone.get_records(&RRTypes::Ns) {
@@ -76,11 +71,8 @@ pub fn on_soa_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Re
                 match zones.read().unwrap().get_deepest_zone_with_records(&name, &RRTypes::Soa) {
                     Some((name, zone)) => {
                         event.set_authoritative(zone.is_authority());
-
-                        for record in zone.get_records(&RRTypes::Soa)
-                                .ok_or(ResponseCodes::Refused)?.iter().take(MAX_ANSWERS) {
-                            event.add_authority_record(&name, record.clone());
-                        }
+                        event.add_authority_record(&name, zone.get_records(&RRTypes::Soa)
+                            .ok_or(ResponseCodes::Refused)?.get(0).unwrap().clone());
                     }
                     None => return Err(ResponseCodes::Refused)
                 }
