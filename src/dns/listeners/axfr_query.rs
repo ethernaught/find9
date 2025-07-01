@@ -23,6 +23,10 @@ pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
 
                         //LOOP OVER RECORDS THEN ZONES AND ADD EVERYTHING RECURSIVELY
 
+                        for record in zone.get_all_records_recursive() {
+                            event.add_answer(&name, record.clone());
+                        }
+
                         event.add_answer(&name, record.clone());
                     }
                     None => {}
