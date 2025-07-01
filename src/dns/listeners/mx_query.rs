@@ -2,6 +2,7 @@ use std::sync::{Arc, RwLock};
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::cname_record::CNameRecord;
+use rlibdns::records::mx_record::MxRecord;
 use rlibdns::records::ns_record::NsRecord;
 use crate::dns::dns::ResponseResult;
 use crate::MAX_ANSWERS;
@@ -31,6 +32,7 @@ pub fn on_mx_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Res
                                     Some(records) => {
                                         for record in records.iter().take(MAX_ANSWERS) {
                                             event.add_answer(&target, record.clone());
+                                            add_glue(&zones, event, &record.as_any().downcast_ref::<MxRecord>().unwrap().get_server().unwrap());
                                         }
                                     }
                                     None => {
@@ -55,6 +57,7 @@ pub fn on_mx_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> Res
 
                                 for record in records.iter().take(MAX_ANSWERS) {
                                     event.add_answer(&name, record.clone());
+                                    add_glue(&zones, event, &record.as_any().downcast_ref::<MxRecord>().unwrap().get_server().unwrap());
                                 }
                             }
                             None => {

@@ -18,7 +18,7 @@ Supported Record Types
 |---------|----------|---------|----------|
 | SOA     | Complete | NS      | Complete |
 | A       | Complete | AAAA    | Complete |
-| TXT     | Complete | MX      | Testing  |
+| TXT     | Complete | MX      | Complete |
 | AXFR    | Partial  | IXFR    | Partial  |
 | OPT     | Partial  | CNAME   | Complete |
 | PTR     | Complete | SRV     | Complete |
@@ -31,8 +31,8 @@ Supported Record Types
 | HINFO   | Complete | ANY     | Complete |
 | RRSIG   | Partial  | TSIG    | Todo     |
 
-14 / 28 Complete
-4 Partial
+15 / 28 Complete
+3 Partial
 
 This currently supports `.zone` files and will be moved as a library so that you can minipulate the queries to use a DB if you dont want to use a Zone file
 Not all Zone methods are working quite yet.
