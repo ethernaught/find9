@@ -155,7 +155,12 @@ impl Zone {
     }
 
     //NOW THAT I THINK ABOUT IT WE MAY NOT WANT TO USE THIS FUNCTION OR GO ABOUT IT THIS WAY FOR AFXR
-    pub fn get_all_records_recursive(&self) -> Vec<&Box<dyn RecordBase>> {
+    pub fn get_all_records_recursive(&self) -> HashMap<String, Vec<&Box<dyn RecordBase>>> {
+        let mut res = HashMap::new();
+        self.collect_records(String::new(), &mut res);
+        res
+
+        /*
         let mut res = Vec::new();
 
         for records in self.records.values() {
@@ -169,5 +174,23 @@ impl Zone {
         }
 
         res
+        */
+    }
+
+    fn collect_records<'a>(&'a self, fqdn: String, map: &mut HashMap<String, Vec<&'a Box<dyn RecordBase>>>) {
+        let recs: Vec<_> = self
+            .records
+            .values()
+            .flat_map(|v| v.iter())
+            .collect();
+
+        if !recs.is_empty() {
+            map.insert(fqdn.to_string(), recs);
+        }
+
+        for (label, child) in &self.children {
+            let child_fqdn = format!("{}.{}", label, fqdn);
+            child.collect_records(child_fqdn, map);
+        }
     }
 }
