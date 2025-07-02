@@ -33,6 +33,10 @@ pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                             }
                         }
 
+                        //OUR PROBLEM IS THAT THE RECORDS GET SAVED INTO A HASHMAP
+                        //THE HASHMAP IS STRING BASED, SO WE WILL NEED TO CHANGE THIS TO NOT
+                        //USE A HASHMAP BUT A VECTOR INSTEAD...
+
                         event.add_answer(&name, record.clone());
                     }
                     None => {}
