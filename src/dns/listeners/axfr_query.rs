@@ -23,19 +23,11 @@ pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
 
                         //LOOP OVER RECORDS THEN ZONES AND ADD EVERYTHING RECURSIVELY
 
-                        let mut i = 0;
-
                         for (n, records) in zone.get_all_records_recursive().drain() {
                             for record in records {
                                 if record.get_type().eq(&RRTypes::Soa) {
                                     continue;
                                 }
-
-                                i += 1;
-
-                                //if i >= 5 {
-                                //    break 'outer;
-                                //}
 
                                 println!("{}: {}", format!("{n}{name}"), record);
                                 event.add_answer(&format!("{n}{name}"), record.clone());
@@ -45,6 +37,9 @@ pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                         //OUR PROBLEM IS THAT THE RECORDS GET SAVED INTO A HASHMAP
                         //THE HASHMAP IS STRING BASED, SO WE WILL NEED TO CHANGE THIS TO NOT
                         //USE A HASHMAP BUT A VECTOR INSTEAD...
+
+                        //DONT FULL-FILL THE LAST ANSWER MAYBE SO THAT THE TCP CAN BREAK IT
+                        //UP PROPERLY UNLESS WE WANT TO PASS PACKET-LIMIT INTO THIS FUNCTION...
 
                         event.add_answer(&name, record.clone());
                     }
