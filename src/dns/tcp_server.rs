@@ -150,26 +150,20 @@ impl TcpServer {
                                     response.set_authoritative(event.is_authoritative());
 
                                     if event.has_answers() {
-                                        for (query, records) in event.get_answers_mut().drain() {
-                                            for record in records {
-                                                response.add_answer(&query, record);
-                                            }
+                                        for (query, record) in event.get_answers_mut().drain(..) {
+                                            response.add_answer(&query, record);
                                         }
                                     }
 
                                     if event.has_authority_records() {
-                                        for (query, records) in event.get_authority_records_mut().drain() {
-                                            for record in records {
-                                                response.add_authority_record(&query, record);
-                                            }
+                                        for (query, record) in event.get_authority_records_mut().drain(..) {
+                                            response.add_authority_record(&query, record);
                                         }
                                     }
 
                                     if event.has_additional_records() {
-                                        for (query, records) in event.get_additional_records_mut().drain() {
-                                            for record in records {
-                                                response.add_additional_record(&query, record);
-                                            }
+                                        for (query, record) in event.get_additional_records_mut().drain(..) {
+                                            response.add_additional_record(&query, record);
                                         }
                                     }
                                 }
@@ -179,18 +173,14 @@ impl TcpServer {
                                     response.set_authoritative(event.is_authoritative());
 
                                     if event.has_authority_records() {
-                                        for (query, records) in event.get_authority_records_mut().drain() {
-                                            for record in records {
-                                                response.add_authority_record(&query, record);
-                                            }
+                                        for (query, record) in event.get_authority_records_mut().drain(..) {
+                                            response.add_authority_record(&query, record);
                                         }
                                     }
 
                                     if event.has_additional_records() {
-                                        for (query, records) in event.get_additional_records_mut().drain() {
-                                            for record in records {
-                                                response.add_additional_record(&query, record);
-                                            }
+                                        for (query, record) in event.get_additional_records_mut().drain(..) {
+                                            response.add_additional_record(&query, record);
                                         }
                                     }
 
@@ -291,6 +281,9 @@ impl TcpServer {
                     */
 
                     let buf = response.to_bytes(MAX_TCP_MESSAGE_SIZE);
+                    
+                    println!("{}", buf.len());
+                    
                     stream.write(&(buf.len() as u16).to_be_bytes()).unwrap();
                     stream.write(&buf).unwrap();
                     stream.flush().unwrap();

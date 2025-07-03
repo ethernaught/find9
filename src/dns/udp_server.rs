@@ -160,26 +160,20 @@ impl UdpServer {
                                     response.set_authoritative(event.is_authoritative());
 
                                     if event.has_answers() {
-                                        for (query, records) in event.get_answers_mut().drain() {
-                                            for record in records {
-                                                response.add_answer(&query, record);
-                                            }
+                                        for (query, record) in event.get_answers_mut().drain(..) {
+                                            response.add_answer(&query, record);
                                         }
                                     }
 
                                     if event.has_authority_records() {
-                                        for (query, records) in event.get_authority_records_mut().drain() {
-                                            for record in records {
-                                                response.add_authority_record(&query, record);
-                                            }
+                                        for (query, record) in event.get_authority_records_mut().drain(..) {
+                                            response.add_authority_record(&query, record);
                                         }
                                     }
 
                                     if event.has_additional_records() {
-                                        for (query, records) in event.get_additional_records_mut().drain() {
-                                            for record in records {
-                                                response.add_additional_record(&query, record);
-                                            }
+                                        for (query, record) in event.get_additional_records_mut().drain(..) {
+                                            response.add_additional_record(&query, record);
                                         }
                                     }
                                 }
@@ -189,18 +183,14 @@ impl UdpServer {
                                     response.set_authoritative(event.is_authoritative());
 
                                     if event.has_authority_records() {
-                                        for (query, records) in event.get_authority_records_mut().drain() {
-                                            for record in records {
-                                                response.add_authority_record(&query, record);
-                                            }
+                                        for (query, record) in event.get_authority_records_mut().drain(..) {
+                                            response.add_authority_record(&query, record);
                                         }
                                     }
 
                                     if event.has_additional_records() {
-                                        for (query, records) in event.get_additional_records_mut().drain() {
-                                            for record in records {
-                                                response.add_additional_record(&query, record);
-                                            }
+                                        for (query, record) in event.get_additional_records_mut().drain(..) {
+                                            response.add_additional_record(&query, record);
                                         }
                                     }
 
