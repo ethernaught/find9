@@ -2,7 +2,6 @@ use std::sync::{Arc, RwLock};
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use crate::dns::dns::ResponseResult;
-use crate::MAX_ANSWERS;
 use crate::rpc::events::query_event::QueryEvent;
 use crate::zone::zone::Zone;
 
@@ -21,8 +20,6 @@ pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                         let record = records.first().unwrap();
                         event.add_answer(&name, record.clone());
 
-                        //LOOP OVER RECORDS THEN ZONES AND ADD EVERYTHING RECURSIVELY
-
                         for (n, records) in zone.get_all_records_recursive().drain() {
                             for record in records {
                                 if record.get_type().eq(&RRTypes::Soa) {
@@ -34,10 +31,6 @@ pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                             }
                         }
 
-                        //OUR PROBLEM IS THAT THE RECORDS GET SAVED INTO A HASHMAP
-                        //THE HASHMAP IS STRING BASED, SO WE WILL NEED TO CHANGE THIS TO NOT
-                        //USE A HASHMAP BUT A VECTOR INSTEAD...
-
                         //DONT FULL-FILL THE LAST ANSWER MAYBE SO THAT THE TCP CAN BREAK IT
                         //UP PROPERLY UNLESS WE WANT TO PASS PACKET-LIMIT INTO THIS FUNCTION...
                         //then again maybe we can determine the byte size and do it that way...
@@ -46,10 +39,6 @@ pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                     }
                     None => {}
                 }
-                //ONLY ALLOW SPECIFIC IPS
-                //SOA
-                //OTHER RECORDS - RECURSIVE
-                //SOA
             }
             None => return Err(ResponseCodes::Refused) //KILL CONNECTION
         }
