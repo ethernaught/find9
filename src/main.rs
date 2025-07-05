@@ -20,6 +20,7 @@ pub const COOKIE_SECRET: &[u8] = b"HELLO WORLD";
 //+bufsize=1024
 //+tcp
 
+//dig @192.168.0.8 find9.net -t ixfr=2025070401
 
 
 //REDO UNIX-RPC
