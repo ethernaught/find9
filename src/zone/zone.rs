@@ -161,7 +161,7 @@ impl Zone {
     }
 
     fn collect_records<'a>(&'a self, fqdn: String, map: &mut HashMap<String, Vec<&'a Box<dyn RecordBase>>>) {
-        let recs: Vec<_> = self
+        let recs: Vec<&Box<dyn RecordBase>> = self
             .records
             .values()
             .flat_map(|v| v.iter())
