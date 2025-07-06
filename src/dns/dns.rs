@@ -10,6 +10,7 @@ use crate::dns::listeners::any_query::on_any_query;
 use crate::dns::listeners::axfr_query::on_axfr_query;
 use crate::dns::listeners::cname_query::on_cname_query;
 use crate::dns::listeners::https_query::on_https_query;
+use crate::dns::listeners::ixfr_query::on_ixfr_query;
 use crate::dns::listeners::loc_query::on_uri_query;
 use crate::dns::listeners::mx_query::on_mx_query;
 use crate::dns::listeners::ns_query::on_ns_query;
@@ -72,6 +73,7 @@ impl Dns {
 
         tcp.register_query_listener(RRTypes::Soa, on_soa_query(&zones));
         tcp.register_query_listener(RRTypes::Axfr, on_axfr_query(&zones));
+        tcp.register_query_listener(RRTypes::Ixfr, on_ixfr_query(&zones));
         tcp.register_query_listener(RRTypes::Any, on_any_query(&zones));
 
         Self {
