@@ -104,6 +104,15 @@ FOR AXFR AND IFXR ONLY ALLOW SPECIFIC IPS
 
 //ADD TEST CASES...
 
+/*
+WITH AXFR
+
+We own the SOA for find9.net and SOA www.find9.net
+there is a query for AXFR for find9.net so we give all records but skip www.find9.net.
+So we need to ensure that we skip child-zones with an SOA...
+*/
+
+
 fn main() -> io::Result<()> {
     //ensure we fix bugs with odd queries IE TLD parsing
 
