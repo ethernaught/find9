@@ -25,14 +25,14 @@ Supported Record Types
 | CAA     | Todo     | CERT    | Todo     |
 | DS      | WIP      | DNSKEY  | Todo     |
 | LOC     | Complete | NAPTR   | Todo     |
-| SMIMEA  | Todo     | SSHFP   | Todo     |
+| SMIMEA  | Todo     | SSHFP   | Partial  |
 | SVCB    | Complete | HTTPS   | Complete |
 | TLSA    | Todo     | URI     | Complete |
 | HINFO   | Complete | ANY     | Complete |
 | RRSIG   | Partial  | TSIG    | Todo     |
 
 15 / 28 Complete
-3 Partial
+5 Partial
 
 This currently supports `.zone` files and will be moved as a library so that you can minipulate the queries to use a DB if you dont want to use a Zone file
 Not all Zone methods are working quite yet.
