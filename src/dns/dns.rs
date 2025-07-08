@@ -49,8 +49,8 @@ impl Dns {
         udp.register_query_listener(RRTypes::Mx, on_mx_query(&zones)); //TEST
         udp.register_query_listener(RRTypes::Ptr, on_ptr_query(&zones));
         udp.register_query_listener(RRTypes::CName, on_cname_query(&zones));
-        udp.register_query_listener(RRTypes::SshFp, on_sshfp_query(&zones));
         udp.register_query_listener(RRTypes::Srv, on_srv_query(&zones));
+        udp.register_query_listener(RRTypes::SshFp, on_sshfp_query(&zones));
         udp.register_query_listener(RRTypes::Https, on_https_query(&zones));
         udp.register_query_listener(RRTypes::Svcb, on_svcb_query(&zones));
         udp.register_query_listener(RRTypes::Uri, on_uri_query(&zones));
@@ -67,8 +67,8 @@ impl Dns {
         tcp.register_query_listener(RRTypes::Mx, on_mx_query(&zones)); //TEST
         tcp.register_query_listener(RRTypes::Ptr, on_ptr_query(&zones));
         tcp.register_query_listener(RRTypes::CName, on_cname_query(&zones));
-        tcp.register_query_listener(RRTypes::SshFp, on_sshfp_query(&zones));
         tcp.register_query_listener(RRTypes::Srv, on_srv_query(&zones));
+        tcp.register_query_listener(RRTypes::SshFp, on_sshfp_query(&zones));
         tcp.register_query_listener(RRTypes::Https, on_https_query(&zones));
         tcp.register_query_listener(RRTypes::Svcb, on_svcb_query(&zones));
         tcp.register_query_listener(RRTypes::Uri, on_uri_query(&zones));
