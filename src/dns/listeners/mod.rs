@@ -6,6 +6,7 @@ pub mod soa_query;
 pub mod mx_query;
 pub mod ptr_query;
 pub mod cname_query;
+pub mod sshfp_query;
 pub mod srv_query;
 pub mod svcb_query;
 pub mod https_query;
