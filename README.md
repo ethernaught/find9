@@ -22,14 +22,14 @@ Supported Record Types
 | AXFR    | Partial  | IXFR    | Partial  |
 | OPT     | Partial  | CNAME   | Complete |
 | PTR     | Complete | SRV     | Complete |
-| CAA     | Todo     | CERT    | Todo     |
-| DS      | WIP      | DNSKEY  | Todo     |
-| LOC     | Complete | NAPTR   | Todo     |
-| SMIMEA  | Todo     | SSHFP   | Partial  |
+| CAA     |          | CERT    |          |
+| DS      | WIP      | DNSKEY  |          |
+| LOC     | Complete | NAPTR   |          |
+| SMIMEA  |          | SSHFP   | Partial  |
 | SVCB    | Complete | HTTPS   | Complete |
-| TLSA    | Todo     | URI     | Complete |
+| TLSA    |          | URI     | Complete |
 | HINFO   | Complete | ANY     | Complete |
-| RRSIG   | Partial  | TSIG    | Todo     |
+| RRSIG   | Partial  | TSIG    |          |
 
 15 / 28 Complete
 5 Partial
