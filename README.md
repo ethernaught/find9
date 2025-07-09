@@ -25,7 +25,7 @@ Supported Record Types
 | CAA     |          | CERT    |          |
 | DS      | WIP      | DNSKEY  |          |
 | LOC     | Complete | NAPTR   |          |
-| SMIMEA  |          | SSHFP   | Partial  |
+| SMIMEA  |          | SSHFP   | Testing  |
 | SVCB    | Complete | HTTPS   | Complete |
 | TLSA    |          | URI     | Complete |
 | HINFO   | Complete | ANY     | Complete |
