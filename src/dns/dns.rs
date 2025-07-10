@@ -117,13 +117,7 @@ impl Dns {
                 "." => self.zones.write().unwrap().add_record(record), //BE CAREFUL WITH THIS ONE - DONT ALLOW MOST OF THE TIME
                 "@" => zone.add_record(record),
                 //_ => zone.add_record_to(&name, record, ZoneTypes::Master)
-                _ => {
-                    if name == "c5" {
-                        zone.add_record_to(&name, record, ZoneTypes::Hint)
-                    } else {
-                        zone.add_record_to(&name, record, ZoneTypes::Master)
-                    }
-                }
+                _ => zone.add_record_to(&name, record, ZoneTypes::Master)
             }
         }
 
