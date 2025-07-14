@@ -16,19 +16,19 @@ Supported Record Types
 
 | RR Type | Status  | RR Type | Status  |
 |---------|---------|---------|---------|
-| SOA     | x       | NS      | x       |
-| A       | x       | AAAA    | x       |
-| TXT     | x       | MX      | x       |
-| AXFR    | /       | IXFR    | Partial |
-| OPT     | Partial | CNAME   | x       |
-| PTR     | x       | SRV     | x       |
+| SOA     | ✅       | NS      | ✅       |
+| A       | ✅       | AAAA    | ✅       |
+| TXT     | ✅       | MX      | ✅       |
+| AXFR    | 🟨      | IXFR    | Partial |
+| OPT     | Partial | CNAME   | ✅       |
+| PTR     | ✅       | SRV     | ✅       |
 | CAA     |         | CERT    |         |
 | DS      | WIP     | DNSKEY  |         |
-| LOC     | x       | NAPTR   |         |
-| SMIMEA  | /       | SSHFP   | /       |
-| SVCB    | x       | HTTPS   | x       |
-| TLSA    |         | URI     | x       |
-| HINFO   | x       | ANY     | x       |
+| LOC     | ✅       | NAPTR   |         |
+| SMIMEA  | 🟨      | SSHFP   | 🟨      |
+| SVCB    | ✅       | HTTPS   | ✅       |
+| TLSA    |         | URI     | ✅       |
+| HINFO   | ✅       | ANY     | ✅       |
 | RRSIG   | Partial | TSIG    |         |
 
 15 / 28 Complete
