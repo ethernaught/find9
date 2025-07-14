@@ -172,8 +172,13 @@ impl Zone {
         }
 
         for (label, child) in &self.children {
-            let child_fqdn = format!("{}.{}", label, fqdn);
-            child.collect_records(child_fqdn, map);
+            let is_delegated = child.records.get(&RRTypes::Soa).map_or(false, |recs| !recs.is_empty());
+
+            if is_delegated {
+                continue;
+            }
+
+            child.collect_records(format!("{}.{}", label, fqdn), map);
         }
     }
 }

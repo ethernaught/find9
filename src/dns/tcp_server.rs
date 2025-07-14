@@ -9,18 +9,13 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::messages::message_base::MessageBase;
-use rlibdns::records::inter::opt_codes::OptCodes;
-use rlibdns::records::inter::record_base::RecordBase;
-use rlibdns::records::opt_record::OptRecord;
 use crate::dns::dns::{QueryMap, ResponseResult};
 use crate::{COOKIE_SECRET, MAX_QUERIES};
 use crate::rpc::events::inter::event::Event;
 use crate::rpc::events::query_event::QueryEvent;
-use crate::utils::hash::hmac::hmac;
-use crate::utils::hash::sha256::Sha256;
 use crate::utils::spam_throttle::SpamThrottle;
 
-pub const MAX_TCP_MESSAGE_SIZE: usize = 65536;
+pub const MAX_TCP_MESSAGE_SIZE: usize = 65535;
 
 pub struct TcpServer {
     running: Arc<AtomicBool>,

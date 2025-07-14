@@ -1,0 +1,17 @@
+$ORIGIN sub.find9.net.
+$TTL    604800
+
+@       IN      SOA     ns1.find9.net. admin.find9.net. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+
+; Name servers
+@       IN      NS      ns1.find9.net.
+@       IN      NS      ns2.find9.net.
+
+; A records
+admin   IN      A       127.0.0.1
+@       IN      A       127.0.0.1
