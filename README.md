@@ -14,22 +14,22 @@ lookups.
 
 Supported Record Types
 
-| RR Type | Status   | RR Type | Status   |
-|---------|----------|---------|----------|
-| SOA     | Complete | NS      | Complete |
-| A       | Complete | AAAA    | Complete |
-| TXT     | Complete | MX      | Complete |
-| AXFR    | Partial  | IXFR    | Partial  |
-| OPT     | Partial  | CNAME   | Complete |
-| PTR     | Complete | SRV     | Complete |
-| CAA     |          | CERT    |          |
-| DS      | WIP      | DNSKEY  |          |
-| LOC     | Complete | NAPTR   |          |
-| SMIMEA  |          | SSHFP   | Testing  |
-| SVCB    | Complete | HTTPS   | Complete |
-| TLSA    |          | URI     | Complete |
-| HINFO   | Complete | ANY     | Complete |
-| RRSIG   | Partial  | TSIG    |          |
+| RR Type | Status  | RR Type | Status  |
+|---------|---------|---------|---------|
+| SOA     | x       | NS      | x       |
+| A       | x       | AAAA    | x       |
+| TXT     | x       | MX      | x       |
+| AXFR    | /       | IXFR    | Partial |
+| OPT     | Partial | CNAME   | x       |
+| PTR     | x       | SRV     | x       |
+| CAA     |         | CERT    |         |
+| DS      | WIP     | DNSKEY  |         |
+| LOC     | x       | NAPTR   |         |
+| SMIMEA  | /       | SSHFP   | /       |
+| SVCB    | x       | HTTPS   | x       |
+| TLSA    |         | URI     | x       |
+| HINFO   | x       | ANY     | x       |
+| RRSIG   | Partial | TSIG    |         |
 
 15 / 28 Complete
 5 Partial
