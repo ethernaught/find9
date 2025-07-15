@@ -37,13 +37,13 @@ Supported Record Types
 This currently supports `.zone` files and will be moved as a library so that you can minipulate the queries to use a DB if you dont want to use a Zone file
 Not all Zone methods are working quite yet.
 
-| Zone Type | Status   |
-|-----------|----------|
-| Master    | Complete |
-| Slave     | Partial  |
-| Stub      | Todo     |
-| Forward   | Todo     |
-| Hint      | Complete |
+| Zone Type | Status |
+|-----------|--------|
+| Master    | ✅      |
+| Slave     | 🟨     |
+| Stub      | Todo   |
+| Forward   | Todo   |
+| Hint      | ✅      |
 
 To Do
 ----
