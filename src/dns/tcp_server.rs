@@ -39,7 +39,6 @@ impl TcpServer {
         }
 
         self.socket = Some(TcpListener::bind(SocketAddr::from((Ipv4Addr::UNSPECIFIED, port)))?);
-        //self.socket.as_ref().unwrap().set_nonblocking(true)?;
 
         self.running.store(true, Ordering::Relaxed);
 
