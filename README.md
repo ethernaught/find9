@@ -52,12 +52,12 @@ To Do
 
 > Implement OPT for EDNS
 
-> Finish IXFR and AXFR (TCP Only)
+> Finish AXFR and IXFR (TCP Only)
 
 > Implement DNS not just NS (IE config option for fallback / recursive)
 
 > Calculate serial for SOA records
 
-> Max answers isnt functioning as it should, it only limits to max of specific type
+> Max answers isn't functioning as it should, it only limits to max of specific type
 
 > ECDSA Curve P-256 with SHA-256 code for DS Records
