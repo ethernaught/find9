@@ -13,7 +13,6 @@ pub const MAX_QUERIES: usize = 1;
 pub const MAX_ANSWERS: usize = 3;
 pub const COOKIE_SECRET: &[u8] = b"HELLO WORLD";
 
-//pub type RecordMap = HashMap<String, HashMap<RRTypes, Vec<Box<dyn RecordBase>>>>;
 
 //dig @127.0.0.1 -p 6767 find9.net
 //NS
