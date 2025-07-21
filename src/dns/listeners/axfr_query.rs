@@ -33,7 +33,7 @@ pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                         //DONT FULL-FILL THE LAST ANSWER MAYBE SO THAT THE TCP CAN BREAK IT
                         //UP PROPERLY UNLESS WE WANT TO PASS PACKET-LIMIT INTO THIS FUNCTION...
                         //then again maybe we can determine the byte size and do it that way...
-                        
+
                         //Instead lets do an itterator for this...?
 
                         event.add_answer(&name, record.clone());
