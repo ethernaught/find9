@@ -24,7 +24,7 @@ Supported Record Types
 | PTR     | ✅       | SRV     | ✅       |
 | CAA     |         | CERT    |         |
 | DS      | WIP     | DNSKEY  |         |
-| LOC     | ✅       | NAPTR   | Partial |
+| LOC     | ✅       | NAPTR   | 🟨      |
 | SMIMEA  | 🟨      | SSHFP   | 🟨      |
 | SVCB    | ✅       | HTTPS   | ✅       |
 | TLSA    |         | URI     | ✅       |
