@@ -144,4 +144,3 @@ fn main() -> io::Result<()> {
     thread::park();
     Ok(())
 }
-
