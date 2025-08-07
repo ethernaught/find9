@@ -28,7 +28,7 @@ x1      IN      CNAME   x2.find9.net.
 x2      IN      CNAME   x3.find9.net.
 x3      IN      CNAME   x4.find9.net.
 x4      IN      CNAME   x5.find9.net.
-x5      IN      A       192.168.0.2
+x5      IN      CNAME   find9.net.
 
 z1      IN      CNAME   z2.find9.net.
 
