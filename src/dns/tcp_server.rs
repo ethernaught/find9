@@ -276,7 +276,6 @@ impl TcpServer {
 
                     let buf = response.to_bytes(MAX_TCP_MESSAGE_SIZE);
 
-                    println!("{}", buf.len());
                     stream.write(&(buf.len() as u16).to_be_bytes()).unwrap();
                     stream.write(&buf).unwrap();
                     stream.flush().unwrap();

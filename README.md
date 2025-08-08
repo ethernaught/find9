@@ -48,6 +48,8 @@ Not all Zone methods are working quite yet.
 To Do
 ----
 
+> Retest MX, RRSIG and PTR with encode / decode
+
 > Ability to generate ECH based off users server private key for HTTPS and SVCB Records
 
 > Implement OPT for EDNS
