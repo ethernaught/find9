@@ -23,6 +23,7 @@ use crate::dns::listeners::sshfp_query::on_sshfp_query;
 use crate::dns::listeners::svcb_query::on_svcb_query;
 use crate::dns::listeners::txt_query::on_txt_query;
 use crate::dns::listeners::uri_query::on_loc_query;
+use crate::dns::server::Server;
 use crate::dns::tcp_server::TcpServer;
 use crate::dns::udp_server::UdpServer;
 use crate::rpc::events::query_event::QueryEvent;

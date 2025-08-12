@@ -11,6 +11,7 @@ use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::messages::message_base::MessageBase;
 use crate::dns::dns::{QueryMap, ResponseResult};
 use crate::{COOKIE_SECRET, MAX_QUERIES};
+use crate::dns::server::Server;
 use crate::rpc::events::inter::event::Event;
 use crate::rpc::events::query_event::QueryEvent;
 use crate::utils::spam_throttle::SpamThrottle;
@@ -31,59 +32,6 @@ impl TcpServer {
             socket: None,
             query_mapping: Arc::new(RwLock::new(HashMap::new()))
         }
-    }
-
-    pub fn run(&mut self, port: u16) -> io::Result<JoinHandle<()>> {
-        if self.is_running() {
-            return Err(io::Error::new(io::ErrorKind::Unsupported, "Dns is already running"));
-        }
-
-        self.socket = Some(TcpListener::bind(SocketAddr::from((Ipv4Addr::UNSPECIFIED, port)))?);
-
-        self.running.store(true, Ordering::Relaxed);
-
-        Ok(thread::spawn({
-            let socket = self.socket.as_ref().unwrap().try_clone()?;
-            let running = Arc::clone(&self.running);
-            let throttle = SpamThrottle::new();
-            let on_receive = self.on_receive();
-
-            move || {
-                let mut last_decay_time = SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .expect("Time went backwards")
-                    .as_millis();
-
-                while running.load(Ordering::Relaxed) {
-                    match socket.accept() {
-                        Ok((stream, src_addr)) => {
-                            let now = SystemTime::now()
-                                .duration_since(UNIX_EPOCH)
-                                .expect("Time went backwards")
-                                .as_millis();
-
-                            if now - last_decay_time >= 1000 {
-                                throttle.decay();
-                                last_decay_time = now;
-                            }
-
-                            if !throttle.add_and_test(src_addr.ip()) {
-                                on_receive(stream, src_addr);
-                            }
-                        }
-                        Err(_) => break
-                    }
-                }
-            }
-        }))
-    }
-
-    pub fn is_running(&self) -> bool {
-        self.running.load(Ordering::Relaxed)
-    }
-
-    pub fn kill(&self) {
-        self.running.store(false, Ordering::Relaxed);
     }
 
     fn on_receive(&self) -> impl Fn(TcpStream, SocketAddr) {
@@ -306,14 +254,70 @@ impl TcpServer {
     }
     */
 
-    pub fn register_query_listener<F>(&self, key: RRTypes, callback: F)
+    pub fn get_socket(&self) -> Option<&TcpListener> {
+        self.socket.as_ref()
+    }
+}
+
+impl Server for TcpServer {
+
+    fn run(&mut self, port: u16) -> io::Result<JoinHandle<()>> {
+        if self.is_running() {
+            return Err(io::Error::new(io::ErrorKind::Unsupported, "Dns is already running"));
+        }
+
+        self.socket = Some(TcpListener::bind(SocketAddr::from((Ipv4Addr::UNSPECIFIED, port)))?);
+
+        self.running.store(true, Ordering::Relaxed);
+
+        Ok(thread::spawn({
+            let socket = self.socket.as_ref().unwrap().try_clone()?;
+            let running = Arc::clone(&self.running);
+            let throttle = SpamThrottle::new();
+            let on_receive = self.on_receive();
+
+            move || {
+                let mut last_decay_time = SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .expect("Time went backwards")
+                    .as_millis();
+
+                while running.load(Ordering::Relaxed) {
+                    match socket.accept() {
+                        Ok((stream, src_addr)) => {
+                            let now = SystemTime::now()
+                                .duration_since(UNIX_EPOCH)
+                                .expect("Time went backwards")
+                                .as_millis();
+
+                            if now - last_decay_time >= 1000 {
+                                throttle.decay();
+                                last_decay_time = now;
+                            }
+
+                            if !throttle.add_and_test(src_addr.ip()) {
+                                on_receive(stream, src_addr);
+                            }
+                        }
+                        Err(_) => break
+                    }
+                }
+            }
+        }))
+    }
+
+    fn is_running(&self) -> bool {
+        self.running.load(Ordering::Relaxed)
+    }
+
+    fn kill(&self) {
+        self.running.store(false, Ordering::Relaxed);
+    }
+
+    fn register_query_listener<F>(&self, key: RRTypes, callback: F)
     where
         F: Fn(&mut QueryEvent) -> ResponseResult<()> + Send + Sync + 'static
     {
         self.query_mapping.write().unwrap().insert(key, Box::new(callback));
-    }
-
-    pub fn get_socket(&self) -> Option<&TcpListener> {
-        self.socket.as_ref()
     }
 }
