@@ -163,8 +163,9 @@ impl Zone {
     fn collect_records<'a>(&'a self, fqdn: String, map: &mut HashMap<String, Vec<&'a Box<dyn RecordBase>>>) {
         let recs: Vec<&Box<dyn RecordBase>> = self
             .records
-            .values()
-            .flat_map(|v| v.iter())
+            .iter()
+            .filter(|(ty, _)| **ty != RRTypes::Soa)
+            .flat_map(|(_, v)| v.iter())
             .collect();
 
         if !recs.is_empty() {
