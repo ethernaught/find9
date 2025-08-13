@@ -227,6 +227,33 @@ impl TcpServer {
                     stream.write(&(buf.len() as u16).to_be_bytes()).unwrap();
                     stream.write(&buf).unwrap();
                     stream.flush().unwrap();
+
+
+
+                    //TESTING AXFR
+                    /*
+                    let mut answers = response.get_answers().clone();
+                    response.get_answers_mut().remove(answers.len() - 1);
+
+
+                    let buf = response.to_bytes(MAX_TCP_MESSAGE_SIZE);
+
+                    stream.write(&(buf.len() as u16).to_be_bytes()).unwrap();
+                    stream.write(&buf).unwrap();
+                    stream.flush().unwrap();
+
+
+                    answers.remove(0);
+                    response.set_answers(answers);
+
+                    let buf = response.to_bytes(MAX_TCP_MESSAGE_SIZE);
+
+                    stream.write(&(buf.len() as u16).to_be_bytes()).unwrap();
+                    stream.write(&buf).unwrap();
+                    stream.flush().unwrap();
+                    */
+
+
                 }
                 Err(_) => {}
             }
