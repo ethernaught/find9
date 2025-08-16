@@ -210,22 +210,7 @@ impl TcpServer {
                         }
                     }
 */
-
-                    /*
-                    if !response.has_answers() {
-                        response.set_authoritative(false);
-                        response.set_response_code(ResponseCodes::Refused);
-
-                        let mut record = OptRecord::new(512, 0, 0, 0);
-                        record.insert_option(OptCodes::EDnsError, vec![0x00, 0x14]);
-                        response.add_additional_record("", record.upcast());
-                    }
-                    */
-
-
-
-
-
+                    
                     //let buf = response.to_bytes(MAX_TCP_MESSAGE_SIZE);
 
                     //stream.write(&(buf.len() as u16).to_be_bytes()).unwrap();
@@ -237,33 +222,6 @@ impl TcpServer {
                         stream.write(&buf).unwrap();
                         stream.flush().unwrap();
                     }
-
-
-
-                    //TESTING AXFR
-                    /*
-                    let mut answers = response.get_answers().clone();
-                    response.get_answers_mut().remove(answers.len() - 1);
-
-
-                    let buf = response.to_bytes(MAX_TCP_MESSAGE_SIZE);
-
-                    stream.write(&(buf.len() as u16).to_be_bytes()).unwrap();
-                    stream.write(&buf).unwrap();
-                    stream.flush().unwrap();
-
-
-                    answers.remove(0);
-                    response.set_answers(answers);
-
-                    let buf = response.to_bytes(MAX_TCP_MESSAGE_SIZE);
-
-                    stream.write(&(buf.len() as u16).to_be_bytes()).unwrap();
-                    stream.write(&buf).unwrap();
-                    stream.flush().unwrap();
-                    */
-
-
                 }
                 Err(_) => {}
             }
