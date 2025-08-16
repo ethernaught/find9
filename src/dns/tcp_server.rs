@@ -232,7 +232,7 @@ impl TcpServer {
                     //stream.write(&buf).unwrap();
                     //stream.flush().unwrap();
 
-                    for buf in response.wire_chunks(512) {
+                    for buf in response.wire_chunks(MAX_TCP_MESSAGE_SIZE) {
                         stream.write(&(buf.len() as u16).to_be_bytes()).unwrap();
                         stream.write(&buf).unwrap();
                         stream.flush().unwrap();
