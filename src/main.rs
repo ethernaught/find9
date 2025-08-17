@@ -105,13 +105,7 @@ FOR AXFR AND IFXR ONLY ALLOW SPECIFIC IPS
 /*
 WITH AXFR
 
-We own the SOA for find9.net and SOA www.find9.net
-there is a query for AXFR for find9.net so we give all records but skip www.find9.net.
-So we need to ensure that we skip child-zones with an SOA...
-
-
-To ensure we can handle max records we will want to change to_bytes and from_bytes on message_base
-into an iter this way we can handle several messages and its up to us the caller to continue...
+ENSURE ORDER DOESNT CHANGE....
 */
 
 
