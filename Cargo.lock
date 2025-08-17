@@ -17,4 +17,4 @@ source = "git+https://github.com/sectorrent/rlibbencode#e829be41d62bf772d9e086bb
 
 [[package]]
 name = "rlibdns"
-version = "0.1.0"
+version = "0.1.1"
