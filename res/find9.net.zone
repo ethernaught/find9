@@ -46,15 +46,15 @@ c3      IN      CNAME   c4.find9.net.
 c4      IN      CNAME   c5.find9.net.
 c5      IN      NS      find9.net.
 
-vpn     IN      CNAME   _openvpn._udp.find9.net.
-_openvpn._udp       IN	    SRV	0 0 1194 openvpn.find9.net.
-openvpn     IN      A   192.168.0.5
+;vpn     IN      CNAME   _openvpn._udp.find9.net.
+;_openvpn._udp       IN	    SRV	0 0 1194 openvpn.find9.net.
+;openvpn     IN      A   192.168.0.5
 
-@		300	IN	HTTPS	1 www.find9.net. alpn="h3,h2" ipv4hint=104.21.42.137,172.67.206.28 ech=AEX+DQBB2gAgACCt7osYztq6KxXkbhZXwfSRJ0HA2L8GIlWh1oAnY35OEAAEAAEAAQASY2xvdWRmbGFyZS1lY2guY29tAAA= ipv6hint=2606:4700:3030::6815:2a89,2606:4700:3035::ac43:ce1c
+;@		300	IN	HTTPS	1 www.find9.net. alpn="h3,h2" ipv4hint=104.21.42.137,172.67.206.28 ech=AEX+DQBB2gAgACCt7osYztq6KxXkbhZXwfSRJ0HA2L8GIlWh1oAnY35OEAAEAAEAAQASY2xvdWRmbGFyZS1lY2guY29tAAA= ipv6hint=2606:4700:3030::6815:2a89,2606:4700:3035::ac43:ce1c
 @		300	IN	SVCB	1 www.find9.net. alpn="h3,h2" ipv4hint=127.0.0.1 ipv6hint=::1
 
 @		300	IN	URI	1 1 "find9://nameserver"
-@		300	IN	LOC	82 0 28.000 S 135 0 0.000 E 0.00m 0.00m 0.00m 0.00m
+;@		300	IN	LOC	82 0 28.000 S 135 0 0.000 E 0.00m 0.00m 0.00m 0.00m
 @		300	IN	HINFO "AMD" ""
 ;@		300 IN DS 8375 13 2 4D5D5E4019EEB21872A3AEFBCADD43E0D784C69292F4D2A65AC76CD722981CDF
 @		300	IN	RRSIG	A 13 2 300 20250627174606 20250625154606 34505 find9.net. tEOO5NzQfBYZi7ybJZd8t/HapX/iUU/wZRP2ERnnyxCGcafPEoUqUGWh IkNVk+sDmnxqVt8hIXnMGYvdNm3yZA==
