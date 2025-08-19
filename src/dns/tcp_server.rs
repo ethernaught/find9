@@ -217,6 +217,8 @@ impl TcpServer {
                     //stream.write(&buf).unwrap();
                     //stream.flush().unwrap();
 
+                    println!("{}", response);
+
                     for buf in response.wire_chunks(MAX_TCP_MESSAGE_SIZE) {
                         stream.write(&(buf.len() as u16).to_be_bytes()).unwrap();
                         stream.write(&buf).unwrap();
