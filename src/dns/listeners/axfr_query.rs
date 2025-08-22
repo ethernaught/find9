@@ -20,6 +20,7 @@ pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                         let record = records.first().unwrap();
                         event.add_answer(&name, record.clone());
 
+                        //THIS BUG ONLY OCCURS WITH DUPED RECORDS IN SAME ORDER NOT LOOPING OVER X TIMES...
                         for (n, records) in zone.get_all_records_recursive().drain() {
                             for record in records {
                                 //if record.get_type().eq(&RRTypes::Soa) {
