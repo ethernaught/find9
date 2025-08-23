@@ -14,6 +14,7 @@ use crate::{COOKIE_SECRET, MAX_QUERIES};
 use crate::dns::server::Server;
 use crate::rpc::events::inter::event::Event;
 use crate::rpc::events::query_event::QueryEvent;
+use crate::utils::net::address_utils::is_bogon;
 use crate::utils::spam_throttle::SpamThrottle;
 
 pub const MAX_TCP_MESSAGE_SIZE: usize = 65535;
@@ -297,6 +298,10 @@ impl Server for TcpServer {
                             if now - last_decay_time >= 1000 {
                                 throttle.decay();
                                 last_decay_time = now;
+                            }
+
+                            if is_bogon(src_addr) {
+                                //continue;
                             }
 
                             if !throttle.add_and_test(src_addr.ip()) {

@@ -18,6 +18,7 @@ use crate::rpc::events::inter::event::Event;
 use crate::rpc::events::query_event::QueryEvent;
 use crate::utils::hash::hmac::hmac;
 use crate::utils::hash::sha256::Sha256;
+use crate::utils::net::address_utils::is_bogon;
 use crate::utils::spam_throttle::SpamThrottle;
 
 pub const MAX_UDP_MESSAGE_SIZE: usize = 512;
@@ -301,6 +302,10 @@ impl Server for UdpServer {
                                 receiver_throttle.decay();
                                 sender_throttle.decay();
                                 last_decay_time = now;
+                            }
+
+                            if is_bogon(src_addr) {
+                                //continue;
                             }
 
                             if !receiver_throttle.add_and_test(src_addr.ip()) {
