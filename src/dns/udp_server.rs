@@ -12,7 +12,7 @@ use rlibdns::records::inter::opt_codes::OptCodes;
 use rlibdns::records::inter::record_base::RecordBase;
 use rlibdns::records::opt_record::OptRecord;
 use crate::dns::dns::{QueryMap, ResponseResult};
-use crate::{COOKIE_SECRET, MAX_QUERIES};
+use crate::{BOGON_ALLOWED, COOKIE_SECRET, MAX_QUERIES};
 use crate::dns::server::Server;
 use crate::rpc::events::inter::event::Event;
 use crate::rpc::events::query_event::QueryEvent;
@@ -304,8 +304,8 @@ impl Server for UdpServer {
                                 last_decay_time = now;
                             }
 
-                            if is_bogon(src_addr) {
-                                //continue;
+                            if !BOGON_ALLOWED && is_bogon(src_addr) {
+                                continue;
                             }
 
                             if !receiver_throttle.add_and_test(src_addr.ip()) {

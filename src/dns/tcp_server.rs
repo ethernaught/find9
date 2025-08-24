@@ -10,7 +10,7 @@ use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::messages::message_base::MessageBase;
 use crate::dns::dns::{QueryMap, ResponseResult};
-use crate::{COOKIE_SECRET, MAX_QUERIES};
+use crate::{BOGON_ALLOWED, COOKIE_SECRET, MAX_QUERIES};
 use crate::dns::server::Server;
 use crate::rpc::events::inter::event::Event;
 use crate::rpc::events::query_event::QueryEvent;
@@ -300,8 +300,8 @@ impl Server for TcpServer {
                                 last_decay_time = now;
                             }
 
-                            if is_bogon(src_addr) {
-                                //continue;
+                            if !BOGON_ALLOWED && is_bogon(src_addr) {
+                                continue;
                             }
 
                             if !throttle.add_and_test(src_addr.ip()) {
