@@ -109,16 +109,9 @@ WITH AXFR
 ENSURE ORDER DOESNT CHANGE....
 
 FIX TONS OF RECORD AXFR
-AXFR - BUG WITH RECORDS APPEARS TO BE THESE...
 
-;vpn     IN      CNAME   _openvpn._udp.find9.net.
-;_openvpn._udp       IN	    SRV	0 0 1194 openvpn.find9.net.
-;openvpn     IN      A   192.168.0.5
+AXFR BUG WAS WITH 16 BITs.... - FIXED
 
-;@		300	IN	HTTPS	1 www.find9.net. alpn="h3,h2" ipv4hint=104.21.42.137,172.67.206.28 ech=AEX+DQBB2gAgACCt7osYztq6KxXkbhZXwfSRJ0HA2L8GIlWh1oAnY35OEAAEAAEAAQASY2xvdWRmbGFyZS1lY2guY29tAAA= ipv6hint=2606:4700:3030::6815:2a89,2606:4700:3035::ac43:ce1c
-;@		300	IN	LOC	82 0 28.000 S 135 0 0.000 E 0.00m 0.00m 0.00m 0.00m
-
-The issue appears to be due to domain encoding... - Maybe its 1 digit off or other...
 
 SOMEHOW RECORD CHANGES FOR IXFR...
 

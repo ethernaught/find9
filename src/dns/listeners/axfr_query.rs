@@ -38,9 +38,9 @@ pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                                 //    continue;
                                 //}
 
-                                //for i in 0..26 {
-                                //    event.add_answer(&format!("{n}{name}"), record.clone());
-                                //}
+                                for i in 0..26 {
+                                    event.add_answer(&format!("{n}{name}"), record.clone());
+                                }
                             }
                         }
 

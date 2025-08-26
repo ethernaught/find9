@@ -19,7 +19,7 @@ Supported Record Types
 | SOA     | ✅       | NS      | ✅       |
 | A       | ✅       | AAAA    | ✅       |
 | TXT     | ✅       | MX      | ✅       |
-| AXFR    | 🟨      | IXFR    | Partial |
+| AXFR    | ✅       | IXFR    | Partial |
 | OPT     | Partial | CNAME   | ✅       |
 | PTR     | ✅       | SRV     | ✅       |
 | CAA     |         | CERT    |         |
