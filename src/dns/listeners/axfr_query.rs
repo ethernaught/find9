@@ -29,43 +29,18 @@ pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
 
                                 event.add_answer(&format!("{n}{name}"), record.clone());
 
+                                println!("{}", format!("{n}{name}"));
+
+
+
                                 //if !record.get_type().eq(&RRTypes::Https) && !record.get_type().eq(&RRTypes::Svcb) {
                                 //if !record.get_type().eq(&RRTypes::CName) && !record.get_type().eq(&RRTypes::Https) {
                                 //    continue;
                                 //}
 
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-
+                                //for i in 0..26 {
+                                //    event.add_answer(&format!("{n}{name}"), record.clone());
+                                //}
                             }
                         }
 
