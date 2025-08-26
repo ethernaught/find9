@@ -29,7 +29,7 @@ pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
 
                                 event.add_answer(&format!("{n}{name}"), record.clone());
 
-                                println!("{}", format!("{n}{name}"));
+                                //println!("{}", format!("{n}{name}"));
 
 
 
