@@ -20,8 +20,6 @@ pub fn on_ixfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                         let record = records.first().unwrap();
                         event.add_answer(&name, record.clone());
 
-                        //VERIFY SOA VALIDITY FROM REQUEST SOMEHOW....
-
                         for (n, records) in zone.get_all_records_recursive().drain() {
                             for record in records {
                                 //if record.get_type().eq(&RRTypes::Soa) {
@@ -31,10 +29,6 @@ pub fn on_ixfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                                 event.add_answer(&format!("{n}{name}"), record.clone());
                             }
                         }
-
-                        //DONT FULL-FILL THE LAST ANSWER MAYBE SO THAT THE TCP CAN BREAK IT
-                        //UP PROPERLY UNLESS WE WANT TO PASS PACKET-LIMIT INTO THIS FUNCTION...
-                        //then again maybe we can determine the byte size and do it that way...
 
                         event.add_answer(&name, record.clone());
                     }
