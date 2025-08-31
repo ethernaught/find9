@@ -1,13 +1,13 @@
-use std::collections::HashMap;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::inter::record_base::RecordBase;
+use rlibdns::utils::ordered_map::OrderedMap;
 use crate::zone::inter::zone_types::ZoneTypes;
 
 #[derive(Debug, Clone)]
 pub struct Zone {
     _type: ZoneTypes,
-    records: HashMap<RRTypes, Vec<Box<dyn RecordBase>>>,
-    children: HashMap<String, Self>
+    records: OrderedMap<RRTypes, Vec<Box<dyn RecordBase>>>,
+    children: OrderedMap<String, Self>
 }
 
 impl Zone {
@@ -15,8 +15,8 @@ impl Zone {
     pub fn new(_type: ZoneTypes) -> Self {
         Self {
             _type,
-            records: HashMap::new(),
-            children: HashMap::new()
+            records: OrderedMap::new(),
+            children: OrderedMap::new()
         }
     }
 
@@ -150,17 +150,17 @@ impl Zone {
         self.records.get(_type)
     }
 
-    pub fn get_all_records(&self) -> &HashMap<RRTypes, Vec<Box<dyn RecordBase>>> {
+    pub fn get_all_records(&self) -> &OrderedMap<RRTypes, Vec<Box<dyn RecordBase>>> {
         &self.records
     }
 
-    pub fn get_all_records_recursive(&self) -> HashMap<String, Vec<&Box<dyn RecordBase>>> {
-        let mut res = HashMap::new();
+    pub fn get_all_records_recursive(&self) -> OrderedMap<String, Vec<&Box<dyn RecordBase>>> {
+        let mut res = OrderedMap::new();
         self.collect_records(String::new(), &mut res);
         res
     }
 
-    fn collect_records<'a>(&'a self, fqdn: String, map: &mut HashMap<String, Vec<&'a Box<dyn RecordBase>>>) {
+    fn collect_records<'a>(&'a self, fqdn: String, map: &mut OrderedMap<String, Vec<&'a Box<dyn RecordBase>>>) {
         let recs: Vec<&Box<dyn RecordBase>> = self
             .records
             .iter()
