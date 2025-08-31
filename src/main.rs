@@ -63,38 +63,21 @@ if response_bytes.len() > max_udp_size {
 
 
 TODO (SAME AS A, AAAA)
-SRV	Service locator (used in VoIP, Kerberos, etc.)
 CAA	Certificate Authority Authorization — defined per FQDN
-NAPTR	Naming Authority Pointer (used in SIP, ENUM)
 TLSA	Used in DANE for certificate binding
-SSHFP	SSH public key fingerprints (host-based)
-PTR	Used in reverse DNS zones, also host-specific
 SPF	(Deprecated, use TXT) — still answered if defined
 CERT	Stores certificates or related PKI data
-LOC	Location information per FQDN
 OPENPGPKEY	For OpenPGP key discovery
 SVCB/HTTPS	New service discovery records (used by modern browsers)
 
 TODO (NOT LIKE A, AAAA)
-NS	Delegates authority; meaningful only at apex or delegation points
 DNSKEY/DS	Only at apex or delegation boundary
 RRSIG/NSEC/NSEC3	DNSSEC-related, tied to zone structure
 AXFR/IXFR	Not answered like A/AAAA — used for transfers
-ANY	Special query type (discouraged); not record type itself
-
-
-
 
 TODO EXPECTED
-x  MX	Mail Exchange	Specifies mail servers for email delivery.
-CNAME	Canonical Name	Alias one domain to another.
-x  TXT	Text	Stores human-readable data (SPF, DKIM, etc).
-PTR	Pointer	Used in reverse DNS (served from reverse zones).
-SRV	Service Locator	Maps services (e.g., SIP, LDAP) to target hosts and ports.
 DNSKEY / DS	DNSSEC Records	Needed if DNSSEC is enabled.
 CAA	Certification Authority Authorization	Limits which CAs can issue certs for a domain.
-IXFR
-AXFR
 
 
 FOR AXFR AND IFXR ONLY ALLOW SPECIFIC IPS
