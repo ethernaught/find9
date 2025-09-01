@@ -100,6 +100,17 @@ POSSIBLY SKIP XFRS FOR NOW
 AXFR SHOULD KEEP ORDER...
 
 
+
+
+
+
+
+
+
+Maybe we shouldnt store the SOA as a record within the zone but as a part of each zone...
+- as their is only 1 SOA associated with each zone - unless its a journal system for IXFR
+
+
 */
 
 
