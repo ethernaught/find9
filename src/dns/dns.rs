@@ -118,7 +118,7 @@ impl Dns {
     pub fn register_zone(&self, file_path: &str, domain: &str) -> io::Result<()> {
         let mut zone = Zone::new(ZoneTypes::Master);
 
-        let mut parser = ZoneParser::new(file_path, domain)?;
+        let mut parser = ZoneParser::open(file_path, domain)?;
         for (name, record) in parser.iter() {
             match name.as_str() {
                 "." => self.zones.write().unwrap().add_record(record), //BE CAREFUL WITH THIS ONE - DONT ALLOW MOST OF THE TIME
