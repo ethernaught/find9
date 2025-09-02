@@ -110,6 +110,9 @@ AXFR SHOULD KEEP ORDER...
 Maybe we shouldnt store the SOA as a record within the zone but as a part of each zone...
 - as their is only 1 SOA associated with each zone - unless its a journal system for IXFR
 
+- in the other sense just use jnl for the other SOA types...
+
+
 
 */
 
