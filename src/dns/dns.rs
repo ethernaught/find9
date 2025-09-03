@@ -3,7 +3,7 @@ use std::io;
 use std::sync::{Arc, RwLock};
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
-use rlibdns::zone::zone_parser::ZoneParser;
+use rlibdns::zone::zone_reader::ZoneReader;
 use crate::dns::listeners::a_query::on_a_query;
 use crate::dns::listeners::aaaa_query::on_aaaa_query;
 use crate::dns::listeners::any_query::on_any_query;
@@ -118,7 +118,7 @@ impl Dns {
     pub fn register_zone(&self, file_path: &str, domain: &str) -> io::Result<()> {
         let mut zone = Zone::new(ZoneTypes::Master);
 
-        let mut parser = ZoneParser::open(file_path, domain)?;
+        let mut parser = ZoneReader::open(file_path, domain)?;
         for (name, record) in parser.iter() {
             match name.as_str() {
                 "." => self.zones.write().unwrap().add_record(record), //BE CAREFUL WITH THIS ONE - DONT ALLOW MOST OF THE TIME
