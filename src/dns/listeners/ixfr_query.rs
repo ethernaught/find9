@@ -17,6 +17,30 @@ pub fn on_ixfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
 
                 match zone.get_records(&RRTypes::Soa) {
                     Some(records) => {
+
+                        //GET JOURNALS
+                        //CONVERT JOURNALS TO BYTES
+                        //THIS WOULD ENTAIL TAKING THE SOA AND GENERATING OTHER SOA WITH THE SERIAL_0 & SERIAL_1
+
+                        //WE NEED THE AUTHORITATIVE RECORD FROM THE REQUEST TO GET THE IXFR NUMBER
+                        //IF IXFR=2 then WE NEED TO START FROM JOURNAL 2 -> END
+
+                        //EXAMPLE OF RESPONSE
+                        //SOA(2)
+                        // ... deletes for 2→3 ...
+                        // SOA(3)
+                        // ... adds for 2→3 ...
+                        // SOA(3)
+                        // ... deletes for 3→4 ...
+                        // SOA(4)
+                        // ... adds for 3→4 ...
+                        // SOA(4)
+                        // ... deletes for 4→5 ...
+                        // SOA(5)
+                        // ... adds for 4→5 ...
+
+
+                        /*
                         let record = records.first().unwrap();
                         event.add_answer(&name, record.clone());
 
@@ -27,6 +51,7 @@ pub fn on_ixfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                         }
 
                         event.add_answer(&name, record.clone());
+                        */
                     }
                     None => {}
                 }

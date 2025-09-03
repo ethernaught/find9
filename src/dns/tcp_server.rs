@@ -132,6 +132,8 @@ impl TcpServer {
                             }
                         }
                     }
+
+                    println!("{}", message);
 /*
                     if message.has_additional_records() {
                         for (query, mut records) in message.get_additional_records_mut().drain() {
