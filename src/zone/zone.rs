@@ -9,7 +9,7 @@ pub struct Zone {
     _type: ZoneTypes,
     records: OrderedMap<RRTypes, Vec<Box<dyn RecordBase>>>,
     children: OrderedMap<String, Self>,
-    journal: Vec<Txn>
+    journal: Vec<Txn> //INDEX WILL BE A PROBLEM - CANNOT USE VEC...
 }
 
 impl Zone {
@@ -184,5 +184,9 @@ impl Zone {
 
             child.collect_records(format!("{}.{}", label, fqdn), map);
         }
+    }
+
+    pub fn get_txn_from(&self, index: usize) -> &[Txn] {
+        &self.journal[index..]
     }
 }
