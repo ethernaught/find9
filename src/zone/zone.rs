@@ -1,5 +1,6 @@
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::inter::record_base::RecordBase;
+use rlibdns::journal::txn::Txn;
 use rlibdns::utils::ordered_map::OrderedMap;
 use crate::zone::inter::zone_types::ZoneTypes;
 
@@ -7,7 +8,8 @@ use crate::zone::inter::zone_types::ZoneTypes;
 pub struct Zone {
     _type: ZoneTypes,
     records: OrderedMap<RRTypes, Vec<Box<dyn RecordBase>>>,
-    children: OrderedMap<String, Self>
+    children: OrderedMap<String, Self>,
+    journal: Vec<Txn>
 }
 
 impl Zone {
@@ -16,7 +18,8 @@ impl Zone {
         Self {
             _type,
             records: OrderedMap::new(),
-            children: OrderedMap::new()
+            children: OrderedMap::new(),
+            journal: Vec::new()
         }
     }
 
