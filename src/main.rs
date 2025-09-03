@@ -114,6 +114,10 @@ Maybe we shouldnt store the SOA as a record within the zone but as a part of eac
 
 
 
+
+IXFR PREPS
+dig @localhost -p 6767 find9.net ixfr=2
+
 */
 
 
