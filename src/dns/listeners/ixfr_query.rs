@@ -49,6 +49,8 @@ pub fn on_ixfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                         //
                         // One condensed delta: (10→13) with all necessary deletes/adds to transform 10 into 13.
 
+                        //WE ARE NOT ACCURATE TO BIND9 WE NEED TO VERIFY WE ARE PARSING JOURNAL AND IF JOURNAL MATCHES RESPONSE GIVEN BY IXFR
+
                         let soa_record = records.first().unwrap().as_any().downcast_ref::<SoaRecord>().unwrap();
 
                         for (_, txn) in zone.get_txn_from(2) {
