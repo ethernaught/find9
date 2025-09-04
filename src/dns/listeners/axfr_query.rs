@@ -20,7 +20,7 @@ pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                         let record = records.first().unwrap();
                         event.add_answer(&name, record.clone());
 
-                        for (n, records) in zone.get_all_records_recursive().drain() {
+                        for (n, records) in zone.get_all_records_recursive() {
                             for record in records {
                                 event.add_answer(&format!("{n}{name}"), record.clone());
 

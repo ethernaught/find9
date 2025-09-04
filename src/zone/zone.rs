@@ -9,7 +9,7 @@ pub struct Zone {
     _type: ZoneTypes,
     records: OrderedMap<RRTypes, Vec<Box<dyn RecordBase>>>,
     children: OrderedMap<String, Self>,
-    journal: Vec<Txn> //INDEX WILL BE A PROBLEM - CANNOT USE VEC...
+    journal: OrderedMap<u32, Txn> //INDEX WILL BE A PROBLEM - CANNOT USE VEC...
 }
 
 impl Zone {
@@ -19,7 +19,7 @@ impl Zone {
             _type,
             records: OrderedMap::new(),
             children: OrderedMap::new(),
-            journal: Vec::new()
+            journal: OrderedMap::new()
         }
     }
 
@@ -153,14 +153,14 @@ impl Zone {
         self.records.get(_type)
     }
 
-    pub fn get_all_records(&self) -> &OrderedMap<RRTypes, Vec<Box<dyn RecordBase>>> {
-        &self.records
+    pub fn get_all_records(&self) -> impl Iterator<Item = (&RRTypes, &Vec<Box<dyn RecordBase>>)> {
+        self.records.iter()
     }
 
-    pub fn get_all_records_recursive(&self) -> OrderedMap<String, Vec<&Box<dyn RecordBase>>> {
+    pub fn get_all_records_recursive(&self) -> impl Iterator<Item = (String, Vec<&Box<dyn RecordBase>>)> + '_ {
         let mut res = OrderedMap::new();
         self.collect_records(String::new(), &mut res);
-        res
+        res.into_iter()
     }
 
     fn collect_records<'a>(&'a self, fqdn: String, map: &mut OrderedMap<String, Vec<&'a Box<dyn RecordBase>>>) {
@@ -186,7 +186,7 @@ impl Zone {
         }
     }
 
-    pub fn get_txn_from(&self, index: usize) -> &[Txn] {
-        &self.journal[index..]
+    pub fn get_txn_from(&self, serial_start: u32) -> impl Iterator<Item = (&u32, &Txn)> {
+        self.journal.range_insertion_from(&serial_start)
     }
 }
