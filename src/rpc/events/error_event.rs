@@ -1,13 +1,13 @@
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::records::inter::record_base::RecordBase;
-use rlibdns::utils::ordered_map::OrderedMap;
+use rlibdns::utils::index_map::IndexMap;
 use crate::rpc::events::inter::event::Event;
 
 pub struct ErrorEvent {
     prevent_default: bool,
     code: ResponseCodes,
-    name_servers: OrderedMap<String, Vec<Box<dyn RecordBase>>>,
-    additional_records: OrderedMap<String, Vec<Box<dyn RecordBase>>>
+    name_servers: IndexMap<String, Vec<Box<dyn RecordBase>>>,
+    additional_records: IndexMap<String, Vec<Box<dyn RecordBase>>>
 }
 
 impl ErrorEvent {
@@ -16,8 +16,8 @@ impl ErrorEvent {
         Self {
             prevent_default: false,
             code,
-            name_servers: OrderedMap::new(),
-            additional_records: OrderedMap::new()
+            name_servers: IndexMap::new(),
+            additional_records: IndexMap::new()
         }
     }
 
@@ -38,11 +38,11 @@ impl ErrorEvent {
         self.name_servers.insert(query.to_string(), vec![record]);
     }
 
-    pub fn get_name_servers(&self) -> &OrderedMap<String, Vec<Box<dyn RecordBase>>> {
+    pub fn get_name_servers(&self) -> &IndexMap<String, Vec<Box<dyn RecordBase>>> {
         &self.name_servers
     }
 
-    pub fn get_name_servers_mut(&mut self) -> &mut OrderedMap<String, Vec<Box<dyn RecordBase>>> {
+    pub fn get_name_servers_mut(&mut self) -> &mut IndexMap<String, Vec<Box<dyn RecordBase>>> {
         &mut self.name_servers
     }
 
@@ -59,11 +59,11 @@ impl ErrorEvent {
         self.additional_records.insert(query.to_string(), vec![record]);
     }
 
-    pub fn get_additional_records(&self) -> &OrderedMap<String, Vec<Box<dyn RecordBase>>> {
+    pub fn get_additional_records(&self) -> &IndexMap<String, Vec<Box<dyn RecordBase>>> {
         &self.additional_records
     }
 
-    pub fn get_additional_records_mut(&mut self) -> &mut OrderedMap<String, Vec<Box<dyn RecordBase>>> {
+    pub fn get_additional_records_mut(&mut self) -> &mut IndexMap<String, Vec<Box<dyn RecordBase>>> {
         &mut self.additional_records
     }
 }

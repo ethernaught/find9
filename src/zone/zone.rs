@@ -1,15 +1,15 @@
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::inter::record_base::RecordBase;
 use rlibdns::journal::txn::Txn;
-use rlibdns::utils::ordered_map::OrderedMap;
+use rlibdns::utils::index_map::IndexMap;
 use crate::zone::inter::zone_types::ZoneTypes;
 
 #[derive(Debug, Clone)]
 pub struct Zone {
     _type: ZoneTypes,
-    records: OrderedMap<RRTypes, Vec<Box<dyn RecordBase>>>,
-    children: OrderedMap<String, Self>,
-    journal: OrderedMap<u32, Txn> //INDEX WILL BE A PROBLEM - CANNOT USE VEC...
+    records: IndexMap<RRTypes, Vec<Box<dyn RecordBase>>>,
+    children: IndexMap<String, Self>,
+    journal: IndexMap<u32, Txn> //INDEX WILL BE A PROBLEM - CANNOT USE VEC...
 }
 
 impl Zone {
@@ -17,9 +17,9 @@ impl Zone {
     pub fn new(_type: ZoneTypes) -> Self {
         Self {
             _type,
-            records: OrderedMap::new(),
-            children: OrderedMap::new(),
-            journal: OrderedMap::new()
+            records: IndexMap::new(),
+            children: IndexMap::new(),
+            journal: IndexMap::new()
         }
     }
 
@@ -158,12 +158,12 @@ impl Zone {
     }
 
     pub fn get_all_records_recursive(&self) -> impl Iterator<Item = (String, Vec<&Box<dyn RecordBase>>)> + '_ {
-        let mut res = OrderedMap::new();
+        let mut res = IndexMap::new();
         self.collect_records(String::new(), &mut res);
         res.into_iter()
     }
 
-    fn collect_records<'a>(&'a self, fqdn: String, map: &mut OrderedMap<String, Vec<&'a Box<dyn RecordBase>>>) {
+    fn collect_records<'a>(&'a self, fqdn: String, map: &mut IndexMap<String, Vec<&'a Box<dyn RecordBase>>>) {
         let recs: Vec<&Box<dyn RecordBase>> = self
             .records
             .iter()
