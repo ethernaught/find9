@@ -191,6 +191,6 @@ impl Zone {
     }
 
     pub fn get_txn_from(&self, serial_start: u32) -> impl Iterator<Item = (&u32, &Txn)> {
-        self.journal.range_insertion_from(&serial_start)
+        self.journal.range(serial_start..)
     }
 }
