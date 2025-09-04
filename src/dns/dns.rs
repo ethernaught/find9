@@ -1,8 +1,14 @@
 use std::collections::HashMap;
 use std::io;
+use std::net::{IpAddr, Ipv4Addr};
 use std::sync::{Arc, RwLock};
+use rlibdns::journal::inter::txn_op_codes::TxnOpCodes;
+use rlibdns::journal::txn::Txn;
 use rlibdns::messages::inter::response_codes::ResponseCodes;
+use rlibdns::messages::inter::rr_classes::RRClasses;
 use rlibdns::messages::inter::rr_types::RRTypes;
+use rlibdns::records::a_record::ARecord;
+use rlibdns::records::inter::record_base::RecordBase;
 use rlibdns::zone::zone_reader::ZoneReader;
 use crate::dns::listeners::a_query::on_a_query;
 use crate::dns::listeners::aaaa_query::on_aaaa_query;
@@ -132,5 +138,19 @@ impl Dns {
 
         println!("{:?}", self.zones.read().unwrap());
         Ok(())
+    }
+
+
+    pub fn test(&mut self) {
+
+        let mut txn = Txn::new(2, 3);
+
+        let mut a_record = ARecord::new(300, RRClasses::In);
+        a_record.set_address(Ipv4Addr::new(127, 0, 0, 1));
+
+        txn.add_record(TxnOpCodes::Add, "find9.net", a_record.upcast());
+
+
+        self.zones.write().unwrap().get_deepest_zone_mut("find9.net").unwrap().add_txn(txn);
     }
 }

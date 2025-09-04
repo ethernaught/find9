@@ -118,6 +118,9 @@ Maybe we shouldnt store the SOA as a record within the zone but as a part of eac
 IXFR PREPS
 dig @localhost -p 6767 find9.net ixfr=2
 
+
+IXFR MIGHT AS WELL BE A VECTOR AND NOT A MAP AS SORTING WOULD LIKELY BE JUST AS FAST TO CHECK EACH OBJECT...
+
 */
 
 
@@ -138,6 +141,12 @@ fn main() -> io::Result<()> {
     dns.register_zone("res/192.168.0.zone", "0.168.192.in-addr.arpa")?;
     //dns.get_server().add_fallback(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)), 53));
     dns.start(6767)?;
+
+    println!();
+    println!();
+    println!();
+    println!();
+    dns.test();
 
     //println!("UDP Server started on port: {}", dns.get_udp().socket.as_ref().unwrap().local_addr().unwrap().port());
     //println!("TCP Server started on port: {}", dns.get_tcp().socket.as_ref().unwrap().local_addr().unwrap().port());

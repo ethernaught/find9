@@ -186,6 +186,10 @@ impl Zone {
         }
     }
 
+    pub fn add_txn(&mut self, txn: Txn) {
+        self.journal.insert(txn.get_serial_0(), txn);
+    }
+
     pub fn get_txn_from(&self, serial_start: u32) -> impl Iterator<Item = (&u32, &Txn)> {
         self.journal.range_insertion_from(&serial_start)
     }

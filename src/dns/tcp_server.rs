@@ -229,10 +229,10 @@ impl TcpServer {
 
                     //println!("{}", response);
                     //TEST
-                    for buf in response.wire_chunks(MAX_TCP_MESSAGE_SIZE) {
-                        let message = MessageBase::from_bytes(&buf);
+                    //for buf in response.wire_chunks(MAX_TCP_MESSAGE_SIZE) {
+                    //    let message = MessageBase::from_bytes(&buf);
 
-                    }
+                    //}
 
                 }
                 Err(_) => {}
