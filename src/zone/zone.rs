@@ -9,7 +9,7 @@ pub struct Zone {
     _type: ZoneTypes,
     records: IndexMap<RRTypes, Vec<Box<dyn RecordBase>>>,
     children: IndexMap<String, Self>,
-    journal: IndexMap<u32, Txn> //INDEX WILL BE A PROBLEM - CANNOT USE VEC...
+    journal: IndexMap<u32, Txn>
 }
 
 impl Zone {
