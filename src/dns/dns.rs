@@ -3,6 +3,7 @@ use std::io;
 use std::net::{IpAddr, Ipv4Addr};
 use std::sync::{Arc, RwLock};
 use rlibdns::journal::inter::txn_op_codes::TxnOpCodes;
+use rlibdns::journal::journal_reader::JournalReader;
 use rlibdns::journal::txn::Txn;
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_classes::RRClasses;
@@ -124,8 +125,8 @@ impl Dns {
     pub fn register_zone(&self, file_path: &str, domain: &str) -> io::Result<()> {
         let mut zone = Zone::new(ZoneTypes::Master);
 
-        let mut parser = ZoneReader::open(file_path, domain)?;
-        for (name, record) in parser.iter() {
+        let mut reader = ZoneReader::open(file_path, domain)?;
+        for (name, record) in reader.iter() {
             match name.as_str() {
                 "." => self.zones.write().unwrap().add_record(record), //BE CAREFUL WITH THIS ONE - DONT ALLOW MOST OF THE TIME
                 "@" => zone.add_record(record),
@@ -134,7 +135,7 @@ impl Dns {
             }
         }
 
-        self.zones.write().unwrap().add_zone_to(&parser.get_origin(), zone, ZoneTypes::Hint);
+        self.zones.write().unwrap().add_zone_to(&reader.get_origin(), zone, ZoneTypes::Hint);
 
         println!("{:?}", self.zones.read().unwrap());
         Ok(())
@@ -142,7 +143,14 @@ impl Dns {
 
 
     pub fn test(&mut self) {
+        let mut reader = JournalReader::open("/home/brad/Downloads/db.find9.net.jnl").unwrap();
 
+        for txn in reader.iter() {
+            println!("{:?}", txn);
+            self.zones.write().unwrap().get_deepest_zone_mut("find9.net").unwrap().add_txn(txn);
+        }
+
+        /*
         let mut txn = Txn::new(2, 3);
 
         let mut a_record = ARecord::new(300, RRClasses::In);
@@ -152,5 +160,6 @@ impl Dns {
 
 
         self.zones.write().unwrap().get_deepest_zone_mut("find9.net").unwrap().add_txn(txn);
+        */
     }
 }

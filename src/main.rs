@@ -117,16 +117,6 @@ Maybe we shouldnt store the SOA as a record within the zone but as a part of eac
 
 IXFR PREPS
 dig @localhost -p 6767 find9.net ixfr=2
-
-
-IXFR MIGHT AS WELL BE A VECTOR AND NOT A MAP AS SORTING WOULD LIKELY BE JUST AS FAST TO CHECK EACH OBJECT...
-
-We really want to verify - right now we are using an O(n+m) for range and we need an O(n)
-- verify if we should use the OrderedMap or switch back to a Vec
-- If we keep index via a hashmap rather than a vector then this would always be an O(1)
-- that would help the computation and ensure we have speeds but would increase overall memory usage
-- not sure what the best trade off is in this scenario...
-
 */
 
 
