@@ -40,6 +40,15 @@ pub fn on_ixfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                         // ... deletes for 4→5 ...
                         // SOA(5)
                         // ... adds for 4→5 ...
+
+                        //ADD CONDENSING...
+                        //Client has serial 10, server is at 13. Valid IXFR replies include:
+                        //
+                        // Three deltas: (10→11), then (11→12), then (12→13), oldest first.
+                        // IETF Datatracker
+                        //
+                        // One condensed delta: (10→13) with all necessary deletes/adds to transform 10 into 13.
+
                         let soa_record = records.first().unwrap().as_any().downcast_ref::<SoaRecord>().unwrap();
 
                         for (_, txn) in zone.get_txn_from(2) {
