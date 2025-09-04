@@ -43,24 +43,22 @@ pub fn on_ixfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                         let soa_record = records.first().unwrap().as_any().downcast_ref::<SoaRecord>().unwrap();
 
                         for (_, txn) in zone.get_txn_from(2) {
-                            println!("TXN: {:?}", txn);
                             let mut first_soa_record = soa_record.clone();
                             first_soa_record.set_serial(txn.get_serial_0());
-                            event.add_answer(".", first_soa_record.upcast());
+                            event.add_answer(&name, first_soa_record.upcast());
 
                             //DELETES
                             for (name, record) in txn.get_records(TxnOpCodes::Delete) {
-                                event.add_answer(".", record.clone());
+                                event.add_answer(name, record.clone());
                             }
-
 
                             let mut second_soa_record = soa_record.clone();
                             second_soa_record.set_serial(txn.get_serial_1());
-                            event.add_answer(".", second_soa_record.upcast());
+                            event.add_answer(&name, second_soa_record.upcast());
 
                             //ADDS
                             for (name, record) in txn.get_records(TxnOpCodes::Add) {
-                                event.add_answer(".", record.clone());
+                                event.add_answer(name, record.clone());
                             }
                         }
 
