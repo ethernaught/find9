@@ -52,8 +52,6 @@ pub fn on_ixfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
                         //
                         // One condensed delta: (10→13) with all necessary deletes/adds to transform 10 into 13.
 
-                        //WE ARE NOT ACCURATE TO BIND9 WE NEED TO VERIFY WE ARE PARSING JOURNAL AND IF JOURNAL MATCHES RESPONSE GIVEN BY IXFR
-
                         let query_serial = 2;
 
 
