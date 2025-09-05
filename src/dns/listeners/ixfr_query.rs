@@ -1,5 +1,6 @@
 use std::sync::{Arc, RwLock};
 use rlibdns::journal::inter::txn_op_codes::TxnOpCodes;
+use rlibdns::journal::txn::Txn;
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::inter::record_base::RecordBase;
@@ -57,56 +58,42 @@ pub fn on_ixfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
 
                         let mut soa_record = record.as_any().downcast_ref::<SoaRecord>().unwrap().clone();
 
-                        for (_, txn) in zone.get_txn_from(query_serial) {
-                            soa_record.set_serial(txn.get_serial_0());
-                            event.add_answer(&name, soa_record.clone().upcast());
+                        let mut it = zone.get_txn_from(query_serial).peekable();
 
-                            //DELETES
-                            for (name, record) in txn.get_records(TxnOpCodes::Delete) {
-                                event.add_answer(name, record.clone());
+                        match it.peek() {
+                            Some(_) => {
+                                for (_, txn) in it {
+                                    soa_record.set_serial(txn.get_serial_0());
+                                    event.add_answer(&name, soa_record.clone().upcast());
+
+                                    //DELETES
+                                    for (name, record) in txn.get_records(TxnOpCodes::Delete) {
+                                        event.add_answer(name, record.clone());
+                                    }
+
+                                    soa_record.set_serial(txn.get_serial_1());
+                                    event.add_answer(&name, soa_record.clone().upcast());
+
+                                    //ADDS
+                                    for (name, record) in txn.get_records(TxnOpCodes::Add) {
+                                        event.add_answer(name, record.clone());
+                                    }
+                                }
                             }
+                            None => {
+                                for (n, records) in zone.get_all_records_recursive() {
+                                    for record in records {
+                                        event.add_answer(&format!("{n}{name}"), record.clone());
 
-                            soa_record.set_serial(txn.get_serial_1());
-                            event.add_answer(&name, soa_record.clone().upcast());
-
-                            //ADDS
-                            for (name, record) in txn.get_records(TxnOpCodes::Add) {
-                                event.add_answer(name, record.clone());
-                            }
-                        }
-
-
-
-
-                        //REVERT TO AXFR IF CANNOT FIND IXFR NUMBER...
-                        /*
-                        for (n, records) in zone.get_all_records_recursive() {
-                            for record in records {
-                                event.add_answer(&format!("{n}{name}"), record.clone());
-
-                                //for i in 0..26 {
-                                //    event.add_answer(&format!("{n}{name}"), record.clone());
-                                //}
-                            }
-                        }
-                        */
-
-                        event.add_answer(&name, record.clone());
-
-
-
-                        /*
-                        let record = records.first().unwrap();
-                        event.add_answer(&name, record.clone());
-
-                        for (n, records) in zone.get_all_records_recursive().drain() {
-                            for record in records {
-                                event.add_answer(&format!("{n}{name}"), record.clone());
+                                        //for i in 0..26 {
+                                        //    event.add_answer(&format!("{n}{name}"), record.clone());
+                                        //}
+                                    }
+                                }
                             }
                         }
 
                         event.add_answer(&name, record.clone());
-                        */
                     }
                     None => {}
                 }
