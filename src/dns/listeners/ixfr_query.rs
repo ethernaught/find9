@@ -55,13 +55,12 @@ pub fn on_ixfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> R
 
                         let query_serial = 2;
 
-
-                        let mut soa_record = record.as_any().downcast_ref::<SoaRecord>().unwrap().clone();
-
                         let mut it = zone.get_txn_from(query_serial).peekable();
 
                         match it.peek() {
                             Some(_) => {
+                                let mut soa_record = record.as_any().downcast_ref::<SoaRecord>().unwrap().clone();
+
                                 for (_, txn) in it {
                                     soa_record.set_serial(txn.get_serial_0());
                                     event.add_answer(&name, soa_record.clone().upcast());
