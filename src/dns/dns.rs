@@ -10,6 +10,8 @@ use rlibdns::messages::inter::rr_classes::RRClasses;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::a_record::ARecord;
 use rlibdns::records::inter::record_base::RecordBase;
+use rlibdns::zone::inter::zone_types::ZoneTypes;
+use rlibdns::zone::zone::Zone;
 use rlibdns::zone::zone_reader::ZoneReader;
 use crate::dns::listeners::a_query::on_a_query;
 use crate::dns::listeners::aaaa_query::on_aaaa_query;
@@ -34,8 +36,6 @@ use crate::dns::server::Server;
 use crate::dns::tcp_server::TcpServer;
 use crate::dns::udp_server::UdpServer;
 use crate::rpc::events::query_event::QueryEvent;
-use crate::zone::inter::zone_types::ZoneTypes;
-use crate::zone::zone::Zone;
 
 pub type QueryMap = Arc<RwLock<HashMap<RRTypes, Box<dyn Fn(&mut QueryEvent) -> ResponseResult<()> + Send + Sync>>>>;
 pub type ResponseResult<T> = Result<T, ResponseCodes>;
@@ -123,6 +123,7 @@ impl Dns {
     }
 
     pub fn register_zone(&self, file_path: &str, domain: &str) -> io::Result<()> {
+        /*
         let mut zone = Zone::new(ZoneTypes::Master);
 
         let mut reader = ZoneReader::open(file_path, domain)?;
@@ -139,6 +140,8 @@ impl Dns {
 
         println!("{:?}", self.zones.read().unwrap());
         Ok(())
+        */
+        self.zones.write().unwrap().open(file_path, domain)
     }
 
 

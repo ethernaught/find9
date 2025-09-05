@@ -1,7 +1,6 @@
 mod rpc;
 mod utils;
 mod dns;
-mod zone;
 
 use std::{io, thread};
 use crate::dns::dns::Dns;

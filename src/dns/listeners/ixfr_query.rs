@@ -4,9 +4,9 @@ use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::inter::record_base::RecordBase;
 use rlibdns::records::soa_record::SoaRecord;
+use rlibdns::zone::zone::Zone;
 use crate::dns::dns::ResponseResult;
 use crate::rpc::events::query_event::QueryEvent;
-use crate::zone::zone::Zone;
 
 pub fn on_ixfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> ResponseResult<()> {
     let zones = zones.clone();

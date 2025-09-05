@@ -2,10 +2,10 @@ use std::sync::{Arc, RwLock};
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::cname_record::CNameRecord;
+use rlibdns::zone::zone::Zone;
 use crate::{MAX_ANSWERS, MAX_CNAME_CHAIN_SIZE};
 use crate::dns::dns::ResponseResult;
 use crate::rpc::events::query_event::QueryEvent;
-use crate::zone::zone::Zone;
 
 pub fn chain_cname(zones: &Arc<RwLock<Zone>>, event: &mut QueryEvent, name: &str, depth: u8) -> ResponseResult<String> {
     match zones.read().unwrap().get_deepest_zone(&name) {
