@@ -143,12 +143,14 @@ impl Dns {
 
 
     pub fn test(&mut self) {
+        /*
         let mut reader = JournalReader::open("/home/brad/Downloads/db.find9.net.jnl").unwrap();
 
         for txn in reader.iter() {
             println!("{:?}", txn);
             self.zones.write().unwrap().get_deepest_zone_mut("find9.net").unwrap().add_txn(txn);
         }
+        */
 
         /*
         let mut txn = Txn::new(2, 3);

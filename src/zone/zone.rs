@@ -124,10 +124,16 @@ impl Zone {
 
     pub fn remove_sub_zone(&mut self, name: &str) {
         self.children.remove(name);
+
+        //UPDATE SOA
+        //REMOVE FROM JOURNAL
     }
 
     pub fn add_record(&mut self, record: Box<dyn RecordBase>) {
         self.records.entry(record.get_type()).or_insert(Vec::new()).push(record);
+
+        //UPDATE SOA
+        //ADD TO JOURNAL
     }
 
     pub fn add_record_to(&mut self, name: &str, record: Box<dyn RecordBase>, default_type: ZoneTypes) {
@@ -186,9 +192,11 @@ impl Zone {
         }
     }
 
+    /*
     pub fn add_txn(&mut self, txn: Txn) {
         self.journal.insert(txn.get_serial_0(), txn);
     }
+    */
 
     pub fn get_txn_from(&self, serial_start: u32) -> impl Iterator<Item = (&u32, &Txn)> {
         self.journal.range(serial_start..)
