@@ -24,12 +24,13 @@ Supported Record Types
 | PTR     | ✅       | SRV     | ✅       |
 | CAA     |         | CERT    |         |
 | DS      | WIP     | DNSKEY  |         |
-| LOC     | ✅       | NAPTR   | ✅      |
+| LOC     | ✅       | NAPTR   | ✅       |
 | SMIMEA  | ✅       | SSHFP   | 🟨      |
 | SVCB    | ✅       | HTTPS   | ✅       |
 | TLSA    |         | URI     | ✅       |
 | HINFO   | ✅       | ANY     | ✅       |
-| RRSIG   | Partial | TSIG    |         |
+| RRSIG   | Partial | TSIG    | Partial |
+| TKEY    | Partial |
 
 15 / 28 Complete
 5 Partial
