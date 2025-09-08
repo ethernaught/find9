@@ -87,7 +87,7 @@ impl UdpServer {
                         return;
                     }
 
-                    for (i, query) in message.get_queries_mut().drain(..).enumerate() {
+                    for (i, query) in message.get_queries().enumerate() {
                         if i >= MAX_QUERIES {
                             break;
                         }
@@ -101,7 +101,7 @@ impl UdpServer {
                                         return;
                                     }
 
-                                    response.add_query(query);
+                                    response.add_query(query.clone());
                                     response.set_authoritative(event.is_authoritative());
 
                                     if event.has_answers() {
@@ -124,7 +124,7 @@ impl UdpServer {
                                 }
                                 Err(e) => {
                                     response.set_response_code(e);
-                                    response.add_query(query);
+                                    response.add_query(query.clone());
                                     response.set_authoritative(event.is_authoritative());
 
                                     if event.has_authority_records() {
