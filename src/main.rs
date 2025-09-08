@@ -122,7 +122,7 @@ dig @localhost -p 6767 find9.net ixfr=2
 
 
 FOR IXFR
-- we need to modify domain registering - IE opening / reading to be within zone
+x - we need to modify domain registering - IE opening / reading to be within zone
 - we need to add encoding for JNL and zone files
 - we need to add transaction consolodation
 - we need to add request records to the event somehow so that we can be aware of the SOA serial
