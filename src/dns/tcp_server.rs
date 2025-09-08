@@ -17,7 +17,7 @@ use crate::rpc::events::query_event::QueryEvent;
 use crate::utils::net::address_utils::is_bogon;
 use crate::utils::spam_throttle::SpamThrottle;
 
-pub const MAX_TCP_MESSAGE_SIZE: usize = 65535;
+pub const MAX_TCP_MESSAGE_SIZE: usize = 1012;//65535;
 
 pub struct TcpServer {
     running: Arc<AtomicBool>,
