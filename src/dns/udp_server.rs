@@ -111,19 +111,19 @@ impl UdpServer {
                             response.set_authoritative(event.is_authoritative());
 
                             if event.has_answers() {
-                                for (query, record) in event.records[0].drain(..) {
+                                for (query, record) in event.response_records[0].drain(..) {
                                     response.add_answer(&query, record);
                                 }
                             }
 
                             if event.has_authority_records() {
-                                for (query, record) in event.records[1].drain(..) {
+                                for (query, record) in event.response_records[1].drain(..) {
                                     response.add_authority_record(&query, record);
                                 }
                             }
 
                             if event.has_additional_records() {
-                                for (query, record) in event.records[2].drain(..) {
+                                for (query, record) in event.response_records[2].drain(..) {
                                     response.add_additional_record(&query, record);
                                 }
                             }
