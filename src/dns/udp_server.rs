@@ -87,7 +87,7 @@ impl UdpServer {
                         return;
                     }
 
-                    for (i, query) in message.get_queries().enumerate() {
+                    for (i, query) in message.get_queries().iter().enumerate() {
                         if i >= MAX_QUERIES {
                             break;
                         }
