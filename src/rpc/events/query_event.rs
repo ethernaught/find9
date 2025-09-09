@@ -6,9 +6,10 @@ pub struct QueryEvent {
     prevent_default: bool,
     query: DnsQuery,
     authoritative: bool,
-    answers: Vec<(String, Box<dyn RecordBase>)>, //WE HAVE TO SWITCH FROM ORDERED_MAP TO VEC FOR RFC 5936
-    authority_records: Vec<(String, Box<dyn RecordBase>)>,
-    additional_records: Vec<(String, Box<dyn RecordBase>)>,
+    pub(crate) records: [Vec<(String, Box<dyn RecordBase>)>; 3],
+    //answers: Vec<(String, Box<dyn RecordBase>)>, //WE HAVE TO SWITCH FROM ORDERED_MAP TO VEC FOR RFC 5936
+    //authority_records: Vec<(String, Box<dyn RecordBase>)>,
+    //additional_records: Vec<(String, Box<dyn RecordBase>)>,
     received_time: u128
 }
 
@@ -19,9 +20,7 @@ impl QueryEvent {
             prevent_default: false,
             query,
             authoritative: false,
-            answers: Vec::new(),
-            authority_records: Vec::new(),
-            additional_records: Vec::new(),
+            records: Default::default(),
             received_time: 0
         }
     }
@@ -38,64 +37,76 @@ impl QueryEvent {
         &self.query
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
     pub fn has_answers(&self) -> bool {
-        !self.answers.is_empty()
+        !self.records[0].is_empty()
     }
 
     pub fn add_answer(&mut self, query: &str, record: Box<dyn RecordBase>) {
-        self.answers.push((query.to_string(), record));
+        self.records[0].push((query.to_string(), record));
     }
 
-    pub fn get_answers(&self) -> &Vec<(String, Box<dyn RecordBase>)> {
-        &self.answers
+    pub fn get_answers(&self) -> impl Iterator<Item = (&String, &Box<dyn RecordBase>)> {
+        self.records[0].iter().map(|(query, record)| (query, record))
     }
 
-    pub fn get_answers_mut(&mut self) -> &mut Vec<(String, Box<dyn RecordBase>)> {
-        &mut self.answers
+    pub fn get_answers_mut(&mut self) -> impl Iterator<Item = (&mut String, &mut Box<dyn RecordBase>)> {
+        self.records[0].iter_mut().map(|(query, record)| (query, record))
     }
 
-    pub fn calculate_total_answers(&self) -> usize {
-        self.answers.len()
+    pub fn total_answers(&self) -> usize {
+        self.records[0].len()
     }
 
     pub fn has_authority_records(&self) -> bool {
-        !self.authority_records.is_empty()
+        !self.records[1].is_empty()
     }
 
     pub fn add_authority_record(&mut self, query: &str, record: Box<dyn RecordBase>) {
-        self.authority_records.push((query.to_string(), record));
+        self.records[1].push((query.to_string(), record));
     }
 
-    pub fn get_authority_records(&self) -> &Vec<(String, Box<dyn RecordBase>)> {
-        &self.authority_records
+    pub fn get_authority_records(&self) -> impl Iterator<Item = (&String, &Box<dyn RecordBase>)> {
+        self.records[1].iter().map(|(query, record)| (query, record))
     }
 
-    pub fn get_authority_records_mut(&mut self) -> &mut Vec<(String, Box<dyn RecordBase>)> {
-        &mut self.authority_records
+    pub fn get_authority_records_mut(&mut self) -> impl Iterator<Item = (&mut String, &mut Box<dyn RecordBase>)> {
+        self.records[1].iter_mut().map(|(query, record)| (query, record))
     }
 
-    pub fn calculate_total_authority_records(&self) -> usize {
-        self.authority_records.len()
+    pub fn total_authority_records(&self) -> usize {
+        self.records[1].len()
     }
 
     pub fn has_additional_records(&self) -> bool {
-        !self.additional_records.is_empty()
+        !self.records[2].is_empty()
     }
 
     pub fn add_additional_record(&mut self, query: &str, record: Box<dyn RecordBase>) {
-        self.additional_records.push((query.to_string(), record));
+        self.records[2].push((query.to_string(), record));
     }
 
-    pub fn get_additional_records(&self) -> &Vec<(String, Box<dyn RecordBase>)> {
-        &self.additional_records
+    pub fn get_additional_records(&self) -> impl Iterator<Item = (&String, &Box<dyn RecordBase>)> {
+        self.records[2].iter().map(|(query, record)| (query, record))
     }
 
-    pub fn get_additional_records_mut(&mut self) -> &mut Vec<(String, Box<dyn RecordBase>)> {
-        &mut self.additional_records
+    pub fn get_additional_records_mut(&mut self) -> impl Iterator<Item = (&mut String, &mut Box<dyn RecordBase>)> {
+        self.records[2].iter_mut().map(|(query, record)| (query, record))
     }
 
-    pub fn calculate_total_additional_records(&self) -> usize {
-        self.additional_records.len()
+    pub fn total_additional_records(&self) -> usize {
+        self.records[2].len()
     }
 }
 

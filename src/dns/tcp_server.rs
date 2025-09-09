@@ -88,46 +88,31 @@ impl TcpServer {
                                     if event.is_prevent_default() {
                                         return;
                                     }
-
-                                    response.add_query(query.clone());
-                                    response.set_authoritative(event.is_authoritative());
-
-                                    if event.has_answers() {
-                                        for (query, record) in event.get_answers_mut().drain(..) {
-                                            response.add_answer(&query, record);
-                                        }
-                                    }
-
-                                    if event.has_authority_records() {
-                                        for (query, record) in event.get_authority_records_mut().drain(..) {
-                                            response.add_authority_record(&query, record);
-                                        }
-                                    }
-
-                                    if event.has_additional_records() {
-                                        for (query, record) in event.get_additional_records_mut().drain(..) {
-                                            response.add_additional_record(&query, record);
-                                        }
-                                    }
                                 }
                                 Err(e) => {
                                     response.set_response_code(e);
-                                    response.add_query(query.clone());
-                                    response.set_authoritative(event.is_authoritative());
-
-                                    if event.has_authority_records() {
-                                        for (query, record) in event.get_authority_records_mut().drain(..) {
-                                            response.add_authority_record(&query, record);
-                                        }
-                                    }
-
-                                    if event.has_additional_records() {
-                                        for (query, record) in event.get_additional_records_mut().drain(..) {
-                                            response.add_additional_record(&query, record);
-                                        }
-                                    }
-
                                     break;
+                                }
+                            }
+
+                            response.add_query(query.clone());
+                            response.set_authoritative(event.is_authoritative());
+
+                            if event.has_answers() {
+                                for (query, record) in event.records[0].drain(..) {
+                                    response.add_answer(&query, record);
+                                }
+                            }
+
+                            if event.has_authority_records() {
+                                for (query, record) in event.records[1].drain(..) {
+                                    response.add_authority_record(&query, record);
+                                }
+                            }
+
+                            if event.has_additional_records() {
+                                for (query, record) in event.records[2].drain(..) {
+                                    response.add_additional_record(&query, record);
                                 }
                             }
                         }
