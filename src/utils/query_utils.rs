@@ -5,9 +5,9 @@ use rlibdns::records::cname_record::CNameRecord;
 use rlibdns::zone::zone::Zone;
 use crate::{MAX_ANSWERS, MAX_CNAME_CHAIN_SIZE};
 use crate::dns::dns::ResponseResult;
-use crate::rpc::events::query_event::QueryEvent;
+use crate::rpc::events::request_event::RequestEvent;
 
-pub fn chain_cname(zones: &Arc<RwLock<Zone>>, event: &mut QueryEvent, name: &str, depth: u8) -> ResponseResult<String> {
+pub fn chain_cname(zones: &Arc<RwLock<Zone>>, event: &mut RequestEvent, name: &str, depth: u8) -> ResponseResult<String> {
     match zones.read().unwrap().get_deepest_zone(&name) {
         Some(zone) => {
             match zone.get_records(&RRTypes::CName) {
@@ -39,7 +39,7 @@ pub fn chain_cname(zones: &Arc<RwLock<Zone>>, event: &mut QueryEvent, name: &str
     }
 }
 
-pub fn add_glue(zones: &Arc<RwLock<Zone>>, event: &mut QueryEvent, name: &str) {
+pub fn add_glue(zones: &Arc<RwLock<Zone>>, event: &mut RequestEvent, name: &str) {
     match zones.read().unwrap().get_deepest_zone_with_records(&name, &RRTypes::A) {
         Some((name, zone)) => {
             match zone.get_records(&RRTypes::A) {

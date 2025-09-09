@@ -35,9 +35,9 @@ use crate::dns::listeners::uri_query::on_loc_query;
 use crate::dns::server::Server;
 use crate::dns::tcp_server::TcpServer;
 use crate::dns::udp_server::UdpServer;
-use crate::rpc::events::query_event::QueryEvent;
+use crate::rpc::events::request_event::RequestEvent;
 
-pub type QueryMap = Arc<RwLock<HashMap<RRTypes, Box<dyn Fn(&mut QueryEvent) -> ResponseResult<()> + Send + Sync>>>>;
+pub type QueryMap = Arc<RwLock<HashMap<RRTypes, Box<dyn Fn(&mut RequestEvent) -> ResponseResult<()> + Send + Sync>>>>;
 pub type ResponseResult<T> = Result<T, ResponseCodes>;
 
 pub struct Dns {

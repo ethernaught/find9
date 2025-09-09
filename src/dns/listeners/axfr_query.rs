@@ -3,9 +3,9 @@ use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::zone::zone::Zone;
 use crate::dns::dns::ResponseResult;
-use crate::rpc::events::query_event::QueryEvent;
+use crate::rpc::events::request_event::RequestEvent;
 
-pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> ResponseResult<()> {
+pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut RequestEvent) -> ResponseResult<()> {
     let zones = zones.clone();
 
     move |event| {

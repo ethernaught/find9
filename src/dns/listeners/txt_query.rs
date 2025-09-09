@@ -6,10 +6,10 @@ use rlibdns::records::ns_record::NsRecord;
 use rlibdns::zone::zone::Zone;
 use crate::dns::dns::ResponseResult;
 use crate::MAX_ANSWERS;
-use crate::rpc::events::query_event::QueryEvent;
+use crate::rpc::events::request_event::RequestEvent;
 use crate::utils::query_utils::{add_glue, chain_cname};
 
-pub fn on_txt_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut QueryEvent) -> ResponseResult<()> {
+pub fn on_txt_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut RequestEvent) -> ResponseResult<()> {
     let zones = zones.clone();
 
     move |event| {

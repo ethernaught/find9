@@ -2,7 +2,7 @@ use rlibdns::messages::dns_query::DnsQuery;
 use rlibdns::records::inter::record_base::RecordBase;
 use crate::rpc::events::inter::event::Event;
 
-pub struct QueryEvent {
+pub struct RequestEvent {
     prevent_default: bool,
     query: DnsQuery,
     authoritative: bool,
@@ -14,7 +14,7 @@ pub struct QueryEvent {
     received_time: u128
 }
 
-impl QueryEvent {
+impl RequestEvent {
 
     pub fn new(query: DnsQuery) -> Self {
         Self {
@@ -112,7 +112,7 @@ impl QueryEvent {
     }
 }
 
-impl Event for QueryEvent {
+impl Event for RequestEvent {
 
     fn is_prevent_default(&self) -> bool {
         self.prevent_default

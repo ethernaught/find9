@@ -2,7 +2,7 @@ use std::io;
 use std::thread::JoinHandle;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use crate::dns::dns::ResponseResult;
-use crate::rpc::events::query_event::QueryEvent;
+use crate::rpc::events::request_event::RequestEvent;
 
 pub trait Server {
 
@@ -14,5 +14,5 @@ pub trait Server {
 
     fn register_query_listener<F>(&self, key: RRTypes, callback: F)
     where
-        F: Fn(&mut QueryEvent) -> ResponseResult<()> + Send + Sync + 'static;
+        F: Fn(&mut RequestEvent) -> ResponseResult<()> + Send + Sync + 'static;
 }

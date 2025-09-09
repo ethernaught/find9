@@ -15,7 +15,7 @@ use crate::dns::dns::{QueryMap, ResponseResult};
 use crate::{BOGON_ALLOWED, COOKIE_SECRET, MAX_QUERIES};
 use crate::dns::server::Server;
 use crate::rpc::events::inter::event::Event;
-use crate::rpc::events::query_event::QueryEvent;
+use crate::rpc::events::request_event::RequestEvent;
 use crate::utils::hash::hmac::hmac;
 use crate::utils::hash::sha256::Sha256;
 use crate::utils::net::address_utils::is_bogon;
@@ -76,7 +76,7 @@ impl UdpServer {
                     //response.set_origin(message.get_destination().unwrap());
                     response.set_destination(message.get_origin().unwrap());
 
-                    //let mut query_event = QueryEvent::new(message);
+                    //let mut query_event = RequestEvent::new(message);
                     //query_event.set_response(response);
 
                     //let is_bogon = is_bogon(message.get_origin().unwrap());
@@ -93,7 +93,7 @@ impl UdpServer {
                         }
 
                         if let Some(callback) = query_mapping.read().unwrap().get(&query.get_type()) {
-                            let mut event = QueryEvent::new(query.clone());
+                            let mut event = RequestEvent::new(query.clone());
 
                             match callback(&mut event) {
                                 Ok(_) => {
@@ -314,7 +314,7 @@ impl Server for UdpServer {
 
     fn register_query_listener<F>(&self, key: RRTypes, callback: F)
     where
-        F: Fn(&mut QueryEvent) -> ResponseResult<()> + Send + Sync + 'static
+        F: Fn(&mut RequestEvent) -> ResponseResult<()> + Send + Sync + 'static
     {
         self.query_mapping.write().unwrap().insert(key, Box::new(callback));
     }

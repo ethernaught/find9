@@ -4,11 +4,11 @@ use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::inter::opt_codes::OptCodes;
 use rlibdns::records::opt_record::OptRecord;
 use crate::COOKIE_SECRET;
-use crate::rpc::events::query_event::QueryEvent;
+use crate::rpc::events::query_event::RequestEvent;
 use crate::utils::hash::hmac::hmac;
 use crate::utils::hash::sha256::Sha256;
 
-pub fn opt_record() -> impl Fn(&mut QueryEvent) -> io::Result<()> {
+pub fn opt_record() -> impl Fn(&mut RequestEvent) -> io::Result<()> {
 
     move |event| {
 

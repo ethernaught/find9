@@ -1,3 +1,3 @@
 pub mod inter;
-pub mod query_event;
+pub mod request_event;
 pub mod error_event;
