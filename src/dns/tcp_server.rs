@@ -6,10 +6,12 @@ use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread::JoinHandle;
 use std::time::{SystemTime, UNIX_EPOCH};
+use rlibdns::messages::inter::op_codes::OpCodes;
 use rlibdns::messages::inter::response_codes::ResponseCodes;
+use rlibdns::messages::inter::rr_classes::RRClasses;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::messages::message_base::MessageBase;
-use crate::dns::dns::{QueryMap, ResponseResult};
+use crate::dns::dns::{RequestMap, ResponseResult};
 use crate::{BOGON_ALLOWED, COOKIE_SECRET, MAX_QUERIES};
 use crate::dns::server::Server;
 use crate::rpc::events::inter::event::Event;
@@ -22,7 +24,7 @@ pub const MAX_TCP_MESSAGE_SIZE: usize = 65535;
 pub struct TcpServer {
     running: Arc<AtomicBool>,
     pub(crate) socket: Option<TcpListener>,
-    query_mapping: QueryMap
+    query_mapping: RequestMap
 }
 
 impl TcpServer {
@@ -80,7 +82,10 @@ impl TcpServer {
                             break;
                         }
 
-                        if let Some(callback) = query_mapping.read().unwrap().get(&query.get_type()) {
+
+                        let guard =  query_mapping.read().unwrap();
+                        if let Some(callback) = guard.get(&(message.get_op_code(), query.get_class(), query.get_type()))
+                                .or_else(|| guard.get(&(message.get_op_code(), RRClasses::Any, query.get_type()))) {
                             let mut event = RequestEvent::new(query.clone());
 
                             match callback(&mut event) {
@@ -310,10 +315,10 @@ impl Server for TcpServer {
         self.running.store(false, Ordering::Relaxed);
     }
 
-    fn register_query_listener<F>(&self, key: RRTypes, callback: F)
+    fn register_request_listener<F>(&self, op_code: OpCodes, class: RRClasses, _type: RRTypes, callback: F)
     where
         F: Fn(&mut RequestEvent) -> ResponseResult<()> + Send + Sync + 'static
     {
-        self.query_mapping.write().unwrap().insert(key, Box::new(callback));
+        self.query_mapping.write().unwrap().insert((op_code, class, _type), Box::new(callback));
     }
 }
