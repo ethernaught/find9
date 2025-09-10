@@ -1,6 +1,5 @@
 use std::sync::{Arc, RwLock};
 use rlibdns::journal::inter::txn_op_codes::TxnOpCodes;
-use rlibdns::journal::txn::Txn;
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::inter::record_base::RecordBase;
