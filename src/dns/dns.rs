@@ -38,7 +38,7 @@ use crate::dns::tcp_server::TcpServer;
 use crate::dns::udp_server::UdpServer;
 use crate::rpc::events::request_event::RequestEvent;
 
-pub type RequestMap = Arc<RwLock<HashMap<(OpCodes, RRClasses, RRTypes), Box<dyn Fn(&mut RequestEvent) -> ResponseResult<()> + Send + Sync>>>>;
+pub type RequestMap = Arc<RwLock<HashMap<(OpCodes, RRTypes), Box<dyn Fn(&mut RequestEvent) -> ResponseResult<()> + Send + Sync>>>>;
 pub type ResponseResult<T> = Result<T, ResponseCodes>;
 
 pub struct Dns {
@@ -53,46 +53,46 @@ impl Dns {
         let zones = Arc::new(RwLock::new(Zone::new(ZoneTypes::Hint)));
 
         let udp = UdpServer::new();
-        udp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::A, on_a_query(&zones));
-        udp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Aaaa, on_aaaa_query(&zones));
-        udp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Ns, on_ns_query(&zones));
-        udp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Txt, on_txt_query(&zones));
-        udp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Mx, on_mx_query(&zones)); //TEST
-        udp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Ptr, on_ptr_query(&zones));
-        udp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::CName, on_cname_query(&zones));
-        udp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Srv, on_srv_query(&zones));
-        udp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Naptr, on_naptr_query(&zones));
-        udp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::SshFp, on_sshfp_query(&zones));
-        udp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Smimea, on_smimea_query(&zones));
-        udp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Https, on_https_query(&zones));
-        udp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Svcb, on_svcb_query(&zones));
-        udp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Uri, on_uri_query(&zones));
-        udp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Loc, on_loc_query(&zones));
+        udp.register_request_listener(OpCodes::Query, RRTypes::A, on_a_query(&zones));
+        udp.register_request_listener(OpCodes::Query, RRTypes::Aaaa, on_aaaa_query(&zones));
+        udp.register_request_listener(OpCodes::Query, RRTypes::Ns, on_ns_query(&zones));
+        udp.register_request_listener(OpCodes::Query, RRTypes::Txt, on_txt_query(&zones));
+        udp.register_request_listener(OpCodes::Query, RRTypes::Mx, on_mx_query(&zones)); //TEST
+        udp.register_request_listener(OpCodes::Query, RRTypes::Ptr, on_ptr_query(&zones));
+        udp.register_request_listener(OpCodes::Query, RRTypes::CName, on_cname_query(&zones));
+        udp.register_request_listener(OpCodes::Query, RRTypes::Srv, on_srv_query(&zones));
+        udp.register_request_listener(OpCodes::Query, RRTypes::Naptr, on_naptr_query(&zones));
+        udp.register_request_listener(OpCodes::Query, RRTypes::SshFp, on_sshfp_query(&zones));
+        udp.register_request_listener(OpCodes::Query, RRTypes::Smimea, on_smimea_query(&zones));
+        udp.register_request_listener(OpCodes::Query, RRTypes::Https, on_https_query(&zones));
+        udp.register_request_listener(OpCodes::Query, RRTypes::Svcb, on_svcb_query(&zones));
+        udp.register_request_listener(OpCodes::Query, RRTypes::Uri, on_uri_query(&zones));
+        udp.register_request_listener(OpCodes::Query, RRTypes::Loc, on_loc_query(&zones));
         
-        udp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Soa, on_soa_query(&zones));
-        udp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Any, on_any_query(&zones));
+        udp.register_request_listener(OpCodes::Query, RRTypes::Soa, on_soa_query(&zones));
+        udp.register_request_listener(OpCodes::Query, RRTypes::Any, on_any_query(&zones));
 
         let tcp = TcpServer::new();
-        tcp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::A, on_a_query(&zones));
-        tcp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Aaaa, on_aaaa_query(&zones));
-        tcp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Ns, on_ns_query(&zones));
-        tcp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Txt, on_txt_query(&zones));
-        tcp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Mx, on_mx_query(&zones)); //TEST
-        tcp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Ptr, on_ptr_query(&zones));
-        tcp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::CName, on_cname_query(&zones));
-        tcp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Srv, on_srv_query(&zones));
-        tcp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Naptr, on_naptr_query(&zones));
-        tcp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::SshFp, on_sshfp_query(&zones));
-        tcp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Smimea, on_smimea_query(&zones));
-        tcp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Https, on_https_query(&zones));
-        tcp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Svcb, on_svcb_query(&zones));
-        tcp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Uri, on_uri_query(&zones));
-        tcp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Loc, on_loc_query(&zones));
+        tcp.register_request_listener(OpCodes::Query, RRTypes::A, on_a_query(&zones));
+        tcp.register_request_listener(OpCodes::Query, RRTypes::Aaaa, on_aaaa_query(&zones));
+        tcp.register_request_listener(OpCodes::Query, RRTypes::Ns, on_ns_query(&zones));
+        tcp.register_request_listener(OpCodes::Query, RRTypes::Txt, on_txt_query(&zones));
+        tcp.register_request_listener(OpCodes::Query, RRTypes::Mx, on_mx_query(&zones)); //TEST
+        tcp.register_request_listener(OpCodes::Query, RRTypes::Ptr, on_ptr_query(&zones));
+        tcp.register_request_listener(OpCodes::Query, RRTypes::CName, on_cname_query(&zones));
+        tcp.register_request_listener(OpCodes::Query, RRTypes::Srv, on_srv_query(&zones));
+        tcp.register_request_listener(OpCodes::Query, RRTypes::Naptr, on_naptr_query(&zones));
+        tcp.register_request_listener(OpCodes::Query, RRTypes::SshFp, on_sshfp_query(&zones));
+        tcp.register_request_listener(OpCodes::Query, RRTypes::Smimea, on_smimea_query(&zones));
+        tcp.register_request_listener(OpCodes::Query, RRTypes::Https, on_https_query(&zones));
+        tcp.register_request_listener(OpCodes::Query, RRTypes::Svcb, on_svcb_query(&zones));
+        tcp.register_request_listener(OpCodes::Query, RRTypes::Uri, on_uri_query(&zones));
+        tcp.register_request_listener(OpCodes::Query, RRTypes::Loc, on_loc_query(&zones));
 
-        tcp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Soa, on_soa_query(&zones));
-        tcp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Axfr, on_axfr_query(&zones));
-        tcp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Ixfr, on_ixfr_query(&zones));
-        tcp.register_request_listener(OpCodes::Query, RRClasses::Any, RRTypes::Any, on_any_query(&zones));
+        tcp.register_request_listener(OpCodes::Query, RRTypes::Soa, on_soa_query(&zones));
+        tcp.register_request_listener(OpCodes::Query, RRTypes::Axfr, on_axfr_query(&zones));
+        tcp.register_request_listener(OpCodes::Query, RRTypes::Ixfr, on_ixfr_query(&zones));
+        tcp.register_request_listener(OpCodes::Query, RRTypes::Any, on_any_query(&zones));
 
         Self {
             zones,

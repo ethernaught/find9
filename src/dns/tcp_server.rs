@@ -84,8 +84,7 @@ impl TcpServer {
 
 
                         let guard =  query_mapping.read().unwrap();
-                        if let Some(callback) = guard.get(&(message.get_op_code(), query.get_class(), query.get_type()))
-                                .or_else(|| guard.get(&(message.get_op_code(), RRClasses::Any, query.get_type()))) {
+                        if let Some(callback) = guard.get(&(message.get_op_code(), query.get_type())) {
                             let mut event = RequestEvent::new(query.clone());
 
                             match callback(&mut event) {
@@ -315,10 +314,10 @@ impl Server for TcpServer {
         self.running.store(false, Ordering::Relaxed);
     }
 
-    fn register_request_listener<F>(&self, op_code: OpCodes, class: RRClasses, _type: RRTypes, callback: F)
+    fn register_request_listener<F>(&self, op_code: OpCodes, _type: RRTypes, callback: F)
     where
         F: Fn(&mut RequestEvent) -> ResponseResult<()> + Send + Sync + 'static
     {
-        self.query_mapping.write().unwrap().insert((op_code, class, _type), Box::new(callback));
+        self.query_mapping.write().unwrap().insert((op_code, _type), Box::new(callback));
     }
 }

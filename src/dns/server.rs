@@ -14,7 +14,7 @@ pub trait Server {
 
     fn kill(&self);
 
-    fn register_request_listener<F>(&self, op_code: OpCodes, class: RRClasses, _type: RRTypes, callback: F)
+    fn register_request_listener<F>(&self, op_code: OpCodes, _type: RRTypes, callback: F)
     where
         F: Fn(&mut RequestEvent) -> ResponseResult<()> + Send + Sync + 'static;
 }
