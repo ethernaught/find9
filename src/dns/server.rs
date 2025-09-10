@@ -1,7 +1,6 @@
 use std::io;
 use std::thread::JoinHandle;
 use rlibdns::messages::inter::op_codes::OpCodes;
-use rlibdns::messages::inter::rr_classes::RRClasses;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use crate::dns::dns::ResponseResult;
 use crate::rpc::events::request_event::RequestEvent;
