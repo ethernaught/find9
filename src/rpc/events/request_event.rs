@@ -2,9 +2,10 @@ use rlibdns::messages::dns_query::DnsQuery;
 use rlibdns::records::inter::record_base::RecordBase;
 use crate::rpc::events::inter::event::Event;
 
+#[derive(Default, Clone, Debug)]
 pub struct RequestEvent {
     prevent_default: bool,
-    query: DnsQuery,
+    pub(crate) query: Option<DnsQuery>,
     authoritative: bool,
     pub(crate) request_records: [Vec<(String, Box<dyn RecordBase>)>; 3],
     pub(crate) response_records: [Vec<(String, Box<dyn RecordBase>)>; 3],
@@ -16,10 +17,10 @@ pub struct RequestEvent {
 
 impl RequestEvent {
 
-    pub fn new(query: DnsQuery) -> Self {
+    pub fn new(/*query: DnsQuery*/) -> Self {
         Self {
             prevent_default: false,
-            query,
+            query: None,
             authoritative: false,
             request_records: Default::default(),
             response_records: Default::default(),
@@ -36,7 +37,7 @@ impl RequestEvent {
     }
 
     pub fn get_query(&self) -> &DnsQuery {
-        &self.query
+        self.query.as_ref().unwrap()
     }
 
 
@@ -45,6 +46,15 @@ impl RequestEvent {
 
 
 
+
+
+    pub fn get_request_authority_records(&self) -> &Vec<(String, Box<dyn RecordBase>)> {
+        self.request_records[1].as_ref()
+    }
+
+    pub fn get_request_authority_records_mut(&mut self) -> &mut Vec<(String, Box<dyn RecordBase>)> {
+        self.request_records[1].as_mut()
+    }
 
 
 
@@ -59,12 +69,12 @@ impl RequestEvent {
         self.response_records[0].push((query.to_string(), record));
     }
 
-    pub fn get_answers(&self) -> impl Iterator<Item = (&String, &Box<dyn RecordBase>)> {
-        self.response_records[0].iter().map(|(query, record)| (query, record))
+    pub fn get_answers(&self) -> &Vec<(String, Box<dyn RecordBase>)> {
+        self.response_records[0].as_ref()
     }
 
-    pub fn get_answers_mut(&mut self) -> impl Iterator<Item = (&mut String, &mut Box<dyn RecordBase>)> {
-        self.response_records[0].iter_mut().map(|(query, record)| (query, record))
+    pub fn get_answers_mut(&mut self) -> &mut Vec<(String, Box<dyn RecordBase>)> {
+        self.response_records[0].as_mut()
     }
 
     pub fn total_answers(&self) -> usize {
@@ -79,12 +89,12 @@ impl RequestEvent {
         self.response_records[1].push((query.to_string(), record));
     }
 
-    pub fn get_authority_records(&self) -> impl Iterator<Item = (&String, &Box<dyn RecordBase>)> {
-        self.response_records[1].iter().map(|(query, record)| (query, record))
+    pub fn get_authority_records(&self) -> &Vec<(String, Box<dyn RecordBase>)> {
+        self.response_records[1].as_ref()
     }
 
-    pub fn get_authority_records_mut(&mut self) -> impl Iterator<Item = (&mut String, &mut Box<dyn RecordBase>)> {
-        self.response_records[1].iter_mut().map(|(query, record)| (query, record))
+    pub fn get_authority_records_mut(&mut self) -> &mut Vec<(String, Box<dyn RecordBase>)> {
+        self.response_records[1].as_mut()
     }
 
     pub fn total_authority_records(&self) -> usize {
@@ -99,12 +109,12 @@ impl RequestEvent {
         self.response_records[2].push((query.to_string(), record));
     }
 
-    pub fn get_additional_records(&self) -> impl Iterator<Item = (&String, &Box<dyn RecordBase>)> {
-        self.response_records[2].iter().map(|(query, record)| (query, record))
+    pub fn get_additional_records(&self) -> &Vec<(String, Box<dyn RecordBase>)> {
+        self.response_records[2].as_ref()
     }
 
-    pub fn get_additional_records_mut(&mut self) -> impl Iterator<Item = (&mut String, &mut Box<dyn RecordBase>)> {
-        self.response_records[2].iter_mut().map(|(query, record)| (query, record))
+    pub fn get_additional_records_mut(&mut self) -> &mut Vec<(String, Box<dyn RecordBase>)> {
+        self.response_records[2].as_mut()
     }
 
     pub fn total_additional_records(&self) -> usize {

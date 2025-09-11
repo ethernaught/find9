@@ -89,14 +89,32 @@ impl UdpServer {
                         return;
                     }
 
+                    let mut event = RequestEvent::new();
+                    if message.has_answers() {
+                        for (query, record) in message.get_answers_mut().drain(..) {
+                            event.request_records[0].push((query, record));
+                        }
+                    }
+
+                    if message.has_authority_records() {
+                        for (query, record) in message.get_additional_records_mut().drain(..) {
+                            event.request_records[1].push((query, record));
+                        }
+                    }
+
+                    if message.has_additional_records() {
+                        for (query, record) in message.get_authority_records_mut().drain(..) {
+                            event.request_records[2].push((query, record));
+                        }
+                    }
+
                     for (i, query) in message.get_queries().iter().enumerate() {
                         if i >= MAX_QUERIES {
                             break;
                         }
 
-                        let guard =  query_mapping.read().unwrap();
-                        if let Some(callback) = guard.get(&(message.get_op_code(), query.get_type())) {
-                            let mut event = RequestEvent::new(query.clone());
+                        if let Some(callback) = query_mapping.read().unwrap().get(&(message.get_op_code(), query.get_type())) {
+                            event.query = Some(query.clone());
 
                             match callback(&mut event) {
                                 Ok(_) => {

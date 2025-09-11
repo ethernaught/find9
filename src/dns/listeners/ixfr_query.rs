@@ -52,7 +52,22 @@ pub fn on_ixfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut RequestEvent) ->
                         //
                         // One condensed delta: (10→13) with all necessary deletes/adds to transform 10 into 13.
 
-                        let query_serial = 2;
+                        let mut query_serial = 0;
+
+                        if let Some(serial) = event.get_request_authority_records()
+                            .iter()
+                            .find_map(|(q, r)| {
+                                if q.eq(&name) {
+                                    r.as_any()
+                                        .downcast_ref::<SoaRecord>()
+                                        .map(|soa| soa.get_serial())
+                                } else {
+                                    None
+                                }
+                            })
+                        {
+                            query_serial = serial;
+                        }
 
                         let mut it = zone.get_txn_from(query_serial).peekable();
 
