@@ -12,7 +12,7 @@ pub fn on_any_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut RequestEvent) -> 
     let zones = zones.clone();
 
     move |event| {
-        let name = event.get_query().get_name();
+        let name = event.get_query().get_name().to_string();
 
         match zones.read().unwrap().get_deepest_zone(&name) {
             Some(zone) => {
