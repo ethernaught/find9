@@ -155,17 +155,5 @@ impl Dns {
             self.zones.write().unwrap().get_deepest_zone_mut("find9.net").unwrap().add_txn(txn);
         }
         */
-
-        /*
-        let mut txn = Txn::new(2, 3);
-
-        let mut a_record = ARecord::new(300, RRClasses::In);
-        a_record.set_address(Ipv4Addr::new(127, 0, 0, 1));
-
-        txn.add_record(TxnOpCodes::Add, "zzzz.find9.net", a_record.upcast());
-
-
-        self.zones.write().unwrap().get_deepest_zone_mut("find9.net").unwrap().add_txn(txn);
-        */
     }
 }

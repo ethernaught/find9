@@ -32,7 +32,7 @@ pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut RequestEvent) ->
 
                         event.add_answer(&name, record.clone());
                     }
-                    None => {}
+                    None => return Err(ResponseCodes::ServFail)
                 }
             }
             None => return Err(ResponseCodes::Refused) //KILL CONNECTION

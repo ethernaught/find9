@@ -86,7 +86,6 @@ impl UdpServer {
                     if !message.has_queries() {
                         response.set_response_code(ResponseCodes::FormErr);
                         send(&response);
-                        return;
                     }
 
                     let mut event = RequestEvent::new();

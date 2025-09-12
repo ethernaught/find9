@@ -52,63 +52,73 @@ pub fn on_ixfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut RequestEvent) ->
                         //
                         // One condensed delta: (10→13) with all necessary deletes/adds to transform 10 into 13.
 
-                        let mut query_serial = 0;
+                        let mut current_soa = record.as_any().downcast_ref::<SoaRecord>().unwrap().clone();
+                        let current_serial = current_soa.get_serial();
 
-                        if let Some(serial) = event.get_request_authority_records()
+                        let client_serial_opt = event
+                            .get_request_authority_records()
                             .iter()
                             .find_map(|(q, r)| {
-                                if q.eq(&name) {
+                                if q == &name {
                                     r.as_any()
                                         .downcast_ref::<SoaRecord>()
                                         .map(|soa| soa.get_serial())
                                 } else {
                                     None
                                 }
-                            })
-                        {
-                            query_serial = serial;
-                        }
+                            });
 
-                        let mut it = zone.get_txn_from(query_serial).peekable();
+                        match client_serial_opt {
+                            Some(client_serial) => {
+                                if !serial_lt(client_serial, current_serial) {
+                                    return Ok(());
+                                }
 
-                        match it.peek() {
-                            Some(_) => {
-                                let mut soa_record = record.as_any().downcast_ref::<SoaRecord>().unwrap().clone();
+                                let mut it = zone.get_txn_from(client_serial).peekable();
 
-                                for (_, txn) in it {
-                                    soa_record.set_serial(txn.get_serial_0());
-                                    event.add_answer(&name, soa_record.clone().upcast());
+                                match it.peek() {
+                                    Some(_) => {
+                                        for (_, txn) in it {
+                                            current_soa.set_serial(txn.get_serial_0());
+                                            event.add_answer(&name, current_soa.clone().upcast());
 
-                                    //DELETES
-                                    for (name, record) in txn.get_records(TxnOpCodes::Delete) {
-                                        event.add_answer(name, record.clone());
+                                            //DELETES
+                                            for (name, record) in txn.get_records(TxnOpCodes::Delete) {
+                                                event.add_answer(name, record.clone());
+                                            }
+
+                                            current_soa.set_serial(txn.get_serial_1());
+                                            event.add_answer(&name, current_soa.clone().upcast());
+
+                                            //ADDS
+                                            for (name, record) in txn.get_records(TxnOpCodes::Add) {
+                                                event.add_answer(name, record.clone());
+                                            }
+                                        }
                                     }
-
-                                    soa_record.set_serial(txn.get_serial_1());
-                                    event.add_answer(&name, soa_record.clone().upcast());
-
-                                    //ADDS
-                                    for (name, record) in txn.get_records(TxnOpCodes::Add) {
-                                        event.add_answer(name, record.clone());
+                                    None => {
+                                        //AXFR
+                                        for (n, records) in zone.get_all_records_recursive() {
+                                            for record in records {
+                                                event.add_answer(&format!("{n}{name}"), record.clone());
+                                            }
+                                        }
                                     }
                                 }
                             }
                             None => {
+                                //AXFR
                                 for (n, records) in zone.get_all_records_recursive() {
                                     for record in records {
                                         event.add_answer(&format!("{n}{name}"), record.clone());
-
-                                        //for i in 0..26 {
-                                        //    event.add_answer(&format!("{n}{name}"), record.clone());
-                                        //}
                                     }
                                 }
                             }
                         }
 
-                        event.add_answer(&name, record.clone());
+                        event.add_answer(&name, current_soa.upcast());
                     }
-                    None => {}
+                    None => return Err(ResponseCodes::ServFail)
                 }
             }
             None => return Err(ResponseCodes::Refused) //KILL CONNECTION
@@ -116,4 +126,9 @@ pub fn on_ixfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut RequestEvent) ->
 
         Ok(())
     }
+}
+
+fn serial_lt(a: u32, b: u32) -> bool {
+    // RFC 1982: a < b  iff (b - a) mod 2^32  is in (0, 2^31)
+    b.wrapping_sub(a) < (1u32 << 31)
 }
