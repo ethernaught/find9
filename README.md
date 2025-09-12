@@ -14,22 +14,22 @@ lookups.
 
 Supported Record Types
 
-| RR Type | Status  | RR Type | Status  |
-|---------|---------|---------|---------|
-| SOA     | ✅       | NS      | ✅       |
-| A       | ✅       | AAAA    | ✅       |
-| TXT     | ✅       | MX      | ✅       |
-| AXFR    | ✅       | IXFR    | Partial |
-| OPT     | Partial | CNAME   | ✅       |
-| PTR     | ✅       | SRV     | ✅       |
-| CAA     |         | CERT    |         |
-| DS      | WIP     | DNSKEY  |         |
-| LOC     | ✅       | NAPTR   | ✅       |
-| SMIMEA  | ✅       | SSHFP   | 🟨      |
-| SVCB    | ✅       | HTTPS   | ✅       |
-| TLSA    |         | URI     | ✅       |
-| HINFO   | ✅       | ANY     | ✅       |
-| RRSIG   | Partial | TSIG    | Partial |
+| RR Type | Status  | RR Type | Status                    |
+|---------|---------|---------|---------------------------|
+| SOA     | ✅       | NS      | ✅                         |
+| A       | ✅       | AAAA    | ✅                         |
+| TXT     | ✅       | MX      | ✅                         |
+| AXFR    | ✅       | IXFR    | ✅ [NO TXN CONSOLIDATIONS] |
+| OPT     | Partial | CNAME   | ✅                         |
+| PTR     | ✅       | SRV     | ✅                         |
+| CAA     |         | CERT    |                           |
+| DS      | WIP     | DNSKEY  |                           |
+| LOC     | ✅       | NAPTR   | ✅                         |
+| SMIMEA  | ✅       | SSHFP   | 🟨                        |
+| SVCB    | ✅       | HTTPS   | ✅                         |
+| TLSA    |         | URI     | ✅                         |
+| HINFO   | ✅       | ANY     | ✅                         |
+| RRSIG   | Partial | TSIG    | Partial                   |
 | TKEY    | Partial |
 
 15 / 28 Complete

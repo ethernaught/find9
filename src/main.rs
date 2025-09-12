@@ -125,7 +125,8 @@ FOR IXFR
 x - we need to modify domain registering - IE opening / reading to be within zone
 - we need to add encoding for JNL and zone files
 - we need to add transaction consolodation
-- we need to add request records to the event somehow so that we can be aware of the SOA serial
+- we need to be able to open JNL files for zones and effect SOA serial accordingly...
+x - we need to add request records to the event somehow so that we can be aware of the SOA serial
 
 */
 

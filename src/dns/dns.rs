@@ -11,6 +11,7 @@ use rlibdns::messages::inter::rr_classes::RRClasses;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::a_record::ARecord;
 use rlibdns::records::inter::record_base::RecordBase;
+use rlibdns::records::soa_record::SoaRecord;
 use rlibdns::zone::inter::zone_types::ZoneTypes;
 use rlibdns::zone::zone::Zone;
 use rlibdns::zone::zone_reader::ZoneReader;

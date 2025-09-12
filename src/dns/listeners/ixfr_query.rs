@@ -70,7 +70,7 @@ pub fn on_ixfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut RequestEvent) ->
 
                         match client_serial_opt {
                             Some(client_serial) => {
-                                if !serial_lt(client_serial, current_serial) {
+                                if client_serial >= current_serial {
                                     return Ok(());
                                 }
 
@@ -126,9 +126,4 @@ pub fn on_ixfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut RequestEvent) ->
 
         Ok(())
     }
-}
-
-fn serial_lt(a: u32, b: u32) -> bool {
-    // RFC 1982: a < b  iff (b - a) mod 2^32  is in (0, 2^31)
-    b.wrapping_sub(a) < (1u32 << 31)
 }
