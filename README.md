@@ -33,7 +33,7 @@ Supported Record Types
 | TKEY    | Partial |
 
 15 / 28 Complete
-5 Partial
+4 Partial
 
 This currently supports `.zone` files and will be moved as a library so that you can minipulate the queries to use a DB if you dont want to use a Zone file
 Not all Zone methods are working quite yet.
