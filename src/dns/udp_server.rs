@@ -90,21 +90,15 @@ impl UdpServer {
 
                     let mut event = RequestEvent::new();
                     if message.has_answers() {
-                        for (query, record) in message.get_answers_mut().drain(..) {
-                            event.request_records[0].push((query, record));
-                        }
+                        event.request_records[0] = std::mem::take(message.get_answers_mut());
                     }
 
                     if message.has_authority_records() {
-                        for (query, record) in message.get_additional_records_mut().drain(..) {
-                            event.request_records[1].push((query, record));
-                        }
+                        event.request_records[1] = std::mem::take(message.get_authority_records_mut());
                     }
 
                     if message.has_additional_records() {
-                        for (query, record) in message.get_authority_records_mut().drain(..) {
-                            event.request_records[2].push((query, record));
-                        }
+                        event.request_records[2] = std::mem::take(message.get_additional_records_mut());
                     }
 
                     for (i, query) in message.get_queries().iter().enumerate() {
