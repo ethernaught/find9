@@ -2,7 +2,7 @@ $ORIGIN find9.net.
 $TTL    604800
 
 @       IN      SOA     ns1.find9.net. admin.find9.net. (
-                              2         ; Serial
+                              4         ; Serial
                          604800         ; Refresh
                           86400         ; Retry
                         2419200         ; Expire
