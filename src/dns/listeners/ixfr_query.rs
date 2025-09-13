@@ -74,7 +74,7 @@ pub fn on_ixfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut RequestEvent) ->
                                     return Ok(());
                                 }
 
-                                let mut it = zone.get_txn_from(client_serial).peekable();
+                                let mut it = zone.get_txns_from(client_serial).peekable();
 
                                 match it.peek() {
                                     Some(_) => {
