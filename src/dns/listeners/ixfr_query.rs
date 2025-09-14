@@ -1,5 +1,6 @@
 use std::sync::{Arc, RwLock};
 use rlibdns::journal::inter::txn_op_codes::TxnOpCodes;
+use rlibdns::journal::journal::Journal;
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::inter::record_base::RecordBase;
@@ -55,7 +56,7 @@ pub fn on_ixfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut RequestEvent) ->
                         let mut current_soa = record.as_any().downcast_ref::<SoaRecord>().unwrap().clone();
                         let current_serial = current_soa.get_serial();
 
-                        let client_serial_opt = event
+                        match event
                             .get_request_authority_records()
                             .iter()
                             .find_map(|(q, r)| {
@@ -66,53 +67,52 @@ pub fn on_ixfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut RequestEvent) ->
                                 } else {
                                     None
                                 }
-                            });
-
-                        match client_serial_opt {
+                            }) {
                             Some(client_serial) => {
                                 if client_serial >= current_serial {
                                     return Ok(());
                                 }
 
-                                let mut it = zone.get_txns_from(client_serial).peekable();
+                                match zone.get_journal() {
+                                    Some(journal) => {
+                                        let mut it = journal.get_txns_from(client_serial).peekable();
 
-                                match it.peek() {
-                                    Some(_) => {
-                                        for (_, txn) in it {
-                                            current_soa.set_serial(txn.get_serial_0());
-                                            event.add_answer(&name, current_soa.clone().upcast());
+                                        match it.peek() {
+                                            Some(_) => {
+                                                for (_, txn) in it {
+                                                    current_soa.set_serial(txn.get_serial_0());
+                                                    event.add_answer(&name, current_soa.clone().upcast());
 
-                                            //DELETES
-                                            for (name, record) in txn.get_records(TxnOpCodes::Delete) {
-                                                event.add_answer(name, record.clone());
+                                                    //DELETES
+                                                    for (name, record) in txn.get_records(TxnOpCodes::Delete) {
+                                                        event.add_answer(name, record.clone());
+                                                    }
+
+                                                    current_soa.set_serial(txn.get_serial_1());
+                                                    event.add_answer(&name, current_soa.clone().upcast());
+
+                                                    //ADDS
+                                                    for (name, record) in txn.get_records(TxnOpCodes::Add) {
+                                                        event.add_answer(name, record.clone());
+                                                    }
+                                                }
+
+                                                event.add_answer(&name, current_soa.upcast());
+                                                return Ok(());
                                             }
-
-                                            current_soa.set_serial(txn.get_serial_1());
-                                            event.add_answer(&name, current_soa.clone().upcast());
-
-                                            //ADDS
-                                            for (name, record) in txn.get_records(TxnOpCodes::Add) {
-                                                event.add_answer(name, record.clone());
-                                            }
+                                            None => {}
                                         }
                                     }
-                                    None => {
-                                        //AXFR
-                                        for (n, records) in zone.get_all_records_recursive() {
-                                            for record in records {
-                                                event.add_answer(&format!("{n}{name}"), record.clone());
-                                            }
-                                        }
-                                    }
+                                    None => {}
                                 }
                             }
-                            None => {
-                                //AXFR
-                                for (n, records) in zone.get_all_records_recursive() {
-                                    for record in records {
-                                        event.add_answer(&format!("{n}{name}"), record.clone());
-                                    }
-                                }
+                            None => {}
+                        }
+
+                        //AXFR
+                        for (n, records) in zone.get_all_records_recursive() {
+                            for record in records {
+                                event.add_answer(&format!("{n}{name}"), record.clone());
                             }
                         }
 

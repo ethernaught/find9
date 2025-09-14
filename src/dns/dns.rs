@@ -3,8 +3,7 @@ use std::io;
 use std::net::{IpAddr, Ipv4Addr};
 use std::sync::{Arc, RwLock};
 use rlibdns::journal::inter::txn_op_codes::TxnOpCodes;
-use rlibdns::journal::journal_reader::JournalReader;
-use rlibdns::journal::txn::Txn;
+use rlibdns::journal::journal::Journal;
 use rlibdns::messages::inter::op_codes::OpCodes;
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_classes::RRClasses;
@@ -14,7 +13,6 @@ use rlibdns::records::inter::record_base::RecordBase;
 use rlibdns::records::soa_record::SoaRecord;
 use rlibdns::zone::inter::zone_types::ZoneTypes;
 use rlibdns::zone::zone::Zone;
-use rlibdns::zone::zone_reader::ZoneReader;
 use crate::dns::listeners::a_query::on_a_query;
 use crate::dns::listeners::aaaa_query::on_aaaa_query;
 use crate::dns::listeners::any_query::on_any_query;
@@ -125,36 +123,10 @@ impl Dns {
     }
 
     pub fn register_zone(&self, file_path: &str, domain: &str) -> io::Result<()> {
-        /*
-        let mut zone = Zone::new(ZoneTypes::Master);
-
-        let mut reader = ZoneReader::open(file_path, domain)?;
-        for (name, record) in reader.iter() {
-            match name.as_str() {
-                "." => self.zones.write().unwrap().add_record(record), //BE CAREFUL WITH THIS ONE - DONT ALLOW MOST OF THE TIME
-                "@" => zone.add_record(record),
-                //_ => zone.add_record_to(&name, record, ZoneTypes::Master)
-                _ => zone.add_record_to(&name, record, ZoneTypes::Master)
-            }
-        }
-
-        self.zones.write().unwrap().add_zone_to(&reader.get_origin(), zone, ZoneTypes::Hint);
-
-        println!("{:?}", self.zones.read().unwrap());
-        Ok(())
-        */
         self.zones.write().unwrap().open(file_path, domain)
     }
 
-
-    pub fn test(&mut self) {
-        /*
-        let mut reader = JournalReader::open("/home/brad/Downloads/db.find9.net.jnl").unwrap();
-
-        for txn in reader.iter() {
-            println!("{:?}", txn);
-            self.zones.write().unwrap().get_deepest_zone_mut("find9.net").unwrap().add_txn(txn);
-        }
-        */
+    pub fn register_journal(&mut self, file_path: &str, domain: &str) -> io::Result<()> {
+        self.zones.write().unwrap().set_journal_for(domain, Journal::open(file_path)?)
     }
 }

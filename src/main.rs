@@ -125,7 +125,7 @@ FOR IXFR
 x - we need to modify domain registering - IE opening / reading to be within zone
 - we need to add encoding for JNL and zone files
 - we need to add transaction consolodation
-- we need to be able to open JNL files for zones and effect SOA serial accordingly...
+x - we need to be able to open JNL files for zones and effect SOA serial accordingly...
 x - we need to add request records to the event somehow so that we can be aware of the SOA serial
 
 */
@@ -146,6 +146,7 @@ fn main() -> io::Result<()> {
     dns.register_zone("res/find9.net.zone", "find9.net")?;
     dns.register_zone("res/sub.find9.net.zone", "sub.find9.net")?;
     dns.register_zone("res/192.168.0.zone", "0.168.192.in-addr.arpa")?;
+    dns.register_journal("res/find9.net.zone.jnl", "find9.net")?;
     //dns.get_server().add_fallback(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)), 53));
     dns.start(6767)?;
 
@@ -153,7 +154,7 @@ fn main() -> io::Result<()> {
     println!();
     println!();
     println!();
-    dns.test();
+    //dns.test();
 
     //println!("UDP Server started on port: {}", dns.get_udp().socket.as_ref().unwrap().local_addr().unwrap().port());
     //println!("TCP Server started on port: {}", dns.get_tcp().socket.as_ref().unwrap().local_addr().unwrap().port());
