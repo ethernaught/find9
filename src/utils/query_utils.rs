@@ -8,7 +8,7 @@ use crate::dns::dns::ResponseResult;
 use crate::rpc::events::request_event::RequestEvent;
 
 pub fn chain_cname(store: &Arc<RwLock<ZoneStore>>, event: &mut RequestEvent, name: &str, depth: u8) -> ResponseResult<String> {
-    match store.read().unwrap().get_deepest_zone(&name) {
+    match store.read().unwrap().get_zone_exact(&name) {
         Some(zone) => {
             match zone.get_records(&RRTypes::CName) {
                 Some(records) => {
@@ -17,8 +17,9 @@ pub fn chain_cname(store: &Arc<RwLock<ZoneStore>>, event: &mut RequestEvent, nam
                     }
 
                     let record = records.get(0).unwrap();
+                    let response = chain_cname(store, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), depth+1)?;
                     event.add_answer(&name, record.clone());
-                    chain_cname(store, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), depth+1)
+                    Ok(response)
                 }
                 None => Ok(name.to_string())
             }
@@ -40,8 +41,8 @@ pub fn chain_cname(store: &Arc<RwLock<ZoneStore>>, event: &mut RequestEvent, nam
 }
 
 pub fn add_glue(store: &Arc<RwLock<ZoneStore>>, event: &mut RequestEvent, name: &str) {
-    match store.read().unwrap().get_deepest_zone_with_name(&name) {
-        Some((name, zone)) => {
+    match store.read().unwrap().get_zone_exact(&name) {
+        Some(zone) => {
             match zone.get_records(&RRTypes::A) {
                 Some(records) => {
                     event.add_additional_record(&name, records.first().unwrap().clone());
@@ -52,8 +53,8 @@ pub fn add_glue(store: &Arc<RwLock<ZoneStore>>, event: &mut RequestEvent, name: 
         None => {}
     }
 
-    match store.read().unwrap().get_deepest_zone_with_name(&name) {
-        Some((name, zone)) => {
+    match store.read().unwrap().get_zone_exact(&name) {
+        Some(zone) => {
             match zone.get_records(&RRTypes::Aaaa) {
                 Some(records) => {
                     event.add_additional_record(&name, records.first().unwrap().clone());

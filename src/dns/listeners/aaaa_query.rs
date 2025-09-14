@@ -22,8 +22,8 @@ pub fn on_aaaa_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEven
                         event.set_authoritative(zone.is_authority());
 
                         let record = records.first().unwrap();
-                        event.add_answer(&name, record.clone());
                         let target = chain_cname(&store, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), 0)?;
+                        event.add_answer(&name, record.clone());
 
                         match store.read().unwrap().get_deepest_zone(&target) {
                             Some(zone) => {

@@ -1,17 +1,17 @@
 use std::sync::{Arc, RwLock};
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
-use rlibdns::zone::zone::Zone;
+use rlibdns::zone::zone_store::ZoneStore;
 use crate::dns::dns::ResponseResult;
 use crate::rpc::events::request_event::RequestEvent;
 
-pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut RequestEvent) -> ResponseResult<()> {
-    let zones = zones.clone();
+pub fn on_axfr_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEvent) -> ResponseResult<()> {
+    let store = store.clone();
 
     move |event| {
         let name = event.get_query().get_name().to_string();
 
-        match zones.read().unwrap().get_deepest_zone(&name) {
+        match store.read().unwrap().get_zone_exact(&name) {
             Some(zone) => {
                 event.set_authoritative(zone.is_authority());
 
@@ -20,6 +20,8 @@ pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut RequestEvent) ->
                         let record = records.first().unwrap();
                         event.add_answer(&name, record.clone());
 
+
+                        /*
                         for (n, records) in zone.get_all_records_recursive() {
                             for record in records {
                                 event.add_answer(&format!("{n}{name}"), record.clone());
@@ -29,6 +31,7 @@ pub fn on_axfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut RequestEvent) ->
                                 //}
                             }
                         }
+                        */
 
                         event.add_answer(&name, record.clone());
                     }

@@ -6,7 +6,7 @@ use std::{io, thread};
 use crate::dns::dns::Dns;
 
 pub const BOGON_ALLOWED: bool = true;
-pub const ANY_QUERY_ALLOWED: bool = false;
+pub const ANY_QUERY_ALLOWED: bool = true;
 pub const MAX_CNAME_CHAIN_SIZE: u8 = 10;
 pub const MAX_QUERIES: usize = 1;
 pub const MAX_ANSWERS: usize = 3;

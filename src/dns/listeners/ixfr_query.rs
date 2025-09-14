@@ -5,17 +5,17 @@ use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::inter::record_base::RecordBase;
 use rlibdns::records::soa_record::SoaRecord;
-use rlibdns::zone::zone::Zone;
+use rlibdns::zone::zone_store::ZoneStore;
 use crate::dns::dns::ResponseResult;
 use crate::rpc::events::request_event::RequestEvent;
 
-pub fn on_ixfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut RequestEvent) -> ResponseResult<()> {
-    let zones = zones.clone();
+pub fn on_ixfr_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEvent) -> ResponseResult<()> {
+    let store = store.clone();
 
     move |event| {
         let name = event.get_query().get_name().to_string();
 
-        match zones.read().unwrap().get_deepest_zone(&name) {
+        match store.read().unwrap().get_zone_exact(&name) {
             Some(zone) => {
                 event.set_authoritative(zone.is_authority());
 
@@ -55,6 +55,10 @@ pub fn on_ixfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut RequestEvent) ->
 
                         let mut current_soa = record.as_any().downcast_ref::<SoaRecord>().unwrap().clone();
                         let current_serial = current_soa.get_serial();
+
+
+
+                        /*
 
                         match event
                             .get_request_authority_records()
@@ -115,6 +119,8 @@ pub fn on_ixfr_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut RequestEvent) ->
                                 event.add_answer(&format!("{n}{name}"), record.clone());
                             }
                         }
+
+                        */
 
                         event.add_answer(&name, current_soa.upcast());
                     }
