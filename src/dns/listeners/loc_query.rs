@@ -18,11 +18,11 @@ pub fn on_uri_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEvent
             Some(zone) => {
                 match zone.get_records(&RRTypes::CName) {
                     Some(records) => {
-                        event.set_authoritative(zone.is_authority());
-
                         let record = records.first().unwrap();
                         let target = chain_cname(&store, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), 0)?;
                         event.add_answer(&name, record.clone());
+
+                        event.set_authoritative(zone.is_authority());
 
                         match store.read().unwrap().get_deepest_zone(&target) {
                             Some(zone) => {
