@@ -146,7 +146,7 @@ fn main() -> io::Result<()> {
     dns.register_zone("res/find9.net.zone", "find9.net")?;
     dns.register_zone("res/sub.find9.net.zone", "sub.find9.net")?;
     dns.register_zone("res/192.168.0.zone", "0.168.192.in-addr.arpa")?;
-    dns.register_journal("res/find9.net.zone.jnl", "find9.net")?;
+    //dns.register_journal("res/find9.net.zone.jnl", "find9.net")?;
     //dns.get_server().add_fallback(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)), 53));
     dns.start(6767)?;
 

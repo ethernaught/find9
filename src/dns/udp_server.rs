@@ -109,17 +109,7 @@ impl UdpServer {
                         if let Some(callback) = query_mapping.read().unwrap().get(&(message.get_op_code(), query.get_type())) {
                             event.query = Some(query.clone());
 
-                            match callback(&mut event) {
-                                Ok(_) => {
-                                    if event.is_prevent_default() {
-                                        return;
-                                    }
-                                }
-                                Err(e) => {
-                                    response.set_response_code(e);
-                                    break;
-                                }
-                            }
+                            let callback = callback(&mut event);
 
                             response.add_query(query.clone());
                             response.set_authoritative(event.is_authoritative());
@@ -139,6 +129,18 @@ impl UdpServer {
                             if event.has_additional_records() {
                                 for (query, record) in event.response_records[2].drain(..) {
                                     response.add_additional_record(&query, record);
+                                }
+                            }
+
+                            match callback {
+                                Ok(_) => {
+                                    if event.is_prevent_default() {
+                                        return;
+                                    }
+                                }
+                                Err(e) => {
+                                    response.set_response_code(e);
+                                    break;
                                 }
                             }
                         }

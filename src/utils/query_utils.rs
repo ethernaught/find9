@@ -2,13 +2,13 @@ use std::sync::{Arc, RwLock};
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::cname_record::CNameRecord;
-use rlibdns::zone::zone::Zone;
+use rlibdns::zone::zone_store::ZoneStore;
 use crate::{MAX_ANSWERS, MAX_CNAME_CHAIN_SIZE};
 use crate::dns::dns::ResponseResult;
 use crate::rpc::events::request_event::RequestEvent;
 
-pub fn chain_cname(zones: &Arc<RwLock<Zone>>, event: &mut RequestEvent, name: &str, depth: u8) -> ResponseResult<String> {
-    match zones.read().unwrap().get_deepest_zone(&name) {
+pub fn chain_cname(store: &Arc<RwLock<ZoneStore>>, event: &mut RequestEvent, name: &str, depth: u8) -> ResponseResult<String> {
+    match store.read().unwrap().get_deepest_zone(&name) {
         Some(zone) => {
             match zone.get_records(&RRTypes::CName) {
                 Some(records) => {
@@ -18,13 +18,13 @@ pub fn chain_cname(zones: &Arc<RwLock<Zone>>, event: &mut RequestEvent, name: &s
 
                     let record = records.get(0).unwrap();
                     event.add_answer(&name, record.clone());
-                    chain_cname(zones, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), depth+1)
+                    chain_cname(store, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), depth+1)
                 }
                 None => Ok(name.to_string())
             }
         }
         None => {
-            match zones.read().unwrap().get_deepest_zone_with_records(&event.get_query().get_name(), &RRTypes::Soa) {
+            match store.read().unwrap().get_deepest_zone_with_name(&name) {
                 Some((name, zone)) => {
                     for record in zone.get_records(&RRTypes::Soa)
                             .ok_or(ResponseCodes::Refused)?.iter().take(MAX_ANSWERS) {
@@ -39,8 +39,8 @@ pub fn chain_cname(zones: &Arc<RwLock<Zone>>, event: &mut RequestEvent, name: &s
     }
 }
 
-pub fn add_glue(zones: &Arc<RwLock<Zone>>, event: &mut RequestEvent, name: &str) {
-    match zones.read().unwrap().get_deepest_zone_with_records(&name, &RRTypes::A) {
+pub fn add_glue(store: &Arc<RwLock<ZoneStore>>, event: &mut RequestEvent, name: &str) {
+    match store.read().unwrap().get_deepest_zone_with_name(&name) {
         Some((name, zone)) => {
             match zone.get_records(&RRTypes::A) {
                 Some(records) => {
@@ -52,7 +52,7 @@ pub fn add_glue(zones: &Arc<RwLock<Zone>>, event: &mut RequestEvent, name: &str)
         None => {}
     }
 
-    match zones.read().unwrap().get_deepest_zone_with_records(&name, &RRTypes::Aaaa) {
+    match store.read().unwrap().get_deepest_zone_with_name(&name) {
         Some((name, zone)) => {
             match zone.get_records(&RRTypes::Aaaa) {
                 Some(records) => {
