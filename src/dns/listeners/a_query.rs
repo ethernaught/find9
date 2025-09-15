@@ -2,7 +2,9 @@ use std::sync::{Arc, RwLock};
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::cname_record::CNameRecord;
+use rlibdns::records::inter::record_base::RecordBase;
 use rlibdns::records::ns_record::NsRecord;
+use rlibdns::utils::fqdn_utils::fqdn_to_relative;
 use rlibdns::zone::zone_store::ZoneStore;
 use crate::dns::dns::ResponseResult;
 use crate::MAX_ANSWERS;
@@ -13,12 +15,42 @@ pub fn on_a_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEvent) 
     let store = store.clone();
 
     move |event| {
-        let name = event.get_query().get_name().to_string();
+        let name = event.get_query().get_fqdn().to_string();
 
-        match store.read().unwrap().get_zone_exact(&name) {
-            Some(zone) => {
-                match zone.get_records(&RRTypes::CName) {
+        match store.read().unwrap().get_deepest_zone_with_name(&name) {
+            Some((apex, zone)) => {
+                let sub = fqdn_to_relative(&apex, &name).unwrap();
+                println!("{sub}");
+
+                match zone.get_records(&sub, &RRTypes::CName) {
                     Some(records) => {
+                        let record = records.first().unwrap();
+                        event.add_answer(&name, record.clone());
+                        let target = chain_cname(&apex, zone, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), 0)?;
+
+                        event.set_authoritative(zone.is_authority());
+
+                        let sub = fqdn_to_relative(&apex, &target).unwrap();
+                        println!("{sub}");
+                        match zone.get_records(&sub, &event.get_query().get_type()) {
+                            Some(records) => {
+                                for record in records.iter().take(MAX_ANSWERS) {
+                                    event.add_answer(&target, record.clone());
+                                }
+                            }
+                            None => {
+                                match zone.get_records(&sub, &RRTypes::Ns) {
+                                    Some(records) => {
+                                        for record in records.iter().take(MAX_ANSWERS) {
+                                            event.add_authority_record(&target, record.clone());
+                                        }
+                                    }
+                                    None => {}
+                                }
+                            }
+                        }
+
+                        /*
                         let record = records.first().unwrap();
                         let target = chain_cname(&store, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), 0)?;
                         event.add_answer(&name, record.clone());
@@ -47,9 +79,10 @@ pub fn on_a_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEvent) 
                             }
                             None => {}
                         }
+                        */
                     }
                     None => {
-                        match zone.get_records(&event.get_query().get_type()) {
+                        match zone.get_records("", &event.get_query().get_type()) {
                             Some(records) => {
                                 event.set_authoritative(zone.is_authority());
 
@@ -58,7 +91,7 @@ pub fn on_a_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEvent) 
                                 }
                             }
                             None => {
-                                match zone.get_records(&RRTypes::Ns) {
+                                match zone.get_records("", &RRTypes::Ns) {
                                     Some(records) => {
                                         for record in records.iter().take(MAX_ANSWERS) {
                                             event.add_authority_record(&name, record.clone());
@@ -73,6 +106,7 @@ pub fn on_a_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEvent) 
                 }
             }
             None => {
+                /*
                 return match store.read().unwrap().get_deepest_zone_with_name(&name) {
                     Some((name, zone)) => {
                         event.set_authoritative(zone.is_authority());
@@ -81,7 +115,7 @@ pub fn on_a_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEvent) 
                         Err(ResponseCodes::NxDomain)
                     }
                     None => Err(ResponseCodes::Refused)
-                }
+                }*/
             }
         }
 

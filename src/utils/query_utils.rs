@@ -2,12 +2,32 @@ use std::sync::{Arc, RwLock};
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::cname_record::CNameRecord;
+use rlibdns::records::inter::record_base::RecordBase;
+use rlibdns::utils::fqdn_utils::fqdn_to_relative;
+use rlibdns::zone::zone::Zone;
 use rlibdns::zone::zone_store::ZoneStore;
 use crate::{MAX_ANSWERS, MAX_CNAME_CHAIN_SIZE};
 use crate::dns::dns::ResponseResult;
 use crate::rpc::events::request_event::RequestEvent;
 
-pub fn chain_cname(store: &Arc<RwLock<ZoneStore>>, event: &mut RequestEvent, name: &str, depth: u8) -> ResponseResult<String> {
+pub fn chain_cname(apex: &str, zone: &Zone, event: &mut RequestEvent, name: &str, depth: u8) -> ResponseResult<String> {
+    let sub = fqdn_to_relative(apex, name).unwrap();
+
+    match zone.get_records(&sub, &RRTypes::CName) {
+        Some(records) => {
+            if depth+1 >= MAX_CNAME_CHAIN_SIZE {
+                return Err(ResponseCodes::ServFail);
+            }
+
+            let record = records.get(0).unwrap();
+            event.add_answer(&name, record.clone());
+            let response = chain_cname(apex, zone, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), depth+1)?;
+            Ok(response)
+        }
+        None => Ok(name.to_string())
+    }
+
+    /*
     match store.read().unwrap().get_zone_exact(&name) {
         Some(zone) => {
             match zone.get_records(&RRTypes::CName) {
@@ -37,10 +57,11 @@ pub fn chain_cname(store: &Arc<RwLock<ZoneStore>>, event: &mut RequestEvent, nam
 
             Err(ResponseCodes::NxDomain)
         }
-    }
+    }*/
+    //Ok("".to_string())
 }
 
-pub fn add_glue(store: &Arc<RwLock<ZoneStore>>, event: &mut RequestEvent, name: &str) {
+pub fn add_glue(store: &Arc<RwLock<ZoneStore>>, event: &mut RequestEvent, name: &str) {/*
     match store.read().unwrap().get_zone_exact(&name) {
         Some(zone) => {
             match zone.get_records(&RRTypes::A) {
@@ -63,5 +84,5 @@ pub fn add_glue(store: &Arc<RwLock<ZoneStore>>, event: &mut RequestEvent, name: 
             }
         }
         None => {}
-    }
+    }*/
 }

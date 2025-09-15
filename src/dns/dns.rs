@@ -14,7 +14,7 @@ use rlibdns::records::soa_record::SoaRecord;
 use rlibdns::zone::inter::zone_types::ZoneTypes;
 use rlibdns::zone::zone::Zone;
 use rlibdns::zone::zone_store::ZoneStore;
-use crate::dns::listeners::a_query::on_a_query;
+use crate::dns::listeners::a_query::on_a_query;/*
 use crate::dns::listeners::aaaa_query::on_aaaa_query;
 use crate::dns::listeners::any_query::on_any_query;
 use crate::dns::listeners::axfr_query::on_axfr_query;
@@ -32,7 +32,7 @@ use crate::dns::listeners::srv_query::on_srv_query;
 use crate::dns::listeners::sshfp_query::on_sshfp_query;
 use crate::dns::listeners::svcb_query::on_svcb_query;
 use crate::dns::listeners::txt_query::on_txt_query;
-use crate::dns::listeners::uri_query::on_loc_query;
+use crate::dns::listeners::uri_query::on_loc_query;*/
 use crate::dns::server::Server;
 use crate::dns::tcp_server::TcpServer;
 use crate::dns::udp_server::UdpServer;
@@ -53,7 +53,7 @@ impl Dns {
         let store = Arc::new(RwLock::new(ZoneStore::new()));
 
         let udp = UdpServer::new();
-        udp.register_request_listener(OpCodes::Query, RRTypes::A, on_a_query(&store));
+        udp.register_request_listener(OpCodes::Query, RRTypes::A, on_a_query(&store));/*
         udp.register_request_listener(OpCodes::Query, RRTypes::Aaaa, on_aaaa_query(&store));
         udp.register_request_listener(OpCodes::Query, RRTypes::Ns, on_ns_query(&store));
         udp.register_request_listener(OpCodes::Query, RRTypes::Txt, on_txt_query(&store));
@@ -70,10 +70,10 @@ impl Dns {
         udp.register_request_listener(OpCodes::Query, RRTypes::Loc, on_loc_query(&store));
         
         udp.register_request_listener(OpCodes::Query, RRTypes::Soa, on_soa_query(&store));
-        udp.register_request_listener(OpCodes::Query, RRTypes::Any, on_any_query(&store));
+        udp.register_request_listener(OpCodes::Query, RRTypes::Any, on_any_query(&store));*/
 
         let tcp = TcpServer::new();
-        tcp.register_request_listener(OpCodes::Query, RRTypes::A, on_a_query(&store));
+        tcp.register_request_listener(OpCodes::Query, RRTypes::A, on_a_query(&store));/*
         tcp.register_request_listener(OpCodes::Query, RRTypes::Aaaa, on_aaaa_query(&store));
         tcp.register_request_listener(OpCodes::Query, RRTypes::Ns, on_ns_query(&store));
         tcp.register_request_listener(OpCodes::Query, RRTypes::Txt, on_txt_query(&store));
@@ -92,7 +92,7 @@ impl Dns {
         tcp.register_request_listener(OpCodes::Query, RRTypes::Soa, on_soa_query(&store));
         tcp.register_request_listener(OpCodes::Query, RRTypes::Axfr, on_axfr_query(&store));
         tcp.register_request_listener(OpCodes::Query, RRTypes::Ixfr, on_ixfr_query(&store));
-        tcp.register_request_listener(OpCodes::Query, RRTypes::Any, on_any_query(&store));
+        tcp.register_request_listener(OpCodes::Query, RRTypes::Any, on_any_query(&store));*/
 
         Self {
             store,
