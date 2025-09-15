@@ -14,8 +14,8 @@ use rlibdns::records::soa_record::SoaRecord;
 use rlibdns::zone::inter::zone_types::ZoneTypes;
 use rlibdns::zone::zone::Zone;
 use rlibdns::zone::zone_store::ZoneStore;
-use crate::dns::listeners::a_query::on_a_query;/*
-use crate::dns::listeners::aaaa_query::on_aaaa_query;
+use crate::dns::listeners::a_query::on_a_query;
+use crate::dns::listeners::aaaa_query::on_aaaa_query;/*
 use crate::dns::listeners::any_query::on_any_query;
 use crate::dns::listeners::axfr_query::on_axfr_query;
 use crate::dns::listeners::cname_query::on_cname_query;
@@ -53,8 +53,8 @@ impl Dns {
         let store = Arc::new(RwLock::new(ZoneStore::new()));
 
         let udp = UdpServer::new();
-        udp.register_request_listener(OpCodes::Query, RRTypes::A, on_a_query(&store));/*
-        udp.register_request_listener(OpCodes::Query, RRTypes::Aaaa, on_aaaa_query(&store));
+        udp.register_request_listener(OpCodes::Query, RRTypes::A, on_a_query(&store));
+        udp.register_request_listener(OpCodes::Query, RRTypes::Aaaa, on_aaaa_query(&store));/*
         udp.register_request_listener(OpCodes::Query, RRTypes::Ns, on_ns_query(&store));
         udp.register_request_listener(OpCodes::Query, RRTypes::Txt, on_txt_query(&store));
         udp.register_request_listener(OpCodes::Query, RRTypes::Mx, on_mx_query(&store)); //TEST
@@ -73,8 +73,8 @@ impl Dns {
         udp.register_request_listener(OpCodes::Query, RRTypes::Any, on_any_query(&store));*/
 
         let tcp = TcpServer::new();
-        tcp.register_request_listener(OpCodes::Query, RRTypes::A, on_a_query(&store));/*
-        tcp.register_request_listener(OpCodes::Query, RRTypes::Aaaa, on_aaaa_query(&store));
+        tcp.register_request_listener(OpCodes::Query, RRTypes::A, on_a_query(&store));
+        tcp.register_request_listener(OpCodes::Query, RRTypes::Aaaa, on_aaaa_query(&store));/*
         tcp.register_request_listener(OpCodes::Query, RRTypes::Ns, on_ns_query(&store));
         tcp.register_request_listener(OpCodes::Query, RRTypes::Txt, on_txt_query(&store));
         tcp.register_request_listener(OpCodes::Query, RRTypes::Mx, on_mx_query(&store)); //TEST
