@@ -56,18 +56,21 @@ pub fn on_aaaa_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEven
                                 }
                             }
                             None => {
-                                match zone.get_records(&sub, &RRTypes::Ns) {
+                                match zone.get_records(&sub, &RRTypes::Soa) {
                                     Some(records) => {
-                                        for record in records.iter().take(MAX_ANSWERS) {
-                                            event.add_authority_record(&name, record.clone());
-                                            add_glue(zone, &apex, event, &record.as_any().downcast_ref::<NsRecord>().unwrap().get_server().unwrap());
-                                        }
+                                        event.set_authoritative(zone.is_authority());
+                                        event.add_authority_record(&apex, records.first().unwrap().clone());
                                     }
                                     None => {
-                                        event.set_authoritative(zone.is_authority());
-                                        event.add_authority_record(&apex, zone.get_records("", &RRTypes::Soa)
-                                            .ok_or(ResponseCodes::Refused)?.first().unwrap().clone());
-                                        return Err(ResponseCodes::NxDomain);
+                                        match zone.get_records(&sub, &RRTypes::Ns) {
+                                            Some(records) => {
+                                                for record in records.iter().take(MAX_ANSWERS) {
+                                                    event.add_authority_record(&name, record.clone());
+                                                    add_glue(zone, &apex, event, &record.as_any().downcast_ref::<NsRecord>().unwrap().get_server().unwrap());
+                                                }
+                                            }
+                                            None => {}
+                                        }
                                     }
                                 }
                             }
