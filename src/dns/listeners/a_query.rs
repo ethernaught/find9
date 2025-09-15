@@ -79,7 +79,7 @@ pub fn on_a_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEvent) 
                 return match store.read().unwrap().get_deepest_zone_with_name(&name) {
                     Some((apex, zone)) => {
                         event.set_authoritative(zone.is_authority());
-                        event.add_authority_record(&apex, zone.get_records(&fqdn_to_relative(&apex, &name).unwrap(), &RRTypes::Soa)
+                        event.add_authority_record(&apex, zone.get_records("", &RRTypes::Soa)
                             .ok_or(ResponseCodes::Refused)?.first().unwrap().clone());
                         Err(ResponseCodes::NxDomain)
                     }
