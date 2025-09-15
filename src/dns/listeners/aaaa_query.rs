@@ -56,12 +56,17 @@ pub fn on_aaaa_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEven
                                 }
                             }
                             None => {
-                                match zone.get_records(&sub, &RRTypes::Soa) {
-                                    Some(records) => {
-                                        event.set_authoritative(zone.is_authority());
-                                        event.add_authority_record(&apex, records.first().unwrap().clone());
+                                match sub.is_empty() {
+                                    true => {
+                                        match zone.get_records("", &RRTypes::Soa) {
+                                            Some(records) => {
+                                                event.set_authoritative(zone.is_authority());
+                                                event.add_authority_record(&apex, records.first().unwrap().clone());
+                                            }
+                                            None => {}
+                                        }
                                     }
-                                    None => {
+                                    false => {
                                         match zone.get_records(&sub, &RRTypes::Ns) {
                                             Some(records) => {
                                                 for record in records.iter().take(MAX_ANSWERS) {
@@ -69,7 +74,15 @@ pub fn on_aaaa_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEven
                                                     add_glue(zone, &apex, event, &record.as_any().downcast_ref::<NsRecord>().unwrap().get_server().unwrap());
                                                 }
                                             }
-                                            None => {}
+                                            None => {
+                                                match zone.get_records("", &RRTypes::Soa) {
+                                                    Some(records) => {
+                                                        event.set_authoritative(zone.is_authority());
+                                                        event.add_authority_record(&apex, records.first().unwrap().clone());
+                                                    }
+                                                    None => {}
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -78,17 +91,7 @@ pub fn on_aaaa_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEven
                     }
                 }
             }
-            None => {
-                return match store.read().unwrap().get_deepest_zone_with_name(&name) {
-                    Some((apex, zone)) => {
-                        event.set_authoritative(zone.is_authority());
-                        event.add_authority_record(&apex, zone.get_records("", &RRTypes::Soa)
-                            .ok_or(ResponseCodes::Refused)?.first().unwrap().clone());
-                        Err(ResponseCodes::NxDomain)
-                    }
-                    None => Err(ResponseCodes::Refused)
-                };
-            }
+            None => return Err(ResponseCodes::Refused)
         }
 
         Ok(())
