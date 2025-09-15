@@ -2,7 +2,6 @@ use std::sync::{Arc, RwLock};
 use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_types::RRTypes;
 use rlibdns::records::cname_record::CNameRecord;
-use rlibdns::records::inter::record_base::RecordBase;
 use rlibdns::records::ns_record::NsRecord;
 use rlibdns::utils::fqdn_utils::fqdn_to_relative;
 use rlibdns::zone::zone_store::ZoneStore;
@@ -20,7 +19,6 @@ pub fn on_a_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEvent) 
         match store.read().unwrap().get_deepest_zone_with_name(&name) {
             Some((apex, zone)) => {
                 let sub = fqdn_to_relative(&apex, &name).unwrap();
-
                 match zone.get_records(&sub, &RRTypes::CName) {
                     Some(records) => {
                         let record = records.first().unwrap();
@@ -47,40 +45,9 @@ pub fn on_a_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEvent) 
                                 }
                             }
                         }
-
-                        /*
-                        let record = records.first().unwrap();
-                        let target = chain_cname(&store, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), 0)?;
-                        event.add_answer(&name, record.clone());
-
-                        event.set_authoritative(zone.is_authority());
-
-                        match store.read().unwrap().get_deepest_zone(&target) {
-                            Some(zone) => {
-                                match zone.get_records(&event.get_query().get_type()) {
-                                    Some(records) => {
-                                        for record in records.iter().take(MAX_ANSWERS) {
-                                            event.add_answer(&target, record.clone());
-                                        }
-                                    }
-                                    None => {
-                                        match zone.get_records(&RRTypes::Ns) {
-                                            Some(records) => {
-                                                for record in records.iter().take(MAX_ANSWERS) {
-                                                    event.add_authority_record(&target, record.clone());
-                                                }
-                                            }
-                                            None => {}
-                                        }
-                                    }
-                                }
-                            }
-                            None => {}
-                        }
-                        */
                     }
                     None => {
-                        match zone.get_records("", &event.get_query().get_type()) {
+                        match zone.get_records(&sub, &event.get_query().get_type()) {
                             Some(records) => {
                                 event.set_authoritative(zone.is_authority());
 
@@ -89,6 +56,7 @@ pub fn on_a_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEvent) 
                                 }
                             }
                             None => {
+                                /*
                                 match zone.get_records("", &RRTypes::Ns) {
                                     Some(records) => {
                                         for record in records.iter().take(MAX_ANSWERS) {
@@ -97,23 +65,26 @@ pub fn on_a_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEvent) 
                                         }
                                     }
                                     None => return Err(ResponseCodes::Refused)
-                                }
+                                }*/
+                                event.set_authoritative(zone.is_authority());
+                                event.add_authority_record(&apex, zone.get_records("", &RRTypes::Soa)
+                                    .ok_or(ResponseCodes::Refused)?.first().unwrap().clone());
+                                return Err(ResponseCodes::NxDomain);
                             }
                         }
                     }
                 }
             }
             None => {
-                /*
                 return match store.read().unwrap().get_deepest_zone_with_name(&name) {
-                    Some((name, zone)) => {
+                    Some((apex, zone)) => {
                         event.set_authoritative(zone.is_authority());
-                        event.add_authority_record(&name, zone.get_records(&RRTypes::Soa)
+                        event.add_authority_record(&apex, zone.get_records(&fqdn_to_relative(&apex, &name).unwrap(), &RRTypes::Soa)
                             .ok_or(ResponseCodes::Refused)?.first().unwrap().clone());
                         Err(ResponseCodes::NxDomain)
                     }
                     None => Err(ResponseCodes::Refused)
-                }*/
+                };
             }
         }
 
