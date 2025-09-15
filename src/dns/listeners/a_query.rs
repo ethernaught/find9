@@ -20,7 +20,6 @@ pub fn on_a_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEvent) 
         match store.read().unwrap().get_deepest_zone_with_name(&name) {
             Some((apex, zone)) => {
                 let sub = fqdn_to_relative(&apex, &name).unwrap();
-                println!("{sub}");
 
                 match zone.get_records(&sub, &RRTypes::CName) {
                     Some(records) => {
@@ -31,7 +30,6 @@ pub fn on_a_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEvent) 
                         event.set_authoritative(zone.is_authority());
 
                         let sub = fqdn_to_relative(&apex, &target).unwrap();
-                        println!("{sub}");
                         match zone.get_records(&sub, &event.get_query().get_type()) {
                             Some(records) => {
                                 for record in records.iter().take(MAX_ANSWERS) {
@@ -95,7 +93,7 @@ pub fn on_a_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEvent) 
                                     Some(records) => {
                                         for record in records.iter().take(MAX_ANSWERS) {
                                             event.add_authority_record(&name, record.clone());
-                                            add_glue(&store, event, &record.as_any().downcast_ref::<NsRecord>().unwrap().get_server().unwrap());
+                                            add_glue(zone, &apex, event, &record.as_any().downcast_ref::<NsRecord>().unwrap().get_server().unwrap());
                                         }
                                     }
                                     None => return Err(ResponseCodes::Refused)

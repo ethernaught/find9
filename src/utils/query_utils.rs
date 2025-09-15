@@ -61,7 +61,23 @@ pub fn chain_cname(apex: &str, zone: &Zone, event: &mut RequestEvent, name: &str
     //Ok("".to_string())
 }
 
-pub fn add_glue(store: &Arc<RwLock<ZoneStore>>, event: &mut RequestEvent, name: &str) {/*
+pub fn add_glue(zone: &Zone, apex: &str, event: &mut RequestEvent, name: &str) {
+    let sub = fqdn_to_relative(apex, name).unwrap();
+
+    match zone.get_records(&sub, &RRTypes::A) {
+        Some(records) => {
+            event.add_additional_record(&name, records.first().unwrap().clone());
+        }
+        None => {}
+    }
+
+    match zone.get_records(&sub, &RRTypes::Aaaa) {
+        Some(records) => {
+            event.add_additional_record(&name, records.first().unwrap().clone());
+        }
+        None => {}
+    }
+    /*
     match store.read().unwrap().get_zone_exact(&name) {
         Some(zone) => {
             match zone.get_records(&RRTypes::A) {
