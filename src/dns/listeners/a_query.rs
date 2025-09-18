@@ -35,6 +35,7 @@ pub fn on_a_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEvent) 
                                 }
                             }
                             None => {
+                                /*
                                 match zone.get_records(&sub, &RRTypes::Ns) {
                                     Some(records) => {
                                         for record in records.iter().take(MAX_ANSWERS) {
@@ -43,6 +44,7 @@ pub fn on_a_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEvent) 
                                     }
                                     None => {}
                                 }
+                                */
                             }
                         }
                     }
