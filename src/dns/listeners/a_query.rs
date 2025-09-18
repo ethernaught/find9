@@ -23,7 +23,7 @@ pub fn on_a_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEvent) 
                     Some(records) => {
                         let record = records.first().unwrap();
                         event.add_answer(&name, record.clone());
-                        let target = chain_cname(&apex, zone, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), 0)?;
+                        let target = chain_cname(zone, &apex, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), 0)?;
 
                         event.set_authoritative(zone.is_authority());
 

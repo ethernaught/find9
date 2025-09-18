@@ -10,7 +10,7 @@ use crate::{MAX_ANSWERS, MAX_CNAME_CHAIN_SIZE};
 use crate::dns::dns::ResponseResult;
 use crate::rpc::events::request_event::RequestEvent;
 
-pub fn chain_cname(apex: &str, zone: &Zone, event: &mut RequestEvent, name: &str, depth: u8) -> ResponseResult<String> {
+pub fn chain_cname(zone: &Zone, apex: &str, event: &mut RequestEvent, name: &str, depth: u8) -> ResponseResult<String> {
     let sub = fqdn_to_relative(apex, name).unwrap();
 
     match zone.get_records(&sub, &RRTypes::CName) {
@@ -21,7 +21,7 @@ pub fn chain_cname(apex: &str, zone: &Zone, event: &mut RequestEvent, name: &str
 
             let record = records.get(0).unwrap();
             event.add_answer(&name, record.clone());
-            let response = chain_cname(apex, zone, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), depth+1)?;
+            let response = chain_cname(zone, apex, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), depth+1)?;
             Ok(response)
         }
         None => Ok(name.to_string())
