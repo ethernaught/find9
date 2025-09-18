@@ -90,6 +90,9 @@ pub fn on_a_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEvent) 
                         }
                     }
                 }
+
+
+
             }
             None => return Err(ResponseCodes::Refused)
         }

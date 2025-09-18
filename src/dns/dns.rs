@@ -54,7 +54,7 @@ impl Dns {
 
         let udp = UdpServer::new();
         udp.register_request_listener(OpCodes::Query, RRTypes::A, on_a_query(&store));
-        udp.register_request_listener(OpCodes::Query, RRTypes::Aaaa, on_aaaa_query(&store));/*
+        udp.register_request_listener(OpCodes::Query, RRTypes::Aaaa, on_a_query(&store));/*
         udp.register_request_listener(OpCodes::Query, RRTypes::Ns, on_ns_query(&store));
         udp.register_request_listener(OpCodes::Query, RRTypes::Txt, on_txt_query(&store));
         udp.register_request_listener(OpCodes::Query, RRTypes::Mx, on_mx_query(&store)); //TEST
@@ -74,7 +74,7 @@ impl Dns {
 
         let tcp = TcpServer::new();
         tcp.register_request_listener(OpCodes::Query, RRTypes::A, on_a_query(&store));
-        tcp.register_request_listener(OpCodes::Query, RRTypes::Aaaa, on_aaaa_query(&store));/*
+        tcp.register_request_listener(OpCodes::Query, RRTypes::Aaaa, on_a_query(&store));/*
         tcp.register_request_listener(OpCodes::Query, RRTypes::Ns, on_ns_query(&store));
         tcp.register_request_listener(OpCodes::Query, RRTypes::Txt, on_txt_query(&store));
         tcp.register_request_listener(OpCodes::Query, RRTypes::Mx, on_mx_query(&store)); //TEST
