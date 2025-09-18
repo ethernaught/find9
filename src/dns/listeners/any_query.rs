@@ -3,18 +3,18 @@ use rlibdns::messages::inter::response_codes::ResponseCodes;
 use rlibdns::messages::inter::rr_classes::RRClasses;
 use rlibdns::records::hinfo_record::HInfoRecord;
 use rlibdns::records::inter::record_base::RecordBase;
-use rlibdns::zone::zone::Zone;
+use rlibdns::zone::zone_store::ZoneStore;
 use crate::dns::dns::ResponseResult;
 use crate::{ANY_QUERY_ALLOWED, MAX_ANSWERS};
 use crate::rpc::events::request_event::RequestEvent;
 
-pub fn on_any_query(zones: &Arc<RwLock<Zone>>) -> impl Fn(&mut RequestEvent) -> ResponseResult<()> {
-    let zones = zones.clone();
+pub fn on_any_query(store: &Arc<RwLock<ZoneStore>>) -> impl Fn(&mut RequestEvent) -> ResponseResult<()> {
+    let store = store.clone();
 
     move |event| {
         let name = event.get_query().get_name().to_string();
 
-        match zones.read().unwrap().get_deepest_zone(&name) {
+        match store.read().unwrap().get_zone_exact(&name) {
             Some(zone) => {
                 event.set_authoritative(zone.is_authority());
 
