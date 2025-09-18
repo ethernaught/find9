@@ -19,12 +19,21 @@ pub fn chain_cname(zone: &Zone, apex: &str, event: &mut RequestEvent, name: &str
                 return Err(ResponseCodes::ServFail);
             }
 
-            let record = records.get(0).unwrap();
+            let record = records.first().unwrap();
             event.add_answer(&name, record.clone());
             let response = chain_cname(zone, apex, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), depth+1)?;
             Ok(response)
         }
-        None => Ok(name.to_string())
+        None => {
+            /*
+            match zone.get_records("", &RRTypes::Soa) {
+                Some(records) => event.add_authority_record(&apex, records.first().unwrap().clone()),
+                None => return Err(ResponseCodes::Refused)
+            }
+            Err(ResponseCodes::NxDomain)
+            */
+            Ok(name.to_string())
+        }
     }
 
     /*
@@ -36,7 +45,7 @@ pub fn chain_cname(zone: &Zone, apex: &str, event: &mut RequestEvent, name: &str
                         return Err(ResponseCodes::ServFail);
                     }
 
-                    let record = records.get(0).unwrap();
+                    let record = records.first().unwrap();
                     let response = chain_cname(store, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), depth+1)?;
                     event.add_answer(&name, record.clone());
                     Ok(response)
