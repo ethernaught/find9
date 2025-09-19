@@ -10,6 +10,35 @@ use crate::{MAX_ANSWERS, MAX_CNAME_CHAIN_SIZE};
 use crate::dns::dns::ResponseResult;
 use crate::rpc::events::request_event::RequestEvent;
 
+
+/*
+pub fn chain_cname2(zone: &Zone, apex: &str, name: &str, depth: u8) -> ResponseResult<Vec<(String, Box<dyn RecordBase>)> {
+    let sub = fqdn_to_relative(apex, name).unwrap();
+
+    match zone.get_records(&sub, &RRTypes::CName) {
+        Some(records) => {
+            if depth+1 >= MAX_CNAME_CHAIN_SIZE {
+                return Err(ResponseCodes::ServFail);
+            }
+
+            let record = records.first().unwrap();
+            //event.add_answer(&name, record.clone());
+            //let response = chain_cname(zone, apex, event, &record.as_any().downcast_ref::<CNameRecord>().unwrap().get_target().unwrap(), depth+1)?;
+            //Ok(response)
+        }
+        None => {
+            /*
+            match zone.get_records("", &RRTypes::Soa) {
+                Some(records) => event.add_authority_record(&apex, records.first().unwrap().clone()),
+                None => return Err(ResponseCodes::Refused)
+            }
+            Err(ResponseCodes::NxDomain)
+            */
+            Ok(name.to_string())
+        }
+    }
+}
+*/
 pub fn chain_cname(zone: &Zone, apex: &str, event: &mut RequestEvent, name: &str, depth: u8) -> ResponseResult<String> {
     let sub = fqdn_to_relative(apex, name).unwrap();
 
@@ -25,6 +54,7 @@ pub fn chain_cname(zone: &Zone, apex: &str, event: &mut RequestEvent, name: &str
             Ok(response)
         }
         None => {
+            println!("FAIL NONE FOUND");
             /*
             match zone.get_records("", &RRTypes::Soa) {
                 Some(records) => event.add_authority_record(&apex, records.first().unwrap().clone()),
